@@ -15,7 +15,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 1586.2;
+double freq_mhz = 6000;
 int paused = 0;
 
 #define HACKRF_CHECK_STATUS(status, message) \
