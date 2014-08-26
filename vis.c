@@ -15,6 +15,7 @@ GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
 double freq_mhz = 930.7;
+int paused = 0;
 
 #define HACKRF_CHECK_STATUS(status, message) \
     if (status != 0) { \
@@ -151,7 +152,9 @@ static void prepare() {
 }
 
 static void update() {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+    if (!paused) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+    }
 }
 
 static void draw() {
@@ -187,6 +190,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         freq_mhz -= 0.1;
         set_frequency();
+    } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        paused = !paused;
     }
 }
 
