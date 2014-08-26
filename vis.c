@@ -15,7 +15,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 930.7;
+double freq_mhz = 1586.2;
 int paused = 0;
 
 #define HACKRF_CHECK_STATUS(status, message) \
@@ -27,11 +27,11 @@ int paused = 0;
     } \
 
 int receive_sample_block(hackrf_transfer *transfer) {
+    if (paused) return 0;
     for (int i = 0; i < transfer->valid_length; i += 2) {
         buffer[i] = transfer->buffer[i + 1];
         buffer[i + 1] = transfer->buffer[i + 1];
     }
-    //memcpy(buffer, transfer->buffer, transfer->valid_length);
     return 0;
 }
 
@@ -153,15 +153,16 @@ static void prepare() {
 }
 
 static void update() {
-    if (!paused) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
-    }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
 }
 
 static void export() {
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
     png_bytepp row_pointers;
+
+    // We set paused so we don't write to the buffer while saving the file.
+    paused = 1;
 
     // Filename contains the frequency.
     char fname[100];
@@ -170,6 +171,7 @@ static void export() {
     FILE *fp = fopen(fname, "wb");
     if (!fp) {
         printf("ERROR: Could not write open file %s for writing.\n", fname);
+        paused = 0;
         return;
     }
 
@@ -177,14 +179,16 @@ static void export() {
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (png_ptr == NULL) {
         printf("ERROR: png_create_write_struct.\n");
-        return ;
+        paused = 0;
+        return;
     }
 
     info_ptr = png_create_info_struct(png_ptr);
     if (info_ptr == NULL) {
         printf("ERROR: png_create_info_struct.\n");
         png_destroy_write_struct(&png_ptr, NULL);
-        return ;
+        paused = 0;
+        return;
     }
 
     png_set_IHDR(png_ptr, info_ptr,
@@ -209,6 +213,7 @@ static void export() {
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
     printf("Written %s.\n", fname);
+    paused = 0;
 }
 
 static void draw() {
