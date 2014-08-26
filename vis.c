@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <png.h>
 
 #define WIDTH 512
 #define HEIGHT 512
@@ -158,12 +159,56 @@ static void update() {
 }
 
 static void export() {
-    FILE *fp = fopen("out.raw", "wb");
-    if (fp) {
-        fwrite(buffer, 512 * 512, 1, fp);
-        fclose(fp);
-        printf("Written file.\n");
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+    png_bytepp row_pointers;
+
+    // Filename contains the frequency.
+    char fname[100];
+    snprintf(fname, 100, "vis-%.3f.png", freq_mhz);
+
+    FILE *fp = fopen(fname, "wb");
+    if (!fp) {
+        printf("ERROR: Could not write open file %s for writing.\n", fname);
+        return;
     }
+
+    // Init PNG writer.
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL) {
+        printf("ERROR: png_create_write_struct.\n");
+        return ;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL) {
+        printf("ERROR: png_create_info_struct.\n");
+        png_destroy_write_struct(&png_ptr, NULL);
+        return ;
+    }
+
+    png_set_IHDR(png_ptr, info_ptr,
+                 WIDTH, HEIGHT,
+                 8,
+                 PNG_COLOR_TYPE_GRAY,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+    // PNG expects a list of pointers. We just calculate offsets into our buffer.
+    row_pointers = (png_bytepp) png_malloc(png_ptr, HEIGHT * sizeof(png_bytep));
+    for (int y = 0; y < HEIGHT; y++) {
+       row_pointers[y] = buffer + y * WIDTH;
+   }
+
+    // Write out the image data.
+    png_init_io(png_ptr, fp);
+    png_set_rows(png_ptr, info_ptr, row_pointers);
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+    // Cleanup.
+    png_free(png_ptr, row_pointers);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    fclose(fp);
+    printf("Written %s.\n", fname);
 }
 
 static void draw() {
