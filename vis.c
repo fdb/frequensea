@@ -157,6 +157,15 @@ static void update() {
     }
 }
 
+static void export() {
+    FILE *fp = fopen("out.raw", "wb");
+    if (fp) {
+        fwrite(buffer, 512 * 512, 1, fp);
+        fclose(fp);
+        printf("Written file.\n");
+    }
+}
+
 static void draw() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
@@ -192,6 +201,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         set_frequency();
     } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
         paused = !paused;
+    } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        export();
     }
 }
 
