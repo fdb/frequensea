@@ -20,9 +20,9 @@ uint8_t buffer[512 * 512];
 hackrf_device *device;
 double freq_mhz = 6000;
 int paused = 0;
-float camera_x = 95;
-float camera_y = 8;
-float camera_z = -103;
+float camera_x = 0;
+float camera_y = 10;
+float camera_z = -10;
 
 
 
@@ -186,24 +186,25 @@ static void update() {
 
 static void draw() {
     // Draw simple ground plane
-    int ground_size = 10;
-    glColor4f(1, 1, 1, 0.3);
-    glBegin(GL_QUADS);
-    glVertex3f(-ground_size, 0, -ground_size);
-    glVertex3f(-ground_size, 0, ground_size);
-    glVertex3f(ground_size, 0, ground_size);
-    glVertex3f(ground_size, 0, -ground_size);
-    glEnd();
+    // int ground_size = 10;
+    // glColor4f(1, 1, 1, 0.3);
+    // glBegin(GL_QUADS);
+    // glVertex3f(-ground_size, 0, -ground_size);
+    // glVertex3f(-ground_size, 0, ground_size);
+    // glVertex3f(ground_size, 0, ground_size);
+    // glVertex3f(ground_size, 0, -ground_size);
+    // glEnd();
 
     GLdouble vertices[256 * 256 * 3];
-    GLushort indices[255 * 255];
-    GLubyte colors[255 * 255];
+    GLushort indices[255 * 255 * 3];
+    GLubyte colors[255 * 255 * 3];
 
     int vi = 0;
     for (int y = 0; y < 256; y += 1) {
         for (int x = 0; x < 256; x += 1) {
             vertices[vi++] = (x - 128);
-            vertices[vi++] =  sin(x / 5.0) + cos(y / 7.0) * 0.2; // (float) (buffer[(y * 256) + x]) / 100.0; //
+            //vertices[vi++] =  sin(x / 5.0) + cos(y / 7.0) * 0.2;
+            vertices[vi++] = (float) (buffer[(y * 256) + x]) / 100.0;
             vertices[vi++] = (y - 128);
             //printf("%3.1f %3.1f %3.1f\n", points[i-3], points[i-2], points[i-1]);
         }
@@ -213,13 +214,13 @@ static void draw() {
     int ci = 0;
     for (int y = 0; y < 255; y += 1) {
         for (int x = 0; x < 255; x += 1) {
-            indices[ii++] = (y * 255) + x;
-            indices[ii++] = ((y + 1) * 255) + x;
-            indices[ii++] = ((y + 1) * 255) + (x + 1);
+            indices[ii++] = (y * 256) + x;
+            indices[ii++] = ((y + 1) * 256) + x;
+            indices[ii++] = ((y + 1) * 256) + (x + 1);
 
             colors[ci++] = x % 255;
             colors[ci++] = y % 255;
-            colors[ci++] = 50;
+            colors[ci++] = 200;
 
             // indices[ii++] = (y * 256) + x;
             // indices[ii++] = ((y + 1) * 256) + (x + 1);
