@@ -18,10 +18,10 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 6000;
+double freq_mhz = 206;
 int paused = 0;
 float camera_x = 0;
-float camera_y = 10;
+float camera_y = 50;
 float camera_z = -10;
 
 
@@ -37,8 +37,15 @@ float camera_z = -10;
 int receive_sample_block(hackrf_transfer *transfer) {
     if (paused) return 0;
     for (int i = 0; i < transfer->valid_length; i += 2) {
-        buffer[i] = transfer->buffer[i + 1];
-        buffer[i + 1] = transfer->buffer[i + 1];
+        double v = transfer->buffer[i + 1] / 255.0;
+        // if (v <= 0.05) {
+        //     v *= 10.0;
+        // } else if (v >= 0.95) {
+        //     v = 0.5 + (v - 0.95) * 10.0;
+        // }
+        uint8_t vi = (uint8_t) round(v * 255);
+        buffer[i] = vi;
+        buffer[i + 1] = vi;
     }
     return 0;
 }
@@ -66,7 +73,7 @@ static void setup_hackrf() {
     status = hackrf_set_freq(device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(device, 10e6);
+    status = hackrf_set_sample_rate(device, 5e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_sample_rate");
 
     status = hackrf_set_amp_enable(device, 0);
@@ -176,6 +183,29 @@ static void prepare() {
     glLoadIdentity();
     gluLookAt(camera_x, camera_y, camera_z, 0, 0, 0, 0, 1, 0);
     //glTranslatef(camera_x, camera_y, camera_z);
+
+    glShadeModel(GL_FLAT);
+    // glEnable(GL_LIGHTING);
+    // glEnable(GL_COLOR_MATERIAL);
+
+    // glEnable(GL_LIGHT0); 
+    // GLfloat light0_position[] = {10.0, 10.0, 0.0, 1.0}; 
+
+    // GLfloat light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
+    // GLfloat light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+    // GLfloat light0_specular[] = {1.0, 1.0, 1.0, 1.0};
+    // glLightfv(GL_LIGHT1, GL_POSITION, light0_position); 
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient); 
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse); 
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular); 
+
+    // glEnable(GL_LIGHT1);
+    // GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
+
+
+
+
+    //glLight
 }
 
     
@@ -196,8 +226,8 @@ static void draw() {
     // glEnd();
 
     GLdouble vertices[256 * 256 * 3];
-    GLushort indices[255 * 255 * 3];
-    GLubyte colors[255 * 255 * 3];
+    GLushort indices[255 * 255 * 6];
+    GLubyte colors[255 * 255 * 6];
 
     int vi = 0;
     for (int y = 0; y < 256; y += 1) {
@@ -220,15 +250,15 @@ static void draw() {
 
             colors[ci++] = x % 255;
             colors[ci++] = y % 255;
-            colors[ci++] = 200;
+            colors[ci++] = 220;
 
-            // indices[ii++] = (y * 256) + x;
-            // indices[ii++] = ((y + 1) * 256) + (x + 1);
-            // indices[ii++] = (y * 256) + (x + 1);
+            indices[ii++] = (y * 256) + x;
+            indices[ii++] = ((y + 1) * 256) + (x + 1);
+            indices[ii++] = (y * 256) + (x + 1);
 
-            // colors[ci++] = y % 255;
-            // colors[ci++] = x % 255;
-            // colors[ci++] = 100;
+            colors[ci++] = y % 255;
+            colors[ci++] = x % 255;
+            colors[ci++] = 240;
 
         }
     }
@@ -239,7 +269,7 @@ static void draw() {
     glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
     glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
-    glDrawElements(GL_TRIANGLES, 255 * 255 * 2, GL_UNSIGNED_SHORT, indices);
+    glDrawElements(GL_TRIANGLES, 255 * 255 * 6, GL_UNSIGNED_SHORT, indices);
     //glDrawArrays(GL_POINTS, 0, 256 * 256);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
@@ -293,13 +323,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     } else if (key == GLFW_KEY_E && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         camera_y -= 1;
         print_camera_pos();
-        //set_frequency();
     } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         freq_mhz += 1;
-        //set_frequency();
+        set_frequency();
     } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         freq_mhz -= 1;
-        //set_frequency();
+        set_frequency();
     } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
         paused = !paused;
     }
@@ -317,8 +346,8 @@ int main(void) {
     }
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, key_callback);
-    setup_fake();
-    // setup_hackrf();
+    //setup_fake();
+    setup_hackrf();
     setup();
     while (!glfwWindowShouldClose(window)) {
         prepare();
@@ -327,7 +356,7 @@ int main(void) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    //teardown_hackrf();
+    teardown_hackrf();
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
