@@ -18,7 +18,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 200;
+double freq_mhz = 202;
 int paused = 0;
 float camera_x = 0;
 float camera_y = 50;
@@ -36,16 +36,22 @@ float camera_z = -35;
 
 int receive_sample_block(hackrf_transfer *transfer) {
     if (paused) return 0;
-    for (int i = 0; i < transfer->valid_length; i += 2) {
-        double v = transfer->buffer[i + 1] / 255.0;
-        if (v <= 0.05) {
-            v *= 10.0;
-        } else if (v >= 0.95) {
-            v = 0.5 + (v - 0.95) * 10.0;
-        }
+    for (int idx = 0; idx < transfer->valid_length; idx += 2) {
+        double i = transfer->buffer[idx] / 255.0;
+        double q = transfer->buffer[idx + 1] / 255.0;
+        double v = sqrt(i * i + q * q);
+
+
+
+        // double v = transfer->buffer[i + 1] / 255.0;
+        // if (v <= 0.05) {
+        //     v *= 10.0;
+        // } else if (v >= 0.95) {
+        //     v = 0.5 + (v - 0.95) * 10.0;
+        // }
         uint8_t vi = (uint8_t) round(v * 255);
-        buffer[i] = vi;
-        buffer[i + 1] = vi;
+        buffer[idx] = vi;
+        buffer[idx + 1] = vi;
     }
     return 0;
 }
@@ -203,12 +209,12 @@ static void prepare() {
     // glEnable(GL_LIGHT1);
     // GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
 
-    glEnable(GL_FOG);
-    float fog_color[3] = {1.0, 1.0, 0.93};
-    glFogfv(GL_FOG_COLOR, fog_color);
-    glFogi(GL_FOG_MODE, GL_LINEAR);
-    glFogf(GL_FOG_START, 100.f);
-    glFogf(GL_FOG_END, 110.f);
+    // glEnable(GL_FOG);
+    // float fog_color[3] = {1.0, 1.0, 0.93};
+    // glFogfv(GL_FOG_COLOR, fog_color);
+    // glFogi(GL_FOG_MODE, GL_LINEAR);
+    // glFogf(GL_FOG_START, 100.f);
+    // glFogf(GL_FOG_END, 110.f);
 }
 
     
