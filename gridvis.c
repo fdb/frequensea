@@ -18,7 +18,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 206;
+double freq_mhz = 200;
 int paused = 0;
 float camera_x = 0;
 float camera_y = 50;
@@ -38,11 +38,11 @@ int receive_sample_block(hackrf_transfer *transfer) {
     if (paused) return 0;
     for (int i = 0; i < transfer->valid_length; i += 2) {
         double v = transfer->buffer[i + 1] / 255.0;
-        // if (v <= 0.05) {
-        //     v *= 10.0;
-        // } else if (v >= 0.95) {
-        //     v = 0.5 + (v - 0.95) * 10.0;
-        // }
+        if (v <= 0.05) {
+            v *= 10.0;
+        } else if (v >= 0.95) {
+            v = 0.5 + (v - 0.95) * 10.0;
+        }
         uint8_t vi = (uint8_t) round(v * 255);
         buffer[i] = vi;
         buffer[i + 1] = vi;
@@ -342,7 +342,7 @@ int main(void) {
     if (!glfwInit()) {
         exit(EXIT_FAILURE);
     }
-    window = glfwCreateWindow(WIDTH, HEIGHT, "HackRF", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Frequensea", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
