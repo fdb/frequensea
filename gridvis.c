@@ -22,7 +22,7 @@ double freq_mhz = 206;
 int paused = 0;
 float camera_x = 0;
 float camera_y = 50;
-float camera_z = -10;
+float camera_z = -35;
 
 
 
@@ -171,6 +171,7 @@ static void prepare() {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
+    glClearColor(1, 1, 0.93, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -202,10 +203,12 @@ static void prepare() {
     // glEnable(GL_LIGHT1);
     // GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
 
-
-
-
-    //glLight
+    glEnable(GL_FOG);
+    float fog_color[3] = {1.0, 1.0, 0.93};
+    glFogfv(GL_FOG_COLOR, fog_color);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_START, 100.f);
+    glFogf(GL_FOG_END, 110.f);
 }
 
     
