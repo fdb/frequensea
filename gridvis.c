@@ -10,8 +10,8 @@
 #include <png.h>
 #include <OpenGL/glu.h>
 
-#define WIDTH 512
-#define HEIGHT 512
+#define WIDTH 800
+#define HEIGHT 600
 
 GLFWwindow* window;
 GLuint texture_id;
@@ -20,9 +20,9 @@ uint8_t buffer[512 * 512];
 hackrf_device *device;
 double freq_mhz = 202;
 int paused = 0;
-float camera_x = 0;
-float camera_y = 50;
-float camera_z = -35;
+float camera_x = 112;
+float camera_y = 40;
+float camera_z = -50;
 
 
 
@@ -79,7 +79,7 @@ static void setup_hackrf() {
     status = hackrf_set_freq(device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(device, 5e6);
+    status = hackrf_set_sample_rate(device, 8e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_sample_rate");
 
     status = hackrf_set_amp_enable(device, 0);
@@ -243,7 +243,7 @@ static void draw() {
         for (int x = 0; x < 256; x += 1) {
             vertices[vi++] = (x - 128);
             //vertices[vi++] =  sin(x / 5.0) + cos(y / 7.0) * 0.2;
-            vertices[vi++] = (float) (buffer[(y * 256) + x]) / 100.0;
+            vertices[vi++] = (float) (buffer[(y * 256) + x]) / 30.0;
             vertices[vi++] = (y - 128);
             //printf("%3.1f %3.1f %3.1f\n", points[i-3], points[i-2], points[i-1]);
         }
