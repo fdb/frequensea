@@ -13,6 +13,7 @@
 #define WIDTH 800
 #define HEIGHT 600
 
+
 GLFWwindow* window;
 GLuint texture_id;
 GLuint program;
@@ -113,7 +114,7 @@ static void teardown_hackrf() {
     hackrf_exit();
 }
 
-static void check_shader_error(GLuint shader) {
+static void check_shader_error(char *prefix, GLuint shader) {
     int length = 0;
     int charsWritten  = 0;
     char *infoLog;
@@ -123,50 +124,54 @@ static void check_shader_error(GLuint shader) {
     if (length > 0) {
         char message[length];
         glGetShaderInfoLog(shader, length, NULL, message);
-        printf("%s\n", message);
+        printf("%s: %s\n", prefix, message);
+        exit(-1);
     }
 }
 
 static void setup() {
     glEnable(GL_DEPTH_TEST);
-    // glGenTextures(1, &texture_id);
-    // glBindTexture(GL_TEXTURE_2D, texture_id);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    const char *vertex_shader_source = 
+        "#extension GL_EXT_gpu_shader4 : require\n"
+        "\n"
+        "vec4 light_pos = vec4(0, 10, 0, 1);\n"
+        "vec3 light_color = vec3(0.5, 0.5, 5);\n"
+        "vec3 diffuse_reflectivity = vec3(1.0, 0.2, 0.8);\n"
+        "flat varying vec3 color;\n"
+        "\n"
+        "void main(void) {\n"
+        "  vec3 normal_dir = normalize(gl_NormalMatrix * gl_Normal);\n"
+        "  vec4 eye_coords = gl_ModelViewMatrix * gl_Vertex;\n"
+        "  vec3 s = normalize(vec3(light_pos - eye_coords));\n"
+        "  color = light_color * diffuse_reflectivity * max(0.0, dot(s, normal_dir));\n"
+        "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+        //"  normal = vec3(0, 0, 0);"
+        "}\n";
 
-    // const char *vertex_shader_source = 
-    //     "void main(void) {"
-    //     "  gl_TexCoord[0] = gl_MultiTexCoord0;"
-    //     "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-    //     "}";
+    const char *fragment_shader_source = 
+        "#extension GL_EXT_gpu_shader4 : require\n"
+        "\n"
+        "flat varying vec3 color;\n"
+        "\n"
+        "void main(void) {\n"
+        "  gl_FragColor = vec4(color, 0.5);\n"
+        //"  gl_FragColor = vec4(0.5, 0.5, 1, 0.1);"
+        "}\n";
 
-    // const char *fragment_shader_source = 
-    //     "uniform sampler2D texture;"
-    //     "void main(void) {"
-    //     "  vec4 c = texture2D(texture, gl_TexCoord[0].st);"
-    //     "  float v = c.r;"
-    //     "  if (v <= 0.05) {"
-    //     "    v *= 10.0; "
-    //     "  } else if (v >= 0.95) {"
-    //     "    v = 0.5 + (v - 0.95) * 10.0;"
-    //     "  }"
-    //     "  gl_FragColor = vec4(v, v, v, 1);"
-    //     "}";
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
+    glCompileShader(vertex_shader);
+    check_shader_error("V", vertex_shader);
 
-    // GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    // glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-    // glCompileShader(vertex_shader);
-    // check_shader_error(vertex_shader);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
+    glCompileShader(fragment_shader);
+    check_shader_error("F", fragment_shader);
 
-    // GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    // glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-    // glCompileShader(fragment_shader);
-    // check_shader_error(fragment_shader);
-
-    // program = glCreateProgram();
-    // glAttachShader(program, vertex_shader);
-    // glAttachShader(program, fragment_shader);
-    // glLinkProgram(program);
+    program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
 
     // glActiveTexture(0); 
     // GLuint u_texture = glGetUniformLocation(program, "texture");
@@ -192,6 +197,10 @@ static void prepare() {
     //glTranslatef(camera_x, camera_y, camera_z);
 
     glShadeModel(GL_FLAT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
     // glEnable(GL_LIGHTING);
     // glEnable(GL_COLOR_MATERIAL);
 
@@ -273,6 +282,7 @@ static void draw() {
     }
 
     glColor4f(1, 0, 1, 1);
+    glUseProgram(program);
     glPointSize(2);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -282,13 +292,12 @@ static void draw() {
     //glDrawArrays(GL_POINTS, 0, 256 * 256);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
+    glUseProgram(0);
 
 
     // glEnable(GL_TEXTURE_2D);
-    // glEnable(GL_BLEND);
     // glBlendFunc(GL_ONE, GL_SRC_COLOR);
 
-    // glUseProgram(program);
     // glBindTexture(GL_TEXTURE_2D, texture_id);
     // glBegin(GL_QUADS);
     // glTexCoord2f(0.0, 0.0);
