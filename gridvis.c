@@ -19,7 +19,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 202;
+double freq_mhz = 2;
 int paused = 0;
 float camera_x = 112;
 float camera_y = 40;
@@ -204,22 +204,22 @@ static void prepare() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-    // glEnable(GL_LIGHTING);
-    // glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_COLOR_MATERIAL);
 
-    // glEnable(GL_LIGHT0); 
-    // GLfloat light0_position[] = {10.0, 10.0, 0.0, 1.0}; 
+    glEnable(GL_LIGHT0); 
+    GLfloat light0_position[] = {10.0, 10.0, 0.0, 1.0}; 
 
-    // GLfloat light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
-    // GLfloat light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
-    // GLfloat light0_specular[] = {1.0, 1.0, 1.0, 1.0};
-    // glLightfv(GL_LIGHT1, GL_POSITION, light0_position); 
-    // glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient); 
-    // glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse); 
-    // glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular); 
+    GLfloat light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
+    GLfloat light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+    GLfloat light0_specular[] = {1.0, 1.0, 1.0, 1.0};
+    glLightfv(GL_LIGHT1, GL_POSITION, light0_position); 
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient); 
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse); 
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular); 
 
-    // glEnable(GL_LIGHT1);
-    // GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
+    glEnable(GL_LIGHT1);
+    GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
 
     // glEnable(GL_FOG);
     // float fog_color[3] = {1.0, 1.0, 0.93};
@@ -257,7 +257,7 @@ static void draw() {
         for (int x = 0; x < 256; x += 1) {
             vertices[vi++] = (x - 128);
             //vertices[vi++] =  sin(x / 5.0) + cos(y / 7.0) * 10.2;
-            vertices[vi++] = buffer[(y * 256) + x] / 100.0;
+            vertices[vi++] =  buffer[(y * 256) + x] / 100.0;
             vertices[vi++] = (y - 128);
             //printf("%3.1f %3.1f %3.1f\n", points[i-3], points[i-2], points[i-1]);
             normals[ni++] = 0.0;
@@ -291,6 +291,7 @@ static void draw() {
 
     glColor4f(1, 0, 1, 1);
     glUseProgram(program);
+    // glUseProgram(0);
     glPointSize(2);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
