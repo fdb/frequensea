@@ -13,3 +13,5 @@ gridvis: gridvis.c
 batch: batch.c
 	gcc -I /opt/local/include -L /opt/local/lib -o batch batch.c -l hackrf -lpng
 
+fft: fft.c
+	gcc -I /opt/local/include -L /opt/local/lib -o fft fft.c -l hackrf -lpng -lfftw3 -lm -l glfw -framework OpenGL
