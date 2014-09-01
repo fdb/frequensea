@@ -25,6 +25,7 @@ float camera_x = 112;
 float camera_y = 40;
 float camera_z = -50;
 
+#define HAVE_HACKRF
 
 
 #define HACKRF_CHECK_STATUS(status, message) \
@@ -102,10 +103,12 @@ static void setup_hackrf() {
 }
 
 static void set_frequency() {
+    #if defined(HAVE_HACKRF)
     freq_mhz = round(freq_mhz * 1000.0) / 1000.0;
     printf("Seting freq to %f MHz.\n", freq_mhz);
     int status = hackrf_set_freq(device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
+    #endif
 }
 
 static void teardown_hackrf() {
@@ -372,8 +375,11 @@ int main(void) {
     }
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, key_callback);
-    //setup_fake();
-    setup_hackrf();
+    #if defined(HAVE_HACKRF)
+        setup_hackrf();
+    #else
+        setup_fake();
+    #endif
     setup();
     while (!glfwWindowShouldClose(window)) {
         prepare();
@@ -382,7 +388,9 @@ int main(void) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    teardown_hackrf();
+    #if defined(HAVE_HACKRF)
+        teardown_hackrf();
+    #endif
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
