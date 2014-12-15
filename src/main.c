@@ -71,6 +71,15 @@ static int l_nwm_terminate(lua_State *L) {
 
 // Lua NGL wrappers /////////////////////////////////////////////////////////
 
+static int l_ngl_load_shader(lua_State *L) {
+    const char *vertex_fname = lua_tostring(L, 1);
+    const char *fragment_fname = lua_tostring(L, 2);
+
+    GLuint shader = ngl_load_shader(vertex_fname, fragment_fname);
+    lua_pushinteger(L, shader);
+    return 1;
+}
+
 static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_load_obj(fname);
@@ -78,15 +87,6 @@ static int l_ngl_load_obj(lua_State *L) {
     lua_pushliteral(L,"__ptr__");
     lua_pushlightuserdata(L, model);
     lua_settable(L, -3);
-    return 1;
-}
-
-static int l_ngl_load_shader(lua_State *L) {
-    const char *vertex_fname = lua_tostring(L, 1);
-    const char *fragment_fname = lua_tostring(L, 2);
-
-    GLuint shader = ngl_load_shader(vertex_fname, fragment_fname);
-    lua_pushinteger(L, shader);
     return 1;
 }
 
