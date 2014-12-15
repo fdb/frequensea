@@ -7,16 +7,17 @@
 #include <math.h>
 #include <png.h>
 
-#define WIDTH 512
-#define HEIGHT 512
+#define WIDTH 256
+#define HEIGHT 256
 
 GLFWwindow* window;
 GLuint texture_id;
 GLuint program;
-uint8_t buffer[512 * 512];
+GLfloat buffer[WIDTH * HEIGHT];
 hackrf_device *device;
-double freq_mhz = 10;
+double freq_mhz = 124.2;
 int paused = 0;
+float intensity = 0.01;
 
 #define HACKRF_CHECK_STATUS(status, message) \
     if (status != 0) { \
@@ -28,9 +29,24 @@ int paused = 0;
 
 int receive_sample_block(hackrf_transfer *transfer) {
     if (paused) return 0;
+    memset(buffer, 0, sizeof(GLfloat) * WIDTH * HEIGHT);
+    // for (int i = 0; i < WIDTH * HEIGHT; i += 1) {
+    //     buffer[i] = 0;
+    // }
     for (int i = 0; i < transfer->valid_length; i += 2) {
-        buffer[i] = transfer->buffer[i + 1];
-        buffer[i + 1] = transfer->buffer[i + 1];
+
+        int vi = transfer->buffer[i];
+        int vq = transfer->buffer[i + 1];
+
+        vi = (vi + 128) % 256;
+        vq = (vq + 128) % 256;
+        int d = (vq * 256) + vi;
+        float v = buffer[d];
+        v += intensity;
+        v = v < 0 ? 0 : v > 255 ? 255 : v;
+        buffer[d] = v;
+        //buffer[i] = transfer->buffer[i + 1];
+        //buffer[i + 1] = transfer->buffer[i + 1];
     }
     return 0;
 }
@@ -62,7 +78,7 @@ static void setup_hackrf() {
     status = hackrf_start_rx(device, receive_sample_block, NULL);
     HACKRF_CHECK_STATUS(status, "hackrf_start_rx");
 
-    memset(buffer, 0, 512 * 512);
+    //memset(buffer, 0, WIDTH * HEIGHT);
 
     //status = hackrf_set_freq(device, freq_mhz * 1e6);
     //HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
@@ -101,22 +117,17 @@ static void setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    const char *vertex_shader_source = 
+    const char *vertex_shader_source =
         "void main(void) {"
         "  gl_TexCoord[0] = gl_MultiTexCoord0;"
         "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
         "}";
 
-    const char *fragment_shader_source = 
+    const char *fragment_shader_source =
         "uniform sampler2D texture;"
         "void main(void) {"
         "  vec4 c = texture2D(texture, gl_TexCoord[0].st);"
         "  float v = c.r;"
-        "  if (v <= 0.05) {"
-        "    v *= 10.0; "
-        "  } else if (v >= 0.95) {"
-        "    v = 0.5 + (v - 0.95) * 10.0;"
-        "  }"
         "  gl_FragColor = vec4(v, v, v, 1);"
         "}";
 
@@ -135,7 +146,7 @@ static void setup() {
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
 
-    glActiveTexture(0); 
+    glActiveTexture(0);
     GLuint u_texture = glGetUniformLocation(program, "texture");
     glUniform1i(u_texture, texture_id);
 }
@@ -153,7 +164,7 @@ static void prepare() {
 }
 
 static void update() {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RED, GL_FLOAT, buffer);
 }
 
 static void export() {
@@ -253,6 +264,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         paused = !paused;
     } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
         export();
+    } else if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
+        intensity += 0.01;
+        printf("Intensity: %.2f\n", intensity);
+    } else if (key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
+        intensity -= 0.01;
+        printf("Intensity: %.2f\n", intensity);
     }
 }
 
@@ -261,7 +278,7 @@ int main(void) {
     if (!glfwInit()) {
         exit(EXIT_FAILURE);
     }
-    window = glfwCreateWindow(WIDTH, HEIGHT, "HackRF", NULL, NULL);
+    window = glfwCreateWindow(WIDTH * 2, HEIGHT * 2, "HackRF", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);

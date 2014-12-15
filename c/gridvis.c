@@ -19,7 +19,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 2;
+double freq_mhz = 124.2;
 int paused = 0;
 float camera_x = 112;
 float camera_y = 40;
@@ -138,7 +138,7 @@ static void setup() {
         "#extension GL_EXT_gpu_shader4 : require\n"
         "\n"
         "vec4 light_pos = vec4(0, 4, 0, 1);\n"
-        "vec3 light_color = vec3(0.5, 0.5, 5);\n"
+        "vec3 light_color = vec3(1.5, 0.5, 5);\n"
         "vec3 diffuse_reflectivity = vec3(1.0, 1.0, 1.0);\n"
         "flat varying vec3 color;\n"
         "\n"
@@ -157,7 +157,7 @@ static void setup() {
         "flat varying vec3 color;\n"
         "\n"
         "void main(void) {\n"
-        "  gl_FragColor = vec4(color, 0.5);\n"
+        "  gl_FragColor = vec4(color, 0.8);\n"
         //"  gl_FragColor = vec4(0.5, 0.5, 1, 0.1);"
         "}\n";
 
@@ -261,7 +261,7 @@ static void draw() {
             vertices[vi++] = (y - 128);
             //printf("%3.1f %3.1f %3.1f\n", points[i-3], points[i-2], points[i-1]);
             normals[ni++] = 0.0;
-            normals[ni++] = 1;
+            normals[ni++] = 0;
             normals[ni++] = 0.0;
         }
     }
@@ -291,7 +291,7 @@ static void draw() {
 
     glColor4f(1, 0, 1, 1);
     glUseProgram(program);
-    // glUseProgram(0);
+    //glUseProgram(0);
     glPointSize(2);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -299,8 +299,8 @@ static void draw() {
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
     glNormalPointer(GL_DOUBLE, 0, normals);
     glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
-    glDrawElements(GL_TRIANGLES, 255 * 255 * 6, GL_UNSIGNED_SHORT, indices);
-    //glDrawArrays(GL_POINTS, 0, 256 * 256);
+    //glDrawElements(GL_TRIANGLES, 255 * 255 * 6, GL_UNSIGNED_SHORT, indices);
+    glDrawArrays(GL_POINTS, 0, 256 * 256);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);

@@ -1,31 +1,22 @@
-// Perform FFT analysis on HackRF data.
-
 #include <GLFW/glfw3.h>
-#include <libhackrf/hackrf.h>
-#include <fftw3.h>
-
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <libhackrf/hackrf.h>
 #include <unistd.h>
-#include <math.h>
 #include <string.h>
+#include <math.h>
+#include <png.h>
 
 #define WIDTH 512
 #define HEIGHT 512
-#define BUFFER_SIZE (512 * 512)
 
-fftw_complex *fft_in;
-fftw_complex *fft_out;
-fftw_plan fft_plan;
-uint8_t buffer[BUFFER_SIZE];
-hackrf_device *device;
-double freq_mhz = 100.9;
 GLFWwindow* window;
 GLuint texture_id;
 GLuint program;
+uint8_t buffer[512 * 512];
+hackrf_device *device;
+double freq_mhz = 2.5;
 int paused = 0;
-
-// HackRF ///////////////////////////////////////////////////////////////////
 
 #define HACKRF_CHECK_STATUS(status, message) \
     if (status != 0) { \
@@ -37,8 +28,10 @@ int paused = 0;
 
 int receive_sample_block(hackrf_transfer *transfer) {
     if (paused) return 0;
-    memcpy(fft_in, transfer->buffer, BUFFER_SIZE);
-    fftw_execute(fft_plan);
+    for (int i = 0; i < transfer->valid_length; i += 2) {
+        buffer[i] = transfer->buffer[i + 1];
+        buffer[i + 1] = transfer->buffer[i + 1];
+    }
     return 0;
 }
 
@@ -54,7 +47,7 @@ static void setup_hackrf() {
     status = hackrf_set_freq(device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(device, 2.5e6);
+    status = hackrf_set_sample_rate(device, 10e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_sample_rate");
 
     status = hackrf_set_amp_enable(device, 0);
@@ -70,12 +63,9 @@ static void setup_hackrf() {
     HACKRF_CHECK_STATUS(status, "hackrf_start_rx");
 
     memset(buffer, 0, 512 * 512);
-}
 
-static void teardown_hackrf() {
-    hackrf_stop_rx(device);
-    hackrf_close(device);
-    hackrf_exit();
+    //status = hackrf_set_freq(device, freq_mhz * 1e6);
+    //HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 }
 
 static void set_frequency() {
@@ -85,21 +75,11 @@ static void set_frequency() {
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 }
 
-// FFTW /////////////////////////////////////////////////////////////////////
-
-static void setup_fftw() {
-    fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * BUFFER_SIZE);
-    fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * BUFFER_SIZE);
-    fft_plan = fftw_plan_dft_2d(512, 512, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);    
+static void teardown_hackrf() {
+    hackrf_stop_rx(device);
+    hackrf_close(device);
+    hackrf_exit();
 }
-
-static void teardown_fftw() {
-    fftw_destroy_plan(fft_plan);
-    fftw_free(fft_in);
-    fftw_free(fft_out);
-}
-
-// OpenGL ///////////////////////////////////////////////////////////////////
 
 static void check_shader_error(GLuint shader) {
     int length = 0;
@@ -115,7 +95,7 @@ static void check_shader_error(GLuint shader) {
     }
 }
 
-static void setup_gl() {
+static void setup() {
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -173,7 +153,67 @@ static void prepare() {
 }
 
 static void update() {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, fft_out);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+}
+
+static void export() {
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+    png_bytepp row_pointers;
+
+    // We set paused so we don't write to the buffer while saving the file.
+    paused = 1;
+
+    // Filename contains the frequency.
+    char fname[100];
+    snprintf(fname, 100, "vis-%.3f.png", freq_mhz);
+
+    FILE *fp = fopen(fname, "wb");
+    if (!fp) {
+        printf("ERROR: Could not write open file %s for writing.\n", fname);
+        paused = 0;
+        return;
+    }
+
+    // Init PNG writer.
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL) {
+        printf("ERROR: png_create_write_struct.\n");
+        paused = 0;
+        return;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL) {
+        printf("ERROR: png_create_info_struct.\n");
+        png_destroy_write_struct(&png_ptr, NULL);
+        paused = 0;
+        return;
+    }
+
+    png_set_IHDR(png_ptr, info_ptr,
+                 WIDTH, HEIGHT,
+                 8,
+                 PNG_COLOR_TYPE_GRAY,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+    // PNG expects a list of pointers. We just calculate offsets into our buffer.
+    row_pointers = (png_bytepp) png_malloc(png_ptr, HEIGHT * sizeof(png_bytep));
+    for (int y = 0; y < HEIGHT; y++) {
+       row_pointers[y] = buffer + y * WIDTH;
+   }
+
+    // Write out the image data.
+    png_init_io(png_ptr, fp);
+    png_set_rows(png_ptr, info_ptr, row_pointers);
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+    // Cleanup.
+    png_free(png_ptr, row_pointers);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    fclose(fp);
+    printf("Written %s.\n", fname);
+    paused = 0;
 }
 
 static void draw() {
@@ -185,7 +225,7 @@ static void draw() {
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0, 0.0);
-    glVertex2f(0, 0);
+    glVertex2f(0.0, 0);
     glTexCoord2f(1.0, 0.0);
     glVertex2f(WIDTH, 0);
     glTexCoord2f(1.0, 1.0);
@@ -196,18 +236,8 @@ static void draw() {
     glUseProgram(0);
 }
 
-static void teardown_gl() {
-}
-
-// GLFW /////////////////////////////////////////////////////////////////////
-
-static void export() {
-    FILE *fp = fopen("out.raw", "wb");
-    if (fp) {
-        fwrite(fft_out, BUFFER_SIZE, 1, fp);
-        fclose(fp);
-        printf("Written file.\n");
-    }
+static void error_callback(int error, const char* description) {
+    fputs(description, stderr);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -226,7 +256,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
-static void setup_glfw() {
+int main(void) {
+    glfwSetErrorCallback(error_callback);
     if (!glfwInit()) {
         exit(EXIT_FAILURE);
     }
@@ -236,22 +267,9 @@ static void setup_glfw() {
         exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);    
-}
-
-static void teardown_glfw() {
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
-
-// Main /////////////////////////////////////////////////////////////////////
-
-int main(int argc, char **argv) {
-    setup_glfw();
-    setup_fftw();
+    glfwSetKeyCallback(window, key_callback);
     setup_hackrf();
-    setup_gl();
-
+    setup();
     while (!glfwWindowShouldClose(window)) {
         prepare();
         update();
@@ -259,11 +277,8 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    teardown_gl();
     teardown_hackrf();
-    teardown_fftw();
-    teardown_glfw();
-
-    return 0;
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
 }

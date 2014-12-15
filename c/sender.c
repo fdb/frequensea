@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    status = hackrf_set_freq(device, 94.2e6);
+    status = hackrf_set_freq(device, 100.9e6);
     if (status != 0) {
         printf("FAIL: hackrf_set_freq: %d\n", status);
         hackrf_close(device);
