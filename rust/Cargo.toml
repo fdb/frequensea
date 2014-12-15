@@ -1,0 +1,14 @@
+[package]
+name = "frequensea"
+version = "0.0.1"
+authors = ["Frederik De Bleser <frederik@debleser.be>"]
+
+[dependencies.sdl2]
+git = "https://github.com/cristicbz/rust-sdl2"
+branch = "static_to_const"
+
+[dependencies.gl]
+git = "https://github.com/bjz/gl-rs"
+
+[dependencies.toml]
+git = "https://github.com/alexcrichton/toml-rs"

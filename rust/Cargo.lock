@@ -1,0 +1,46 @@
+[root]
+name = "frequensea"
+version = "0.0.1"
+dependencies = [
+ "gl 0.0.1 (git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383)",
+ "sdl2 0.0.1-alpha.1 (git+https://github.com/cristicbz/rust-sdl2?ref=static_to_const#c8c36cb64fe5d4f64bfa96a4ce0d49665753a291)",
+ "toml 0.1.0 (git+https://github.com/alexcrichton/toml-rs#8a3ba4c65cfa22a3d924293a1fb3a70bfac5e66c)",
+]
+
+[[package]]
+name = "gl"
+version = "0.0.1"
+source = "git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383"
+dependencies = [
+ "gl_generator 0.0.1 (git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383)",
+]
+
+[[package]]
+name = "gl_generator"
+version = "0.0.1"
+source = "git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383"
+dependencies = [
+ "khronos_api 0.0.1 (git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383)",
+ "rust-xml 0.1.0 (git+https://github.com/netvl/rust-xml#f86f02b3b1c355080136b0acc322b3318c195cda)",
+]
+
+[[package]]
+name = "khronos_api"
+version = "0.0.1"
+source = "git+https://github.com/bjz/gl-rs#feed7be39546edb7e8781e3fbe5892caa41a5383"
+
+[[package]]
+name = "rust-xml"
+version = "0.1.0"
+source = "git+https://github.com/netvl/rust-xml#f86f02b3b1c355080136b0acc322b3318c195cda"
+
+[[package]]
+name = "sdl2"
+version = "0.0.1-alpha.1"
+source = "git+https://github.com/cristicbz/rust-sdl2?ref=static_to_const#c8c36cb64fe5d4f64bfa96a4ce0d49665753a291"
+
+[[package]]
+name = "toml"
+version = "0.1.0"
+source = "git+https://github.com/alexcrichton/toml-rs#8a3ba4c65cfa22a3d924293a1fb3a70bfac5e66c"
+
