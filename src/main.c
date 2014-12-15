@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -68,9 +70,21 @@ static int l_nwm_terminate(lua_State *L) {
 
 // Main /////////////////////////////////////////////////////////////////////
 
+void usage() {
+    printf("Usage: frequensea FILE.lua\n");
+}
+
 int main(int argc, char **argv) {
     char buff[256];
-    char *fname = "../lua/main.lua";
+    char *fname;
+
+    if (argc != 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+        usage();
+        exit(0);
+    } else {
+        fname = argv[1];
+    }
+
     int error;
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);

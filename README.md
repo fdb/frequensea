@@ -16,4 +16,4 @@ Visualize the frequency spectrum.
 
 ## Running
 
-    ./frequensea
+    ./frequensea ../lua/main.lua
