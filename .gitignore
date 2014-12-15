@@ -9,4 +9,5 @@
 /c/iqvis
 /rust/target
 *.png
+/build
 
