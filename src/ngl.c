@@ -67,7 +67,6 @@ void ngl_check_link_error(GLuint program) {
 
 GLuint ngl_create_shader(const char *vertex_shader_source, const char *fragment_shader_source) {
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    printf("VS %d %s\n", vertex_shader, vertex_shader_source);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
     glCompileShader(vertex_shader);
     ngl_check_compile_error(vertex_shader);
