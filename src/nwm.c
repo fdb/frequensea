@@ -30,6 +30,8 @@ GLFWwindow *nwm_create_window(int width, int height) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
     window = glfwCreateWindow(width, height, "Window", NULL, NULL);
+    assert(window);
+    glfwMakeContextCurrent(window);
     // if (x != 0 || y != 0) {
     //     glfwSetWindowPos(window, x, y);
     // }

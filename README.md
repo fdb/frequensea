@@ -1,6 +1,6 @@
 ## Frequensea
 
-Visualize the frequency spectrum.
+    Visualize the frequency spectrum.
 
 ## Installing dependencies (OS X)
 

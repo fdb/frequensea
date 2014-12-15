@@ -14,6 +14,7 @@ endif (APPLE)
 
 set(SOURCE_FILES
     src/main.c
+    src/nfile.c
     src/ngl.c
     src/noise.c
     src/nwm.c

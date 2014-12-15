@@ -4,6 +4,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
+#include "ngl.h"
 #include "nwm.h"
 
 // Lua utility functions ////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ static int l_nwm_create_window(lua_State *L) {
     GLFWwindow *window = nwm_create_window(width, height);
     lua_newtable(L);
     lua_pushliteral(L,"__ptr__");
-    lua_pushlightuserdata(L,window);
+    lua_pushlightuserdata(L, window);
     lua_settable(L, -3);
     return 1;
 }
@@ -68,6 +69,27 @@ static int l_nwm_terminate(lua_State *L) {
     return 0;
 }
 
+// Lua NGL wrappers /////////////////////////////////////////////////////////
+
+static int l_ngl_load_obj(lua_State *L) {
+    const char *fname = lua_tostring(L, 1);
+    ngl_model *model = ngl_load_obj(fname);
+    lua_newtable(L);
+    lua_pushliteral(L,"__ptr__");
+    lua_pushlightuserdata(L, model);
+    lua_settable(L, -3);
+    return 1;
+}
+
+static int l_ngl_load_shader(lua_State *L) {
+    const char *vertex_fname = lua_tostring(L, 1);
+    const char *fragment_fname = lua_tostring(L, 2);
+
+    GLuint shader = ngl_load_shader(vertex_fname, fragment_fname);
+    lua_pushinteger(L, shader);
+    return 1;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 void usage() {
@@ -96,6 +118,8 @@ int main(int argc, char **argv) {
     l_register_function(L, l_nwm_poll_events, "nwm_poll_events");
     l_register_function(L, l_nwm_swap_buffers, "nwm_swap_buffers");
     l_register_function(L, l_nwm_terminate, "nwm_terminate");
+    l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
+    l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
