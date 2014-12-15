@@ -1,12 +1,92 @@
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
 #include "nwm.h"
 
-int main(int argc, char **argv) {
+// Lua utility functions ////////////////////////////////////////////////////
+
+static GLFWwindow* l_to_window(lua_State *L, int i) {
+    lua_pushliteral(L,"__ptr__");
+    lua_gettable(L, i);
+    GLFWwindow * window=(GLFWwindow *)lua_touserdata(L,-1);
+    lua_pop(L, 1);
+    return window;
+}
+
+static void l_register_function(lua_State *L, void *func, const char *name) {
+    lua_pushcfunction(L, func);
+    lua_setglobal(L, name);
+}
+
+// Lua NWM wrappers /////////////////////////////////////////////////////////
+
+static int l_nwm_init(lua_State *L) {
     nwm_init();
-    GLFWwindow *window = nwm_create_window(800, 600);
-    while (!nwm_window_should_close(window)) {
-        nwm_poll_events();
-        nwm_swap_buffers(window);
-    }
+    return 0;
+}
+
+static int l_nwm_create_window(lua_State *L) {
+    int width = luaL_checkint(L, 1);
+    int height = luaL_checkint(L, 2);
+
+    GLFWwindow *window = nwm_create_window(width, height);
+    lua_newtable(L);
+    lua_pushliteral(L,"__ptr__");
+    lua_pushlightuserdata(L,window);
+    lua_settable(L, -3);
+    return 1;
+}
+
+static int l_nwm_destroy_window(lua_State *L) {
+    GLFWwindow *window = l_to_window(L, 1);
     nwm_destroy_window(window);
+    return 0;
+}
+
+static int l_nwm_window_should_close(lua_State *L) {
+    int b = nwm_window_should_close(l_to_window(L, 1));
+    lua_pushboolean(L, b);
+    return 1;
+}
+
+static int l_nwm_poll_events(lua_State *L) {
+    nwm_poll_events();
+    return 0;
+}
+
+static int l_nwm_swap_buffers(lua_State *L) {
+    GLFWwindow *window = l_to_window(L, 1);
+    nwm_swap_buffers(window);
+    return 0;
+}
+
+static int l_nwm_terminate(lua_State *L) {
     nwm_terminate();
+    return 0;
+}
+
+// Main /////////////////////////////////////////////////////////////////////
+
+int main(int argc, char **argv) {
+    char buff[256];
+    char *fname = "../lua/main.lua";
+    int error;
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    l_register_function(L, l_nwm_init, "nwm_init");
+    l_register_function(L, l_nwm_create_window, "nwm_create_window");
+    l_register_function(L, l_nwm_destroy_window, "nwm_destroy_window");
+    l_register_function(L, l_nwm_window_should_close, "nwm_window_should_close");
+    l_register_function(L, l_nwm_poll_events, "nwm_poll_events");
+    l_register_function(L, l_nwm_swap_buffers, "nwm_swap_buffers");
+    l_register_function(L, l_nwm_terminate, "nwm_terminate");
+
+    error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
+    if (error) {
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+    lua_close(L);
 }

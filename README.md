@@ -2,12 +2,10 @@
 
 Visualize the frequency spectrum.
 
-
 ## Installing dependencies (OS X)
 
     brew update
-    brew install glfw3
-
+    brew install glfw3 lua
 
 ## Building
 
