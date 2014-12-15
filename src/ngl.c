@@ -76,7 +76,7 @@ void ngl_check_link_error(GLuint program) {
     }
 }
 
-GLuint ngl_create_shader(const char *vertex_shader_source, const char *fragment_shader_source) {
+ngl_shader *ngl_create_shader(const char *vertex_shader_source, const char *fragment_shader_source) {
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
     glCompileShader(vertex_shader);
@@ -96,27 +96,39 @@ GLuint ngl_create_shader(const char *vertex_shader_source, const char *fragment_
     ngl_check_link_error(program);
     NGL_CHECK_ERROR();
 
-    return program;
+    ngl_shader *shader = malloc(sizeof(ngl_shader));
+    shader->program = program;
+    shader->time_uniform = glGetUniformLocation(program, "uTime");
+    shader->view_matrix_uniform = glGetUniformLocation(program, "uViewMatrix");
+    shader->projection_matrix_uniform = glGetUniformLocation(program, "uProjectionMatrix");
+
+    return shader;
 }
 
-GLuint ngl_load_shader(const char *vertex_fname, const char *fragment_fname) {
+ngl_shader *ngl_load_shader(const char *vertex_fname, const char *fragment_fname) {
     char *vertex_shader_source = nfile_read(vertex_fname);
     char *fragment_shader_source = nfile_read(fragment_fname);
-    GLuint shader = ngl_create_shader(vertex_shader_source, fragment_shader_source);
+    ngl_shader *shader = ngl_create_shader(vertex_shader_source, fragment_shader_source);
     free(vertex_shader_source);
     free(fragment_shader_source);
     return shader;
 }
 
-void ngl_delete_shader(GLuint program) {
-    glDeleteProgram(program);
+void ngl_delete_shader(ngl_shader *shader) {
+    glDeleteProgram(shader->program);
     NGL_CHECK_ERROR();
+    free(shader);
 }
 
 // OBJ Models ////////////////////////////////////////////////////////////////
 
 ngl_model* ngl_load_obj(const char* fname) {
     ngl_model *model = malloc(sizeof(ngl_model));
+
+    mat4 identity = mat4_init_identity();
+    mat4 *transform = malloc(sizeof(mat4));
+    mat4_set(transform, &identity);
+    model->transform = transform;
 
     static float *points;
     static float *normals;
@@ -135,6 +147,7 @@ ngl_model* ngl_load_obj(const char* fname) {
     NGL_CHECK_ERROR();
 
     // Vertex array object
+    // FIXME glUseProgram?
     glGenVertexArrays(1, &model->vao);
     glBindVertexArray(model->vao);
     glEnableVertexAttribArray(0);
@@ -146,4 +159,35 @@ ngl_model* ngl_load_obj(const char* fname) {
     NGL_CHECK_ERROR();
 
     return model;
+}
+
+// Model drawing /////////////////////////////////////////////////////////////
+
+void ngl_draw_model(ngl_model* model, ngl_shader *shader) {
+    vec3 camera = vec3_init(-20.0f, 18.0f, 50.0f);
+    vec3 target = vec3_zero();
+    vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
+    mat4 v = mat4_init_look_at(&camera, &target, &up);
+    mat4 p = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
+    mat4 mv = mat4_mul(model->transform, &v);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glUseProgram(shader->program);
+    NGL_CHECK_ERROR();
+    // glUniform1f(shader->time_uniform, time);
+    // NGL_CHECK_ERROR();
+    glUniformMatrix4fv(shader->view_matrix_uniform, 1, GL_FALSE, (GLfloat *)&mv.m);
+    NGL_CHECK_ERROR();
+    glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&p.m);
+    NGL_CHECK_ERROR();
+    glBindVertexArray(model->vao);
+    NGL_CHECK_ERROR();
+    glDrawArrays(GL_TRIANGLES, 0, model->face_count * 3);
+    NGL_CHECK_ERROR();
+
+    glBindVertexArray(0);
+    NGL_CHECK_ERROR();
+    glUseProgram(0);
+    NGL_CHECK_ERROR();
 }

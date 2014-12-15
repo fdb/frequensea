@@ -32,6 +32,7 @@ GLFWwindow *nwm_create_window(int width, int height) {
     window = glfwCreateWindow(width, height, "Window", NULL, NULL);
     assert(window);
     glfwMakeContextCurrent(window);
+    glEnable(GL_DEPTH_TEST);
     // if (x != 0 || y != 0) {
     //     glfwSetWindowPos(window, x, y);
     // }

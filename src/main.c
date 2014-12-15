@@ -6,15 +6,32 @@
 
 #include "ngl.h"
 #include "nwm.h"
+#include "vec.h"
 
 // Lua utility functions ////////////////////////////////////////////////////
 
 static GLFWwindow* l_to_window(lua_State *L, int i) {
     lua_pushliteral(L,"__ptr__");
     lua_gettable(L, i);
-    GLFWwindow * window=(GLFWwindow *)lua_touserdata(L,-1);
+    GLFWwindow *window = (GLFWwindow*) lua_touserdata(L, -1);
     lua_pop(L, 1);
     return window;
+}
+
+static ngl_model* l_to_ngl_model(lua_State *L, int i) {
+    lua_pushliteral(L,"__ptr__");
+    lua_gettable(L, i);
+    ngl_model *model = (ngl_model*) lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return model;
+}
+
+static ngl_shader* l_to_ngl_shader(lua_State *L, int i) {
+    lua_pushliteral(L,"__ptr__");
+    lua_gettable(L, i);
+    ngl_shader *shader = (ngl_shader*) lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return shader;
 }
 
 static void l_register_function(lua_State *L, void *func, const char *name) {
@@ -84,8 +101,11 @@ static int l_ngl_load_shader(lua_State *L) {
     const char *vertex_fname = lua_tostring(L, 1);
     const char *fragment_fname = lua_tostring(L, 2);
 
-    GLuint shader = ngl_load_shader(vertex_fname, fragment_fname);
-    lua_pushinteger(L, shader);
+    ngl_shader *shader = ngl_load_shader(vertex_fname, fragment_fname);
+    lua_newtable(L);
+    lua_pushliteral(L, "__ptr__");
+    lua_pushlightuserdata(L, shader);
+    lua_settable(L, -3);
     return 1;
 }
 
@@ -93,10 +113,17 @@ static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_load_obj(fname);
     lua_newtable(L);
-    lua_pushliteral(L,"__ptr__");
+    lua_pushliteral(L, "__ptr__");
     lua_pushlightuserdata(L, model);
     lua_settable(L, -3);
     return 1;
+}
+
+static int l_ngl_draw_model(lua_State *L) {
+    ngl_model* model = l_to_ngl_model(L, 1);
+    ngl_shader *shader = l_to_ngl_shader(L, 2);
+    ngl_draw_model(model, shader);
+    return 0;
 }
 
 // Main /////////////////////////////////////////////////////////////////////
@@ -130,6 +157,7 @@ int main(int argc, char **argv) {
     l_register_function(L, l_ngl_clear, "ngl_clear");
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
     l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
+    l_register_function(L, l_ngl_draw_model, "ngl_draw_model");
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
