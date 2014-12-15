@@ -8,6 +8,8 @@
 
 #include "ngl.h"
 
+// Error checking ////////////////////////////////////////////////////////////
+
 void ngl_check_gl_error(const char *file, int line) {
     GLenum err = glGetError();
     int has_error = 0;
@@ -40,6 +42,8 @@ void ngl_check_gl_error(const char *file, int line) {
         exit(-1);
     }
 }
+
+// Shaders ///////////////////////////////////////////////////////////////////
 
 void ngl_check_compile_error(GLuint shader) {
     const int LOG_MAX_LENGTH = 2048;
@@ -101,6 +105,8 @@ void ngl_delete_shader(GLuint program) {
     glDeleteProgram(program);
     NGL_CHECK_ERROR();
 }
+
+// OBJ Models ////////////////////////////////////////////////////////////////
 
 ngl_model* ngl_load_obj(const char* fname) {
     ngl_model *model = malloc(sizeof(ngl_model));
