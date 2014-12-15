@@ -71,6 +71,15 @@ static int l_nwm_terminate(lua_State *L) {
 
 // Lua NGL wrappers /////////////////////////////////////////////////////////
 
+static int l_ngl_clear(lua_State *L) {
+    float red = luaL_checknumber(L, 1);
+    float green = luaL_checknumber(L, 2);
+    float blue = luaL_checknumber(L, 3);
+    float alpha = luaL_checknumber(L, 4);
+    ngl_clear(red, green, blue, alpha);
+    return 0;
+}
+
 static int l_ngl_load_shader(lua_State *L) {
     const char *vertex_fname = lua_tostring(L, 1);
     const char *fragment_fname = lua_tostring(L, 2);
@@ -118,8 +127,9 @@ int main(int argc, char **argv) {
     l_register_function(L, l_nwm_poll_events, "nwm_poll_events");
     l_register_function(L, l_nwm_swap_buffers, "nwm_swap_buffers");
     l_register_function(L, l_nwm_terminate, "nwm_terminate");
-    l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
+    l_register_function(L, l_ngl_clear, "ngl_clear");
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
+    l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {

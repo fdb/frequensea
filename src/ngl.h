@@ -17,7 +17,7 @@ typedef struct {
 
 void ngl_check_gl_error(const char *file, int line);
 #define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
-
+void ngl_clear(float red, float green, float blue, float alpha);
 void ngl_check_compile_error(GLuint shader);
 void ngl_check_link_error(GLuint program);
 GLuint ngl_create_shader(const char *vertex_shader_source, const char *fragment_shader_source);
