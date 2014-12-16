@@ -5,6 +5,7 @@
 #include <lualib.h>
 
 #include "ngl.h"
+#include "nrf.h"
 #include "nwm.h"
 #include "vec.h"
 
@@ -155,6 +156,19 @@ static int l_ngl_draw_model(lua_State *L) {
     return 0;
 }
 
+// Lua NRF wrappers /////////////////////////////////////////////////////////
+
+static int l_nrf_start(lua_State *L) {
+    double freq_mhz = luaL_checknumber(L, 1);
+    nrf_start(freq_mhz);
+    return 0;
+}
+
+static int l_nrf_stop(lua_State *L) {
+    nrf_stop();
+    return 0;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 void usage() {
@@ -188,6 +202,8 @@ int main(int argc, char **argv) {
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
     l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
     l_register_function(L, l_ngl_draw_model, "ngl_draw_model");
+    l_register_function(L, l_nrf_start, "nrf_start");
+    l_register_function(L, l_nrf_stop, "nrf_stop");
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {

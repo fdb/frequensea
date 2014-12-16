@@ -9,7 +9,8 @@ if (APPLE)
     find_library(FRAMEWORK_IO_KIT IOKit)
     find_library(LIBRARY_GLFW glfw3)
     find_library(LIBRARY_LUA lua)
-    set(EXTRA_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW} ${LIBRARY_LUA})
+    find_library(LIBRARY_HACKRF hackrf)
+    set(EXTRA_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW} ${LIBRARY_LUA} ${LIBRARY_HACKRF})
 endif (APPLE)
 
 set(SOURCE_FILES
@@ -17,6 +18,7 @@ set(SOURCE_FILES
     src/nfile.c
     src/ngl.c
     src/noise.c
+    src/nrf.c
     src/nwm.c
     src/obj.c
     src/vec.c)
