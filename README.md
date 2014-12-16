@@ -5,7 +5,7 @@
 ## Installing dependencies (OS X)
 
     brew update
-    brew install glfw3 lua
+    brew install cmake glfw3 lua
 
 ## Building
 
