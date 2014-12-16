@@ -125,10 +125,7 @@ void ngl_delete_shader(ngl_shader *shader) {
 ngl_model* ngl_load_obj(const char* fname) {
     ngl_model *model = malloc(sizeof(ngl_model));
 
-    mat4 identity = mat4_init_identity();
-    mat4 *transform = malloc(sizeof(mat4));
-    mat4_set(transform, &identity);
-    model->transform = transform;
+    model->transform = mat4_init_identity();
 
     static float *points;
     static float *normals;
@@ -169,7 +166,7 @@ void ngl_draw_model(ngl_model* model, ngl_shader *shader) {
     vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
     mat4 v = mat4_init_look_at(&camera, &target, &up);
     mat4 p = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
-    mat4 mv = mat4_mul(model->transform, &v);
+    mat4 mv = mat4_mul(&model->transform, &v);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);

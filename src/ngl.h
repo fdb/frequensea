@@ -15,7 +15,7 @@ typedef struct {
     GLuint position_vbo;
     GLuint normal_vbo;
     GLuint vao;
-    mat4 *transform;
+    mat4 transform;
 } ngl_model;
 
 typedef struct {
