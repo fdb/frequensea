@@ -18,6 +18,14 @@ static GLFWwindow* l_to_window(lua_State *L, int i) {
     return window;
 }
 
+static ngl_camera* l_to_ngl_camera(lua_State *L, int i) {
+    lua_pushliteral(L,"__ptr__");
+    lua_gettable(L, i);
+    ngl_camera *camera = (ngl_camera*) lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return camera;
+}
+
 static ngl_model* l_to_ngl_model(lua_State *L, int i) {
     lua_pushliteral(L,"__ptr__");
     lua_gettable(L, i);
@@ -97,6 +105,26 @@ static int l_ngl_clear(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_new_camera(lua_State *L) {
+    float camera_x = luaL_checknumber(L, 1);
+    float camera_y = luaL_checknumber(L, 2);
+    float camera_z = luaL_checknumber(L, 3);
+    ngl_camera *camera = malloc(sizeof(ngl_camera));
+    vec3 loc = vec3_init(camera_x, camera_y, camera_z);
+    vec3 target = vec3_zero();
+    vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
+    camera->transform = mat4_init_look_at(&loc, &target, &up);
+    camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
+    camera->background = ngl_color_init_rgba(0, 0, 1, 1);
+
+    lua_newtable(L);
+    lua_pushliteral(L, "__ptr__");
+    lua_pushlightuserdata(L, camera);
+    lua_settable(L, -3);
+
+    return 1;
+}
+
 static int l_ngl_load_shader(lua_State *L) {
     const char *vertex_fname = lua_tostring(L, 1);
     const char *fragment_fname = lua_tostring(L, 2);
@@ -120,9 +148,10 @@ static int l_ngl_load_obj(lua_State *L) {
 }
 
 static int l_ngl_draw_model(lua_State *L) {
-    ngl_model* model = l_to_ngl_model(L, 1);
-    ngl_shader *shader = l_to_ngl_shader(L, 2);
-    ngl_draw_model(model, shader);
+    ngl_camera* camera = l_to_ngl_camera(L, 1);
+    ngl_model* model = l_to_ngl_model(L, 2);
+    ngl_shader *shader = l_to_ngl_shader(L, 3);
+    ngl_draw_model(camera, model, shader);
     return 0;
 }
 
@@ -155,6 +184,7 @@ int main(int argc, char **argv) {
     l_register_function(L, l_nwm_swap_buffers, "nwm_swap_buffers");
     l_register_function(L, l_nwm_terminate, "nwm_terminate");
     l_register_function(L, l_ngl_clear, "ngl_clear");
+    l_register_function(L, l_ngl_new_camera, "ngl_new_camera");
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
     l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
     l_register_function(L, l_ngl_draw_model, "ngl_draw_model");

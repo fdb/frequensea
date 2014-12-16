@@ -43,6 +43,17 @@ void ngl_check_gl_error(const char *file, int line) {
     }
 }
 
+// Color /////////////////////////////////////////////////////////////////////
+
+ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha) {
+    ngl_color c;
+    c.red = red;
+    c.green = green;
+    c.blue = blue;
+    c.alpha = alpha;
+    return c;
+}
+
 // Background ////////////////////////////////////////////////////////////////
 
 void ngl_clear(float red, float green, float blue, float alpha) {
@@ -160,13 +171,10 @@ ngl_model* ngl_load_obj(const char* fname) {
 
 // Model drawing /////////////////////////////////////////////////////////////
 
-void ngl_draw_model(ngl_model* model, ngl_shader *shader) {
-    vec3 camera = vec3_init(-20.0f, 18.0f, 50.0f);
-    vec3 target = vec3_zero();
-    vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
-    mat4 v = mat4_init_look_at(&camera, &target, &up);
-    mat4 p = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
-    mat4 mv = mat4_mul(&model->transform, &v);
+void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
+    mat4 view = camera->transform;
+    mat4 projection = camera->projection;
+    mat4 mv = mat4_mul(&model->transform, &view);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -176,7 +184,7 @@ void ngl_draw_model(ngl_model* model, ngl_shader *shader) {
     // NGL_CHECK_ERROR();
     glUniformMatrix4fv(shader->view_matrix_uniform, 1, GL_FALSE, (GLfloat *)&mv.m);
     NGL_CHECK_ERROR();
-    glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&p.m);
+    glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&projection.m);
     NGL_CHECK_ERROR();
     glBindVertexArray(model->vao);
     NGL_CHECK_ERROR();

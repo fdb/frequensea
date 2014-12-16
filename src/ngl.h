@@ -11,6 +11,13 @@
 #include "vec.h"
 
 typedef struct {
+    float red;
+    float green;
+    float blue;
+    float alpha;
+} ngl_color;
+
+typedef struct {
     int face_count;
     GLuint position_vbo;
     GLuint normal_vbo;
@@ -25,8 +32,15 @@ typedef struct {
     GLint projection_matrix_uniform;
 } ngl_shader;
 
+typedef struct {
+    mat4 transform;
+    mat4 projection;
+    ngl_color background;
+} ngl_camera;
+
 void ngl_check_gl_error(const char *file, int line);
 #define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
+ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha);
 void ngl_clear(float red, float green, float blue, float alpha);
 void ngl_check_compile_error(GLuint shader);
 void ngl_check_link_error(GLuint program);
@@ -34,6 +48,6 @@ ngl_shader *ngl_create_shader(const char *vertex_shader_source, const char *frag
 ngl_shader *ngl_load_shader(const char *vertex_fname, const char *fragment_fname);
 void ngl_delete_shader(ngl_shader *shader);
 ngl_model* ngl_load_obj(const char* fname);
-void ngl_draw_model(ngl_model* model, ngl_shader *shader);
+void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);
 
 #endif // NGL_H
