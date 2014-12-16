@@ -17,3 +17,8 @@
 ## Running
 
     ./frequensea ../lua/main.lua
+
+
+## Build and Run
+
+    make && ./frequensea ../lua/main.lua
