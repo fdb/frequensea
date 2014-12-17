@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(frequensea)
 
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
+
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
     find_library(FRAMEWORK_COCOA Cocoa)
