@@ -153,7 +153,6 @@ static int l_ngl_model_init_positions(lua_State *L) {
     return  1;
 }
 
-
 static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_load_obj(fname);
@@ -232,8 +231,6 @@ int main(int argc, char **argv) {
     l_register_constant(L, "GL_LINES", GL_LINES);
     l_register_constant(L, "GL_TRIANGLE_STRIP", GL_TRIANGLE_STRIP);
     l_register_constant(L, "GL_TRIANGLE_FAN", GL_TRIANGLE_FAN);
-    l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
-    l_register_constant(L, "GL_LINE_STRIP", GL_LINE_STRIP);
     l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
     l_register_constant(L, "GL_PATCHES", GL_PATCHES);
 
