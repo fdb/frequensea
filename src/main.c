@@ -58,7 +58,7 @@ static nrf_device* l_to_nrf_device(lua_State *L, int index) {
     return (nrf_device*) l_from_table(L, "nrf_device", index);
 }
 
-static void l_register_function(lua_State *L, lua_CFunction fn, const char *name) {
+static void l_register_function(lua_State *L, const char *name, lua_CFunction fn) {
     lua_pushcfunction(L, fn);
     lua_setglobal(L, name);
 }
@@ -208,21 +208,21 @@ int main(int argc, char **argv) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
-    l_register_function(L, l_nwm_init, "nwm_init");
-    l_register_function(L, l_nwm_create_window, "nwm_create_window");
-    l_register_function(L, l_nwm_destroy_window, "nwm_destroy_window");
-    l_register_function(L, l_nwm_window_should_close, "nwm_window_should_close");
-    l_register_function(L, l_nwm_frame_begin, "nwm_frame_begin");
-    l_register_function(L, l_nwm_frame_end, "nwm_frame_end");
-    l_register_function(L, l_nwm_terminate, "nwm_terminate");
-    l_register_function(L, l_ngl_clear, "ngl_clear");
-    l_register_function(L, l_ngl_camera_init_look_at, "ngl_camera_init_look_at");
-    l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
-    l_register_function(L, l_ngl_model_init_positions, "ngl_model_init_positions");
-    l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
-    l_register_function(L, l_ngl_draw_model, "ngl_draw_model");
-    l_register_function(L, l_nrf_start, "nrf_start");
-    l_register_function(L, l_nrf_stop, "nrf_stop");
+    l_register_function(L, "nwm_init", l_nwm_init);
+    l_register_function(L, "nwm_create_window", l_nwm_create_window);
+    l_register_function(L, "nwm_destroy_window", l_nwm_destroy_window);
+    l_register_function(L, "nwm_window_should_close", l_nwm_window_should_close);
+    l_register_function(L, "nwm_frame_begin", l_nwm_frame_begin);
+    l_register_function(L, "nwm_frame_end", l_nwm_frame_end);
+    l_register_function(L, "nwm_terminate", l_nwm_terminate);
+    l_register_function(L, "ngl_clear", l_ngl_clear);
+    l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
+    l_register_function(L, "ngl_load_shader", l_ngl_load_shader);
+    l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
+    l_register_function(L, "ngl_load_obj", l_ngl_load_obj);
+    l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "nrf_start", l_nrf_start);
+    l_register_function(L, "nrf_stop", l_nrf_stop);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "GL_POINTS", GL_POINTS);
