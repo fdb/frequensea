@@ -74,7 +74,7 @@ static int l_nwm_create_window(lua_State *L) {
     int height = luaL_checkint(L, 2);
 
     GLFWwindow *window = nwm_create_window(width, height);
-    l_to_table(L, "nrf_window", window);
+    l_to_table(L, "nwm_window", window);
     return 1;
 }
 
