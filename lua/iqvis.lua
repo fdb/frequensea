@@ -1,6 +1,6 @@
 -- Visualize IQ data from the HackRF
 nwm_init()
-nrf_start(100.9)
+device = nrf_start(100.9)
 window = nwm_create_window(800, 600)
 
 while not nwm_window_should_close(window) do
@@ -10,6 +10,6 @@ while not nwm_window_should_close(window) do
     nwm_swap_buffers(window)
 end
 
-nrf_stop()
+nrf_stop(device)
 nwm_destroy_window(window)
 nwm_terminate()
