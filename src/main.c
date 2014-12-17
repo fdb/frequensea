@@ -23,6 +23,7 @@ static void l_to_table(lua_State *L, char *type, void *obj) {
 }
 
 static void* l_from_table(lua_State *L, char *type, int index) {
+    luaL_checktype(L, index, LUA_TTABLE);
     lua_pushliteral(L, "__type__");
     lua_gettable(L, index);
     const char *table_type = lua_tostring(L, -1);
