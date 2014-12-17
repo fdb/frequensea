@@ -3,8 +3,8 @@ nwm_init()
 device = nrf_start(204.0)
 window = nwm_create_window(800, 600)
 
-camera = ngl_new_camera(0, 0, 0) -- Shader ignores camera position
-shader = ngl_load_shader(GL_LINE_LOOP, "../shader/lines.vert", "../shader/lines.frag")
+camera = ngl_camera_init_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
+shader = ngl_load_shader(GL_LINE_STRIP, "../shader/lines.vert", "../shader/lines.frag")
 
 while not nwm_window_should_close(window) do
     nwm_frame_begin(window)

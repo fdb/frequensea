@@ -123,20 +123,12 @@ static int l_ngl_clear(lua_State *L) {
     return 0;
 }
 
-static int l_ngl_new_camera(lua_State *L) {
+static int l_ngl_camera_init_look_at(lua_State *L) {
     float camera_x = luaL_checknumber(L, 1);
     float camera_y = luaL_checknumber(L, 2);
     float camera_z = luaL_checknumber(L, 3);
-    ngl_camera *camera = malloc(sizeof(ngl_camera));
-    vec3 loc = vec3_init(camera_x, camera_y, camera_z);
-    vec3 target = vec3_zero();
-    vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
-    camera->transform = mat4_init_look_at(&loc, &target, &up);
-    camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
-    camera->background = ngl_color_init_rgba(0, 0, 1, 1);
-
+    ngl_camera *camera = ngl_camera_init_look_at(camera_x, camera_y, camera_z);
     l_to_table(L, "ngl_camera", camera);
-
     return 1;
 }
 
@@ -225,7 +217,7 @@ int main(int argc, char **argv) {
     l_register_function(L, l_nwm_frame_end, "nwm_frame_end");
     l_register_function(L, l_nwm_terminate, "nwm_terminate");
     l_register_function(L, l_ngl_clear, "ngl_clear");
-    l_register_function(L, l_ngl_new_camera, "ngl_new_camera");
+    l_register_function(L, l_ngl_camera_init_look_at, "ngl_camera_init_look_at");
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
     l_register_function(L, l_ngl_model_init_positions, "ngl_model_init_positions");
     l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
