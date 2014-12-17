@@ -11,40 +11,54 @@
 
 // Lua utility functions ////////////////////////////////////////////////////
 
-static GLFWwindow* l_to_window(lua_State *L, int i) {
-    lua_pushliteral(L,"__ptr__");
-    lua_gettable(L, i);
-    GLFWwindow *window = (GLFWwindow*) lua_touserdata(L, -1);
-    lua_pop(L, 1);
-    return window;
+
+static void l_to_table(lua_State *L, char *type, void *obj) {
+    lua_newtable(L);
+    lua_pushliteral(L, "__type__");
+    lua_pushstring(L, type);
+    lua_settable(L, -3);
+    lua_pushliteral(L, "__ptr__");
+    lua_pushlightuserdata(L, obj);
+    lua_settable(L, -3);
 }
 
-static ngl_camera* l_to_ngl_camera(lua_State *L, int i) {
-    lua_pushliteral(L,"__ptr__");
-    lua_gettable(L, i);
-    ngl_camera *camera = (ngl_camera*) lua_touserdata(L, -1);
-    lua_pop(L, 1);
-    return camera;
+static void* l_from_table(lua_State *L, char *type, int index) {
+    lua_pushliteral(L, "__type__");
+    lua_gettable(L, index);
+    const char *table_type = lua_tostring(L, -1);
+    if (strcmp(type, table_type) == 0) {
+        lua_pushliteral(L, "__ptr__");
+        lua_gettable(L, index);
+        void *data = lua_touserdata(L, -1);
+        return data;
+    } else {
+        fprintf(stderr, "Lua: invalid type for param %d: expected %s, was %s\n", index, type, table_type);
+        exit(-1);
+    }
 }
 
-static ngl_model* l_to_ngl_model(lua_State *L, int i) {
-    lua_pushliteral(L,"__ptr__");
-    lua_gettable(L, i);
-    ngl_model *model = (ngl_model*) lua_touserdata(L, -1);
-    lua_pop(L, 1);
-    return model;
+static GLFWwindow* l_to_window(lua_State *L, int index) {
+    return (GLFWwindow*) l_from_table(L, "nwm_window", index);
 }
 
-static ngl_shader* l_to_ngl_shader(lua_State *L, int i) {
-    lua_pushliteral(L,"__ptr__");
-    lua_gettable(L, i);
-    ngl_shader *shader = (ngl_shader*) lua_touserdata(L, -1);
-    lua_pop(L, 1);
-    return shader;
+static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
+    return (ngl_camera*) l_from_table(L, "ngl_camera", index);
 }
 
-static void l_register_function(lua_State *L, void *func, const char *name) {
-    lua_pushcfunction(L, func);
+static ngl_model* l_to_ngl_model(lua_State *L, int index) {
+    return (ngl_model*) l_from_table(L, "ngl_model", index);
+}
+
+static ngl_shader* l_to_ngl_shader(lua_State *L, int index) {
+    return (ngl_shader*) l_from_table(L, "ngl_shader", index);
+}
+
+static nrf_device* l_to_nrf_device(lua_State *L, int index) {
+    return (nrf_device*) l_from_table(L, "nrf_device", index);
+}
+
+static void l_register_function(lua_State *L, lua_CFunction fn, const char *name) {
+    lua_pushcfunction(L, fn);
     lua_setglobal(L, name);
 }
 
@@ -60,10 +74,7 @@ static int l_nwm_create_window(lua_State *L) {
     int height = luaL_checkint(L, 2);
 
     GLFWwindow *window = nwm_create_window(width, height);
-    lua_newtable(L);
-    lua_pushliteral(L,"__ptr__");
-    lua_pushlightuserdata(L, window);
-    lua_settable(L, -3);
+    l_to_table(L, "nrf_window", window);
     return 1;
 }
 
@@ -118,10 +129,7 @@ static int l_ngl_new_camera(lua_State *L) {
     camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
 
-    lua_newtable(L);
-    lua_pushliteral(L, "__ptr__");
-    lua_pushlightuserdata(L, camera);
-    lua_settable(L, -3);
+    l_to_table(L, "nrf_camera", camera);
 
     return 1;
 }
@@ -131,20 +139,14 @@ static int l_ngl_load_shader(lua_State *L) {
     const char *fragment_fname = lua_tostring(L, 2);
 
     ngl_shader *shader = ngl_load_shader(vertex_fname, fragment_fname);
-    lua_newtable(L);
-    lua_pushliteral(L, "__ptr__");
-    lua_pushlightuserdata(L, shader);
-    lua_settable(L, -3);
+    l_to_table(L, "ngl_shader", shader);
     return 1;
 }
 
 static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_load_obj(fname);
-    lua_newtable(L);
-    lua_pushliteral(L, "__ptr__");
-    lua_pushlightuserdata(L, model);
-    lua_settable(L, -3);
+    l_to_table(L, "ngl_model", model);
     return 1;
 }
 
@@ -160,12 +162,14 @@ static int l_ngl_draw_model(lua_State *L) {
 
 static int l_nrf_start(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
-    nrf_start(freq_mhz);
-    return 0;
+    nrf_device *device = nrf_start(freq_mhz);
+    l_to_table(L, "nrf_device", device);
+    return 1;
 }
 
 static int l_nrf_stop(lua_State *L) {
-    nrf_stop();
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nrf_stop(device);
     return 0;
 }
 
@@ -176,7 +180,6 @@ void usage() {
 }
 
 int main(int argc, char **argv) {
-    char buff[256];
     char *fname;
 
     if (argc != 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
