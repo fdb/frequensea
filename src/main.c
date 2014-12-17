@@ -96,13 +96,13 @@ static int l_nwm_window_should_close(lua_State *L) {
     return 1;
 }
 
-static int l_nwm_poll_events(lua_State *L) {
-    nwm_poll_events();
+static int l_nwm_frame_begin(lua_State *L) {
     return 0;
 }
 
-static int l_nwm_swap_buffers(lua_State *L) {
+static int l_nwm_frame_end(lua_State *L) {
     GLFWwindow *window = l_to_window(L, 1);
+    nwm_poll_events();
     nwm_swap_buffers(window);
     return 0;
 }
@@ -221,8 +221,8 @@ int main(int argc, char **argv) {
     l_register_function(L, l_nwm_create_window, "nwm_create_window");
     l_register_function(L, l_nwm_destroy_window, "nwm_destroy_window");
     l_register_function(L, l_nwm_window_should_close, "nwm_window_should_close");
-    l_register_function(L, l_nwm_poll_events, "nwm_poll_events");
-    l_register_function(L, l_nwm_swap_buffers, "nwm_swap_buffers");
+    l_register_function(L, l_nwm_frame_begin, "nwm_frame_begin");
+    l_register_function(L, l_nwm_frame_end, "nwm_frame_end");
     l_register_function(L, l_nwm_terminate, "nwm_terminate");
     l_register_function(L, l_ngl_clear, "ngl_clear");
     l_register_function(L, l_ngl_new_camera, "ngl_new_camera");
