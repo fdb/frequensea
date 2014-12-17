@@ -22,4 +22,4 @@
 
 ## Build and Run
 
-    make && ./frequensea ../lua/main.lua
+    make && ./frequensea ../lua/static.lua
