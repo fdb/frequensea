@@ -64,8 +64,10 @@ for a scene loaded using `ngl_load_obj` this should probably be GL_TRIANGLES.
 
 Other modes are `GL_POINTS`, `GL_LINE_STRIP`, `GL_LINE_LOOP`, `GL_LINES`, `GL_TRIANGLE_STRIP`, `GL_TRIANGLE_FAN`, `GL_TRIANGLES` and `GL_PATCHES`. See [glDrawArrays](https://www.opengl.org/sdk/docs/man3/xhtml/glDrawArrays.xml) for more info on drawing modes.
 
-## ngl_model_init_positions(n_components, n_points, positions)
+## ngl_model_init_positions(n_components, n_points, positions, normals)
 Create a new model by initializing it with a list of points. The number of components should be 2 for 2D X/Y points, and 3 for 3D X/Y/Z points. The number of points is the number of points passed in. The positions is an array coming from other functions, like NRF's `device.samples` (Lua lists don't work yet). The positions are packed: so a 3D array would be passed in as XYZXYZXYZ... . The total length of the array is n_components * n_points.
+
+The `positions` and `normals` arguments are both optional.
 
 This function returns a model object that can be used in `ngl_draw_model`.
 

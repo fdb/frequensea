@@ -145,10 +145,17 @@ static int l_ngl_load_shader(lua_State *L) {
 static int l_ngl_model_init_positions(lua_State *L) {
     int n_components = luaL_checkint(L, 1);
     int n_points = luaL_checkint(L, 2);
-    luaL_checkany(L, 3);
-    float *positions = (float *) lua_touserdata(L, 3);
-
-    ngl_model *model = ngl_model_init_positions(n_components, n_points, positions);
+    float *positions = NULL;
+    if (!lua_isnoneornil(L, 3)) {
+        luaL_checkany(L, 3);
+        positions = (float *) lua_touserdata(L, 3);
+    }
+    float *normals = NULL;
+    if (!lua_isnoneornil(L, 4)) {
+        luaL_checkany(L, 4);
+        normals = (float *) lua_touserdata(L, 4);
+    }
+    ngl_model *model = ngl_model_init_positions(n_components, n_points, positions, normals);
     l_to_table(L, "ngl_model", model);
     return  1;
 }

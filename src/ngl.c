@@ -134,22 +134,45 @@ void ngl_delete_shader(ngl_shader *shader) {
 
 // Model initialization //////////////////////////////////////////////////////
 
-ngl_model* ngl_model_init_positions(int n_components, int n_points, float* positions) {
+ngl_model* ngl_model_init_positions(int n_components, int n_points, float* positions, float* normals) {
     ngl_model *model = malloc(sizeof(ngl_model));
     model->point_count = n_points;
     model->transform = mat4_init_identity();
-    glGenBuffers(1, &model->position_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
-    glBufferData(GL_ARRAY_BUFFER, n_points * n_components * sizeof(GLfloat), positions, GL_DYNAMIC_DRAW);
-    NGL_CHECK_ERROR();
-    model->normal_vbo = -1;
+
+    if (positions != NULL) {
+        glGenBuffers(1, &model->position_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
+        glBufferData(GL_ARRAY_BUFFER, n_points * n_components * sizeof(GLfloat), positions, GL_DYNAMIC_DRAW);
+        NGL_CHECK_ERROR();
+    } else {
+        model->position_vbo = -1;
+    }
+
+    if (normals != NULL) {
+        glGenBuffers(1, &model->normal_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
+        glBufferData(GL_ARRAY_BUFFER, n_points * n_components * sizeof(GLfloat), normals, GL_DYNAMIC_DRAW);
+        NGL_CHECK_ERROR();
+    } else {
+        model->normal_vbo = -1;
+    }
 
     glGenVertexArrays(1, &model->vao);
     glBindVertexArray(model->vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
-    glVertexAttribPointer(0, n_components, GL_FLOAT, GL_FALSE, 0, NULL);
-    NGL_CHECK_ERROR();
+
+    if (positions != NULL) {
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
+        glVertexAttribPointer(0, n_components, GL_FLOAT, GL_FALSE, 0, NULL);
+        NGL_CHECK_ERROR();
+    }
+
+    if (normals != NULL) {
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
+        glVertexAttribPointer(1, n_components, GL_FLOAT, GL_FALSE, 0, NULL);
+        NGL_CHECK_ERROR();
+    }
 
     return model;
 }
