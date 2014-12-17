@@ -87,7 +87,7 @@ void ngl_check_link_error(GLuint program) {
     }
 }
 
-ngl_shader *ngl_create_shader(const char *vertex_shader_source, const char *fragment_shader_source) {
+ngl_shader *ngl_create_shader(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source) {
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
     glCompileShader(vertex_shader);
@@ -108,6 +108,7 @@ ngl_shader *ngl_create_shader(const char *vertex_shader_source, const char *frag
     NGL_CHECK_ERROR();
 
     ngl_shader *shader = malloc(sizeof(ngl_shader));
+    shader->draw_mode = draw_mode;
     shader->program = program;
     shader->time_uniform = glGetUniformLocation(program, "uTime");
     shader->view_matrix_uniform = glGetUniformLocation(program, "uViewMatrix");
@@ -116,10 +117,10 @@ ngl_shader *ngl_create_shader(const char *vertex_shader_source, const char *frag
     return shader;
 }
 
-ngl_shader *ngl_load_shader(const char *vertex_fname, const char *fragment_fname) {
+ngl_shader *ngl_load_shader(GLenum draw_mode, const char *vertex_fname, const char *fragment_fname) {
     char *vertex_shader_source = nfile_read(vertex_fname);
     char *fragment_shader_source = nfile_read(fragment_fname);
-    ngl_shader *shader = ngl_create_shader(vertex_shader_source, fragment_shader_source);
+    ngl_shader *shader = ngl_create_shader(draw_mode, vertex_shader_source, fragment_shader_source);
     free(vertex_shader_source);
     free(fragment_shader_source);
     return shader;
@@ -131,7 +132,27 @@ void ngl_delete_shader(ngl_shader *shader) {
     free(shader);
 }
 
-// OBJ Models ////////////////////////////////////////////////////////////////
+// Model initialization //////////////////////////////////////////////////////
+
+ngl_model* ngl_model_init_positions(int n_components, int n_points, float* positions) {
+    ngl_model *model = malloc(sizeof(ngl_model));
+    model->point_count = n_points;
+    model->transform = mat4_init_identity();
+    glGenBuffers(1, &model->position_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
+    glBufferData(GL_ARRAY_BUFFER, n_points * n_components * sizeof(GLfloat), positions, GL_DYNAMIC_DRAW);
+    NGL_CHECK_ERROR();
+    model->normal_vbo = -1;
+
+    glGenVertexArrays(1, &model->vao);
+    glBindVertexArray(model->vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
+    glVertexAttribPointer(0, n_components, GL_FLOAT, GL_FALSE, 0, NULL);
+    NGL_CHECK_ERROR();
+
+    return model;
+}
 
 ngl_model* ngl_load_obj(const char* fname) {
     ngl_model *model = malloc(sizeof(ngl_model));
@@ -140,18 +161,19 @@ ngl_model* ngl_load_obj(const char* fname) {
 
     static float *points;
     static float *normals;
-    obj_parse(fname, &points, &normals, &model->face_count);
+    int face_count;
+    obj_parse(fname, &points, &normals, &face_count);
     // Each triangle face has 3 vertices
-    int point_count = model->face_count * 3;
+    model->point_count = face_count * 3;
 
     glGenBuffers(1, &model->position_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
-    glBufferData(GL_ARRAY_BUFFER, point_count * 3 * sizeof(GLfloat), points, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, model->point_count * 3 * sizeof(GLfloat), points, GL_DYNAMIC_DRAW);
     NGL_CHECK_ERROR();
 
     glGenBuffers(1, &model->normal_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
-    glBufferData(GL_ARRAY_BUFFER, point_count * 3 * sizeof(GLfloat), normals, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, model->point_count * 3 * sizeof(GLfloat), normals, GL_DYNAMIC_DRAW);
     NGL_CHECK_ERROR();
 
     // Vertex array object
@@ -188,7 +210,7 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
     glBindVertexArray(model->vao);
     NGL_CHECK_ERROR();
-    glDrawArrays(GL_TRIANGLES, 0, model->face_count * 3);
+    glDrawArrays(shader->draw_mode, 0, model->point_count);
     NGL_CHECK_ERROR();
 
     glBindVertexArray(0);

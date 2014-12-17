@@ -19,7 +19,11 @@ if (status != 0) { \
 
 static int receive_sample_block(hackrf_transfer *transfer) {
     nrf_device *device = (nrf_device *)transfer->rx_ctx;
-    memcpy(device->buffer, transfer->buffer, transfer->valid_length);
+    for (int i = 0; i < transfer->valid_length; i++) {
+        int v = transfer->buffer[i];
+        v = (v + 128) % 256;
+        device->samples[i] = v / 256.0f;
+    }
     return 0;
 }
 
@@ -53,7 +57,7 @@ nrf_device *nrf_start(double freq_mhz) {
     status = hackrf_start_rx(device->device, receive_sample_block, device);
     HACKRF_CHECK_STATUS(device, status, "hackrf_start_rx");
 
-    memset(device->buffer, 0, NRF_BUFFER_SIZE);
+    memset(device->samples, 0, NRF_SAMPLES_SIZE * sizeof(float));
 
     return device;
 }

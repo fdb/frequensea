@@ -63,6 +63,11 @@ static void l_register_function(lua_State *L, lua_CFunction fn, const char *name
     lua_setglobal(L, name);
 }
 
+static void l_register_constant(lua_State *L, const char *name, int value) {
+    lua_pushinteger(L, value);
+    lua_setglobal(L, name);
+}
+
 // Lua NWM wrappers /////////////////////////////////////////////////////////
 
 static int l_nwm_init(lua_State *L) {
@@ -130,19 +135,32 @@ static int l_ngl_new_camera(lua_State *L) {
     camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
 
-    l_to_table(L, "nrf_camera", camera);
+    l_to_table(L, "ngl_camera", camera);
 
     return 1;
 }
 
 static int l_ngl_load_shader(lua_State *L) {
-    const char *vertex_fname = lua_tostring(L, 1);
-    const char *fragment_fname = lua_tostring(L, 2);
+    GLenum draw_mode = luaL_checkint(L, 1);
+    const char *vertex_fname = lua_tostring(L, 2);
+    const char *fragment_fname = lua_tostring(L, 3);
 
-    ngl_shader *shader = ngl_load_shader(vertex_fname, fragment_fname);
+    ngl_shader *shader = ngl_load_shader(draw_mode, vertex_fname, fragment_fname);
     l_to_table(L, "ngl_shader", shader);
     return 1;
 }
+
+static int l_ngl_model_init_positions(lua_State *L) {
+    int n_components = luaL_checkint(L, 1);
+    int n_points = luaL_checkint(L, 2);
+    luaL_checkany(L, 3);
+    float *positions = (float *) lua_touserdata(L, 3);
+
+    ngl_model *model = ngl_model_init_positions(n_components, n_points, positions);
+    l_to_table(L, "ngl_model", model);
+    return  1;
+}
+
 
 static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
@@ -165,6 +183,11 @@ static int l_nrf_start(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
     nrf_device *device = nrf_start(freq_mhz);
     l_to_table(L, "nrf_device", device);
+
+    lua_pushliteral(L, "samples");
+    lua_pushlightuserdata(L, device->samples);
+    lua_settable(L, -3);
+
     return 1;
 }
 
@@ -204,10 +227,23 @@ int main(int argc, char **argv) {
     l_register_function(L, l_ngl_clear, "ngl_clear");
     l_register_function(L, l_ngl_new_camera, "ngl_new_camera");
     l_register_function(L, l_ngl_load_shader, "ngl_load_shader");
+    l_register_function(L, l_ngl_model_init_positions, "ngl_model_init_positions");
     l_register_function(L, l_ngl_load_obj, "ngl_load_obj");
     l_register_function(L, l_ngl_draw_model, "ngl_draw_model");
     l_register_function(L, l_nrf_start, "nrf_start");
     l_register_function(L, l_nrf_stop, "nrf_stop");
+
+    l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
+    l_register_constant(L, "GL_POINTS", GL_POINTS);
+    l_register_constant(L, "GL_LINE_STRIP", GL_LINE_STRIP);
+    l_register_constant(L, "GL_LINE_LOOP", GL_LINE_LOOP);
+    l_register_constant(L, "GL_LINES", GL_LINES);
+    l_register_constant(L, "GL_TRIANGLE_STRIP", GL_TRIANGLE_STRIP);
+    l_register_constant(L, "GL_TRIANGLE_FAN", GL_TRIANGLE_FAN);
+    l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
+    l_register_constant(L, "GL_LINE_STRIP", GL_LINE_STRIP);
+    l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
+    l_register_constant(L, "GL_PATCHES", GL_PATCHES);
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
