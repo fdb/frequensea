@@ -19,5 +19,6 @@ int nwm_window_should_close(GLFWwindow* window);
 void nwm_poll_events();
 void nwm_swap_buffers(GLFWwindow* window);
 void nwm_terminate();
+double nwm_get_time();
 
 #endif // NWM_H

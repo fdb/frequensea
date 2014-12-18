@@ -7,6 +7,7 @@
 #include "obj.h"
 
 #include "ngl.h"
+#include "nwm.h"
 
 // Error checking ////////////////////////////////////////////////////////////
 
@@ -255,8 +256,8 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     glEnable(GL_BLEND);
     glUseProgram(shader->program);
     NGL_CHECK_ERROR();
-    // glUniform1f(shader->time_uniform, time);
-    // NGL_CHECK_ERROR();
+    glUniform1f(shader->time_uniform, nwm_get_time());
+    NGL_CHECK_ERROR();
     glUniformMatrix4fv(shader->view_matrix_uniform, 1, GL_FALSE, (GLfloat *)&mv.m);
     NGL_CHECK_ERROR();
     glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&projection.m);

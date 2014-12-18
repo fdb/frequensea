@@ -61,3 +61,7 @@ void nwm_swap_buffers(GLFWwindow* window) {
 void nwm_terminate() {
     glfwTerminate();
 }
+
+double nwm_get_time() {
+    return glfwGetTime();
+}

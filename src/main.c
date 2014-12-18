@@ -112,6 +112,11 @@ static int l_nwm_terminate(lua_State *L) {
     return 0;
 }
 
+static int l_nwm_get_time(lua_State *L) {
+    lua_pushnumber(L, nwm_get_time());
+    return 1;
+}
+
 // Lua NGL wrappers /////////////////////////////////////////////////////////
 
 static int l_ngl_clear(lua_State *L) {
@@ -232,6 +237,7 @@ int main(int argc, char **argv) {
     l_register_function(L, "nwm_frame_begin", l_nwm_frame_begin);
     l_register_function(L, "nwm_frame_end", l_nwm_frame_end);
     l_register_function(L, "nwm_terminate", l_nwm_terminate);
+    l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
     l_register_function(L, "ngl_load_shader", l_ngl_load_shader);
