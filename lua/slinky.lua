@@ -1,6 +1,6 @@
 -- Visualize IQ data from the HackRF as a spiral (like a slinky toy)
 nwm_init()
-device = nrf_start(200.0)
+device = nrf_start(200.0, "../rfdata/rf-100.900-2.raw")
 window = nwm_create_window(800, 600)
 
 shader = ngl_load_shader(GL_LINE_STRIP, "../shader/slinky.vert", "../shader/slinky.frag")

@@ -1,7 +1,7 @@
 -- Visualize IQ data from the HackRF as a spiral (like a slinky toy)
 -- This visualisation looks at the 2.5 (test?) tone
 nwm_init()
-device = nrf_start(2.5)
+device = nrf_start(2.5, "../rfdata/rf-2.500-1.raw")
 window = nwm_create_window(800, 600)
 
 shader = ngl_load_shader(GL_LINE_STRIP, "../shader/slinky-two-point-five.vert", "../shader/slinky-two-point-five.frag")

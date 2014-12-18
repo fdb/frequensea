@@ -12,7 +12,7 @@ typedef struct {
     float samples[NRF_SAMPLES_SIZE * 3];
 } nrf_device;
 
-nrf_device *nrf_start(double freq_mhz);
+nrf_device *nrf_start(double freq_mhz, const char* data_file);
 void nrf_set_freq(nrf_device *device, double freq_mhz);
 void nrf_stop(nrf_device *device);
 

@@ -194,7 +194,8 @@ static int l_ngl_draw_model(lua_State *L) {
 
 static int l_nrf_start(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
-    nrf_device *device = nrf_start(freq_mhz);
+    const char *file_name = lua_tostring(L, 2);
+    nrf_device *device = nrf_start(freq_mhz, file_name);
     l_to_table(L, "nrf_device", device);
 
     lua_pushliteral(L, "samples");

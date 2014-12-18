@@ -1,6 +1,6 @@
 -- Visualize IQ data from the HackRF
 nwm_init()
-device = nrf_start(204.0)
+device = nrf_start(204.0, "../rfdata/rf-202.500-2.raw")
 window = nwm_create_window(800, 600)
 
 camera = ngl_camera_init_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
