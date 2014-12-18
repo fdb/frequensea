@@ -13,7 +13,7 @@ typedef struct {
 } nrf_device;
 
 nrf_device *nrf_start(double freq_mhz, const char* data_file);
-void nrf_set_freq(nrf_device *device, double freq_mhz);
+void nrf_freq_set(nrf_device *device, double freq_mhz);
 void nrf_stop(nrf_device *device);
 
 #endif // NRF_H

@@ -96,7 +96,7 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
 }
 
 // Change the frequency to the given frequency, in MHz.
-void nrf_set_freq(nrf_device *device, double freq_mhz) {
+void nrf_freq_set(nrf_device *device, double freq_mhz) {
     if (device->device == NULL) return;
     int status = hackrf_set_freq(device->device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");

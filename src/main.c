@@ -211,6 +211,13 @@ static int l_nrf_stop(lua_State *L) {
     return 0;
 }
 
+static int l_nrf_freq_set(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    double freq_mhz = luaL_checknumber(L, 2);
+    nrf_freq_set(device, freq_mhz);
+    return 0;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 void usage() {
@@ -248,6 +255,7 @@ int main(int argc, char **argv) {
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_start", l_nrf_start);
     l_register_function(L, "nrf_stop", l_nrf_stop);
+    l_register_function(L, "nrf_freq_set", l_nrf_freq_set);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "GL_POINTS", GL_POINTS);
