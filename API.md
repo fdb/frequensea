@@ -91,7 +91,7 @@ Here's a basic example:
     nrf_stop(device)
 
 ## nrf_start(freq_mhz)
-Tune the HackRF to the given frequency (in MHz) and start receiving data. The function returns a device object. The device object has a member, `samples`, that contains a list of floating-point values.
+Tune the HackRF to the given frequency (in MHz) and start receiving data. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
 
 ## nrf_stop(device)
 Stop receiving data.
