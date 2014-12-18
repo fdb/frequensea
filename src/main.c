@@ -257,7 +257,6 @@ int main(int argc, char **argv) {
     l_register_constant(L, "GL_TRIANGLE_STRIP", GL_TRIANGLE_STRIP);
     l_register_constant(L, "GL_TRIANGLE_FAN", GL_TRIANGLE_FAN);
     l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
-    l_register_constant(L, "GL_PATCHES", GL_PATCHES);
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
