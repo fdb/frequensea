@@ -5,11 +5,11 @@
 
 #include <libhackrf/hackrf.h>
 
-#define NRF_SAMPLES_SIZE 262144
+#define NRF_SAMPLES_SIZE 131072
 
 typedef struct {
     hackrf_device *device;
-    float samples[NRF_SAMPLES_SIZE];
+    float samples[NRF_SAMPLES_SIZE * 3];
 } nrf_device;
 
 nrf_device *nrf_start(double freq_mhz);
