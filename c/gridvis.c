@@ -134,7 +134,7 @@ static void check_shader_error(char *prefix, GLuint shader) {
 
 static void setup() {
     glEnable(GL_DEPTH_TEST);
-    const char *vertex_shader_source = 
+    const char *vertex_shader_source =
         "#extension GL_EXT_gpu_shader4 : require\n"
         "\n"
         "vec4 light_pos = vec4(0, 4, 0, 1);\n"
@@ -151,7 +151,7 @@ static void setup() {
         //"  normal = vec3(0, 0, 0);"
         "}\n";
 
-    const char *fragment_shader_source = 
+    const char *fragment_shader_source =
         "#extension GL_EXT_gpu_shader4 : require\n"
         "\n"
         "flat varying vec3 color;\n"
@@ -176,7 +176,7 @@ static void setup() {
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
 
-    // glActiveTexture(0); 
+    // glActiveTexture(0);
     // GLuint u_texture = glGetUniformLocation(program, "texture");
     // glUniform1i(u_texture, texture_id);
 }
@@ -191,7 +191,7 @@ static void prepare() {
     glLoadIdentity();
     //glFrustum( -1.0, 1.0, -1.0, 1.0, 1.0, 102.0 );
     gluPerspective(80.0, width / height, 1, 5000);
-    //glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 20.0); 
+    //glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
 
     //glOrtho(0, WIDTH, 0, HEIGHT, -1, 1);
     glMatrixMode(GL_MODELVIEW);
@@ -207,16 +207,16 @@ static void prepare() {
     glEnable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
 
-    glEnable(GL_LIGHT0); 
-    GLfloat light0_position[] = {10.0, 10.0, 0.0, 1.0}; 
+    glEnable(GL_LIGHT0);
+    GLfloat light0_position[] = {10.0, 10.0, 0.0, 1.0};
 
     GLfloat light0_ambient[] = {0.0, 0.0, 0.0, 1.0};
     GLfloat light0_diffuse[] = {1.0, 1.0, 1.0, 1.0};
     GLfloat light0_specular[] = {1.0, 1.0, 1.0, 1.0};
-    glLightfv(GL_LIGHT1, GL_POSITION, light0_position); 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient); 
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse); 
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular); 
+    glLightfv(GL_LIGHT1, GL_POSITION, light0_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
 
     glEnable(GL_LIGHT1);
     GLfloat light1_ambient[] = {0.8, 0.8, 0.8, 1.0};
@@ -229,7 +229,7 @@ static void prepare() {
     // glFogf(GL_FOG_END, 110.f);
 }
 
-    
+
 
 static void update() {
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);

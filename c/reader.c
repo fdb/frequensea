@@ -35,7 +35,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
 }
 
 int main(int argc, char **argv) {
-    
+
     int status;
     hackrf_device *device;
 
