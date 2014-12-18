@@ -6,6 +6,7 @@
 
     brew update
     brew install cmake lua homebrew/versions/glfw3
+    brew tap robotastic/homebrew-hackrf
     brew install --HEAD hackrf
 
 ## Building
