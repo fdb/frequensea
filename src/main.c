@@ -160,6 +160,16 @@ static int l_ngl_model_init_positions(lua_State *L) {
     return  1;
 }
 
+static int l_ngl_model_init_grid(lua_State *L) {
+    int row_count = luaL_checkint(L, 1);
+    int column_count = luaL_checkint(L, 2);
+    float row_height = luaL_checknumber(L, 3);
+    float column_width = luaL_checknumber(L, 4);
+    ngl_model *model = ngl_model_init_grid(row_count, column_count, row_height, column_width);
+    l_to_table(L, "ngl_model", model);
+    return 1;
+}
+
 static int l_ngl_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_load_obj(fname);
@@ -226,6 +236,7 @@ int main(int argc, char **argv) {
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
     l_register_function(L, "ngl_load_shader", l_ngl_load_shader);
     l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
+    l_register_function(L, "ngl_model_init_grid", l_ngl_model_init_grid);
     l_register_function(L, "ngl_load_obj", l_ngl_load_obj);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_start", l_nrf_start);

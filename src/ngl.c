@@ -177,6 +177,23 @@ ngl_model* ngl_model_init_positions(int component_count, int point_count, float*
     return model;
 }
 
+ngl_model* ngl_model_init_grid(int row_count, int column_count, float row_height, float column_width) {
+    int point_count = row_count * column_count;
+    float* points = malloc(point_count * 2 * sizeof(float));
+    float total_width = (column_count - 1) * column_width;
+    float total_height = (row_count - 1) * row_height;
+    float left = - total_width / 2;
+    float top = - total_height / 2;
+    int i = 0;
+    for (int y = 0; y < row_count; y++) {
+        for (int x = 0; x < column_count; x++) {
+            points[i++] = left + x * column_width;
+            points[i++] = top + y * row_height;
+        }
+    }
+    return ngl_model_init_positions(2, i / 2, points, NULL);
+}
+
 ngl_model* ngl_load_obj(const char* fname) {
     ngl_model *model = malloc(sizeof(ngl_model));
 
