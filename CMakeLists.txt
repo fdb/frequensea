@@ -26,3 +26,6 @@ set(SOURCE_FILES
 
 add_executable(frequensea ${SOURCE_FILES} src/main.c)
 target_link_libraries(frequensea ${EXTRA_LIBS})
+
+add_executable(static ${SOURCE_FILES} demo/static.c)
+target_link_libraries(static ${EXTRA_LIBS})
