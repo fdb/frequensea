@@ -38,8 +38,8 @@ static void* l_from_table(lua_State *L, char *type, int index) {
     }
 }
 
-static GLFWwindow* l_to_window(lua_State *L, int index) {
-    return (GLFWwindow*) l_from_table(L, "nwm_window", index);
+static nwm_window* l_to_window(lua_State *L, int index) {
+    return (nwm_window*) l_from_table(L, "nwm_window", index);
 }
 
 static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
@@ -79,13 +79,13 @@ static int l_nwm_create_window(lua_State *L) {
     int width = luaL_checkint(L, 1);
     int height = luaL_checkint(L, 2);
 
-    GLFWwindow *window = nwm_create_window(width, height);
+    nwm_window *window = nwm_create_window(width, height);
     l_to_table(L, "nwm_window", window);
     return 1;
 }
 
 static int l_nwm_destroy_window(lua_State *L) {
-    GLFWwindow *window = l_to_window(L, 1);
+    nwm_window *window = l_to_window(L, 1);
     nwm_destroy_window(window);
     return 0;
 }
@@ -102,7 +102,7 @@ static int l_nwm_frame_begin(lua_State *L) {
 }
 
 static int l_nwm_frame_end(lua_State *L) {
-    GLFWwindow *window = l_to_window(L, 1);
+    nwm_window *window = l_to_window(L, 1);
     nwm_frame_end(window);
     return 0;
 }

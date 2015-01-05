@@ -19,8 +19,8 @@ void nwm_init() {
     glfwSetErrorCallback(_nwm_on_error);
 }
 
-GLFWwindow *nwm_create_window(int width, int height) {
-    GLFWwindow* window;
+nwm_window *nwm_create_window(int width, int height) {
+    nwm_window* window;
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -39,14 +39,14 @@ GLFWwindow *nwm_create_window(int width, int height) {
     // if (x != 0 || y != 0) {
     //     glfwSetWindowPos(window, x, y);
     // }
-    return window;
+    return (nwm_window*) window;
 }
 
-void nwm_destroy_window(GLFWwindow* window) {
+void nwm_destroy_window(nwm_window* window) {
     glfwDestroyWindow(window);
 }
 
-int nwm_window_should_close(GLFWwindow* window) {
+int nwm_window_should_close(nwm_window* window) {
     return glfwWindowShouldClose(window);
 }
 
@@ -54,7 +54,7 @@ void nwm_poll_events() {
     glfwPollEvents();
 }
 
-void nwm_swap_buffers(GLFWwindow* window) {
+void nwm_swap_buffers(nwm_window* window) {
     glfwSwapBuffers(window);
 }
 
@@ -70,7 +70,7 @@ void nwm_frame_begin() {
     // Do nothing for now.
 }
 
-void nwm_frame_end(GLFWwindow* window) {
+void nwm_frame_end(nwm_window* window) {
     nwm_poll_events();
     nwm_swap_buffers(window);
 }

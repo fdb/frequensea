@@ -5,7 +5,7 @@
 
 int main() {
     nwm_init();
-    GLFWwindow *window = nwm_create_window(800, 600);
+    nwm_window *window = nwm_create_window(800, 600);
 
     ngl_camera *camera = ngl_camera_init_look_at(-20, 18, 50);
     ngl_model *model = ngl_load_obj("../obj/c004.obj");
