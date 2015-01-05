@@ -20,5 +20,7 @@ void nwm_poll_events();
 void nwm_swap_buffers(GLFWwindow* window);
 void nwm_terminate();
 double nwm_get_time();
+void nwm_frame_begin();
+void nwm_frame_end(GLFWwindow* window);
 
 #endif // NWM_H

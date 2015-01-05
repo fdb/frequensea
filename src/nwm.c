@@ -65,3 +65,12 @@ void nwm_terminate() {
 double nwm_get_time() {
     return glfwGetTime();
 }
+
+void nwm_frame_begin() {
+    // Do nothing for now.
+}
+
+void nwm_frame_end(GLFWwindow* window) {
+    nwm_poll_events();
+    nwm_swap_buffers(window);
+}

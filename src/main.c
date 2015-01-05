@@ -97,13 +97,13 @@ static int l_nwm_window_should_close(lua_State *L) {
 }
 
 static int l_nwm_frame_begin(lua_State *L) {
+    nwm_frame_begin();
     return 0;
 }
 
 static int l_nwm_frame_end(lua_State *L) {
     GLFWwindow *window = l_to_window(L, 1);
-    nwm_poll_events();
-    nwm_swap_buffers(window);
+    nwm_frame_end(window);
     return 0;
 }
 
