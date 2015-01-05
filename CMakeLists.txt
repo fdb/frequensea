@@ -32,4 +32,13 @@ endfunction(add_demo)
 add_executable(frequensea ${SOURCE_FILES} src/main.c)
 target_link_libraries(frequensea ${EXTRA_LIBS})
 
+
+add_demo(animate-camera)
+add_demo(diffuse)
+add_demo(empty)
+add_demo(grid)
+add_demo(iqanimate)
+add_demo(iqvis-animate-freq)
+add_demo(iqvis)
+add_demo(slinky)
 add_demo(static)
