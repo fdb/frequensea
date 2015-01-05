@@ -24,8 +24,12 @@ set(SOURCE_FILES
     src/obj.c
     src/vec.c)
 
+function(add_demo demo_name)
+  add_executable(${demo_name} ${SOURCE_FILES} demo/${demo_name}.c)
+  target_link_libraries(${demo_name} ${EXTRA_LIBS})
+endfunction(add_demo)
+
 add_executable(frequensea ${SOURCE_FILES} src/main.c)
 target_link_libraries(frequensea ${EXTRA_LIBS})
 
-add_executable(static ${SOURCE_FILES} demo/static.c)
-target_link_libraries(static ${EXTRA_LIBS})
+add_demo(static)
