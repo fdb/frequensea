@@ -4,7 +4,7 @@ project(frequensea)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
 
 if (APPLE)
-    include_directories(/System/Library/Frameworks /usr/local/include)
+    include_directories(/System/Library/Frameworks /usr/local/include src)
     find_library(FRAMEWORK_COCOA Cocoa)
     find_library(FRAMEWORK_OPENGL OpenGL)
     find_library(FRAMEWORK_CORE_VIDEO CoreVideo)
@@ -16,7 +16,6 @@ if (APPLE)
 endif (APPLE)
 
 set(SOURCE_FILES
-    src/main.c
     src/nfile.c
     src/ngl.c
     src/noise.c
@@ -24,5 +23,6 @@ set(SOURCE_FILES
     src/nwm.c
     src/obj.c
     src/vec.c)
-add_executable(frequensea ${SOURCE_FILES})
+
+add_executable(frequensea ${SOURCE_FILES} src/main.c)
 target_link_libraries(frequensea ${EXTRA_LIBS})
