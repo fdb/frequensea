@@ -39,10 +39,6 @@ static void* l_from_table(lua_State *L, char *type, int index) {
     }
 }
 
-static nwm_window* l_to_window(lua_State *L, int index) {
-    return (nwm_window*) l_from_table(L, "nwm_window", index);
-}
-
 static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
     return (ngl_camera*) l_from_table(L, "ngl_camera", index);
 }
@@ -88,48 +84,6 @@ static int l_call_function(lua_State *L, const char *name) {
 }
 
 // Lua NWM wrappers /////////////////////////////////////////////////////////
-
-static int l_nwm_init(lua_State *L) {
-    nwm_init();
-    return 0;
-}
-
-static int l_nwm_create_window(lua_State *L) {
-    int width = luaL_checkint(L, 1);
-    int height = luaL_checkint(L, 2);
-
-    nwm_window *window = nwm_create_window(width, height);
-    l_to_table(L, "nwm_window", window);
-    return 1;
-}
-
-static int l_nwm_destroy_window(lua_State *L) {
-    nwm_window *window = l_to_window(L, 1);
-    nwm_destroy_window(window);
-    return 0;
-}
-
-static int l_nwm_window_should_close(lua_State *L) {
-    int b = nwm_window_should_close(l_to_window(L, 1));
-    lua_pushboolean(L, b);
-    return 1;
-}
-
-static int l_nwm_frame_begin(lua_State *L) {
-    nwm_frame_begin();
-    return 0;
-}
-
-static int l_nwm_frame_end(lua_State *L) {
-    nwm_window *window = l_to_window(L, 1);
-    nwm_frame_end(window);
-    return 0;
-}
-
-static int l_nwm_terminate(lua_State *L) {
-    nwm_terminate();
-    return 0;
-}
 
 static int l_nwm_get_time(lua_State *L) {
     lua_pushnumber(L, nwm_get_time());
@@ -267,13 +221,6 @@ int main(int argc, char **argv) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
-    l_register_function(L, "nwm_init", l_nwm_init);
-    l_register_function(L, "nwm_create_window", l_nwm_create_window);
-    l_register_function(L, "nwm_destroy_window", l_nwm_destroy_window);
-    l_register_function(L, "nwm_window_should_close", l_nwm_window_should_close);
-    l_register_function(L, "nwm_frame_begin", l_nwm_frame_begin);
-    l_register_function(L, "nwm_frame_end", l_nwm_frame_end);
-    l_register_function(L, "nwm_terminate", l_nwm_terminate);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);

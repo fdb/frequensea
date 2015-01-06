@@ -2,49 +2,18 @@
 
 Here's a typical example of a script:
 
-    nwm_init()
-    window = nwm_create_window(800, 600)
-
-    -- Setup code goes here
-
-    while not nwm_window_should_close(window) do
-        nwm_frame_begin(window)
-
-        --- Main drawing code here
-
-        nwm_frame_end(window)
-    end
-    nwm_destroy_window(window)
-    nwm_terminate()
-
-
-### nwm_init()
-Initializes the window manager. Should be at the top of your script.
-
-### nwm_create_window(width, height)
-Create a new window with the given width and height. The window is positioned in the center of the screen by default.
-
-This function returns a window object, which you should hold on to. It is needed to draw frames and to close itself.
-
-### nwm_destroy_window(window)
-Close the window.
-
-### nwm_window_should_close(window)
-Check if the user has performed an event that should close the window, like clicking the "close" button.
-This function is used in the main loop:
-
-    while not nwm_window_should_close(window) do
-        -- Per-frame code
+    function setup()
+        -- Load the model, shaders, camera, ...
     end
 
-### nwm_frame_begin(window)
-Set up the frame. This should be called at the start of the main loop.
+    function draw()
+        ngl_clear(0.2, 0.2, 0.2, 1)
+        -- Draw your scene
+    end
 
-### nwm_frame_end(window)
-End the frame. This code checks for events and swaps drawing buffers. This should be called at the end of the main loop.
-
-### nwm_terminate()
-Clean up left over resources and end the application. This should be the last line in your script.
+## nwm_get_time()
+Get the current time, in seconds. This is a floating-point number, so the
+fractional part contains greater precision.
 
 ## NGL -- NDBX OpenGL API
 The API that loads models, shaders, initializes the camera and can draw things on screen.
