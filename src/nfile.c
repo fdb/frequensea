@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <time.h>
 
 #include "nfile.h"
 
@@ -32,4 +34,13 @@ char *nfile_read(const char* fname) {
 
     fclose(fp);
     return buffer;
+}
+
+long nfile_mtime(const char* fname) {
+    struct stat buf;
+    if (stat(fname, &buf) != -1) {
+        return (long) buf.st_mtime;
+    } else {
+        return 0;
+    }
 }

@@ -8,6 +8,7 @@
 #include "nrf.h"
 #include "nwm.h"
 #include "vec.h"
+#include "nfile.h"
 
 // Lua utility functions ////////////////////////////////////////////////////
 
@@ -66,6 +67,24 @@ static void l_register_function(lua_State *L, const char *name, lua_CFunction fn
 static void l_register_constant(lua_State *L, const char *name, int value) {
     lua_pushinteger(L, value);
     lua_setglobal(L, name);
+}
+
+static int l_call_function(lua_State *L, const char *name) {
+    lua_getglobal(L, name);
+    if (lua_isfunction(L, -1)) {
+        int error = lua_pcall(L, 0, 0, 0);
+        if (error) {
+            fprintf(stderr, "Error calling %s(): %s\n", name, lua_tostring(L, -1));
+            lua_pop(L, 1);
+            return -1;
+        } else {
+            return 0;
+        }
+    } else {
+        lua_pop(L, 1);
+        fprintf(stderr, "WARN: No \"%s\" function.\n", name);
+        return -1;
+    }
 }
 
 // Lua NWM wrappers /////////////////////////////////////////////////////////
@@ -266,10 +285,54 @@ int main(int argc, char **argv) {
     l_register_constant(L, "GL_TRIANGLE_FAN", GL_TRIANGLE_FAN);
     l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
 
+    long old_mtime = nfile_mtime(fname);
+    long frames_to_check = 10;
+
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
         fprintf(stderr, "%s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
     }
+
+    nwm_init();
+    nwm_window *window = nwm_create_window(800, 600);
+
+    error = l_call_function(L, "setup");
+    if (error) {
+        exit(-1);
+    }
+
+    while (!nwm_window_should_close(window)) {
+        frames_to_check--;
+        if (frames_to_check <= 0) {
+            long new_mtime = nfile_mtime(fname);
+            if (old_mtime != new_mtime) {
+                fprintf(stderr, "Reloading (%lu)\n", new_mtime);
+                // Load the file again
+                error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
+                if (error) {
+                    fprintf(stderr, "%s\n", lua_tostring(L, -1));
+                    lua_pop(L, 1);
+                }
+                // Call setup
+                error = l_call_function(L, "setup");
+                if (error) {
+                    exit(-1);
+                }
+                old_mtime = new_mtime;
+            }
+            frames_to_check = 10;
+        }
+        nwm_frame_begin(window);
+        error = l_call_function(L, "draw");
+        if (error) {
+            exit(-1);
+        }
+        nwm_frame_end(window);
+    }
+
+    nwm_destroy_window(window);
+    nwm_terminate();
+
     lua_close(L);
 }
