@@ -88,7 +88,7 @@ void ngl_check_link_error(GLuint program) {
     }
 }
 
-ngl_shader *ngl_create_shader(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source) {
+ngl_shader *ngl_shader_init(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source) {
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
     glCompileShader(vertex_shader);
@@ -121,7 +121,7 @@ ngl_shader *ngl_create_shader(GLenum draw_mode, const char *vertex_shader_source
 ngl_shader *ngl_load_shader(GLenum draw_mode, const char *vertex_fname, const char *fragment_fname) {
     char *vertex_shader_source = nfile_read(vertex_fname);
     char *fragment_shader_source = nfile_read(fragment_fname);
-    ngl_shader *shader = ngl_create_shader(draw_mode, vertex_shader_source, fragment_shader_source);
+    ngl_shader *shader = ngl_shader_init(draw_mode, vertex_shader_source, fragment_shader_source);
     free(vertex_shader_source);
     free(fragment_shader_source);
     return shader;

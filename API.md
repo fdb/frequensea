@@ -58,6 +58,20 @@ the origin (0,0,0) of the scene.
 
 This function returns a camera object that can be used with `ngl_draw_model`.
 
+## ngl_shader_init(draw_mode, vertex_shader, fragment_shader)
+Create a new shader using the given vertex shader and fragment shader source.
+Note that you can use Lua's multi-line strings:
+
+    VERTEX_SHADER = [[
+        #version 400
+        <Rest of the shader code goes here>
+    ]]
+
+The first argument is a OpenGL draw mode. For a scene loaded using `ngl_load_obj`
+this should probably be GL_TRIANGLES.
+
+Other modes are `GL_POINTS`, `GL_LINE_STRIP`, `GL_LINE_LOOP`, `GL_LINES`, `GL_TRIANGLE_STRIP`, `GL_TRIANGLE_FAN`, `GL_TRIANGLES`. See [glDrawArrays](https://www.opengl.org/sdk/docs/man3/xhtml/glDrawArrays.xml) for more info on drawing modes.
+
 ## ngl_load_shader(draw_mode, vertex_file, fragment_file)
 Create a new shader by loading the vertex and fragment file. The first argument is a OpenGL draw mode;
 for a scene loaded using `ngl_load_obj` this should probably be GL_TRIANGLES.
