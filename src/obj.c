@@ -28,7 +28,6 @@ int obj_parse(const char *file_name, float** points_ptr, float** normals_ptr, in
             face_count++;
         }
     }
-    printf("vp: %d vn: %d f: %d\n", vp_count, vn_count, face_count);
     rewind(fp);
 
     float* vp_array = malloc(vp_count * 3 * sizeof(float));
