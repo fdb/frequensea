@@ -16,6 +16,7 @@ if (APPLE)
 endif (APPLE)
 
 set(SOURCE_FILES
+    src/main.c
     src/nfile.c
     src/ngl.c
     src/noise.c
@@ -24,21 +25,5 @@ set(SOURCE_FILES
     src/obj.c
     src/vec.c)
 
-function(add_demo demo_name)
-  add_executable(${demo_name} ${SOURCE_FILES} demo/${demo_name}.c)
-  target_link_libraries(${demo_name} ${EXTRA_LIBS})
-endfunction(add_demo)
-
-add_executable(frequensea ${SOURCE_FILES} src/main.c)
+add_executable(frequensea ${SOURCE_FILES})
 target_link_libraries(frequensea ${EXTRA_LIBS})
-
-
-add_demo(animate-camera)
-add_demo(diffuse)
-add_demo(empty)
-add_demo(grid)
-add_demo(iqanimate)
-add_demo(iqvis-animate-freq)
-add_demo(iqvis)
-add_demo(slinky)
-add_demo(static)
