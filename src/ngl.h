@@ -49,7 +49,8 @@ ngl_shader *ngl_shader_init(GLenum draw_mode, const char *vertex_shader_source, 
 ngl_shader *ngl_load_shader(GLenum draw_mode, const char *vertex_fname, const char *fragment_fname);
 void ngl_delete_shader(ngl_shader *shader);
 ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals);
-ngl_model* ngl_model_init_grid(int row_count, int column_count, float row_height, float column_width);
+ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row_height, float column_width);
+ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_load_obj(const char* fname);
 ngl_camera* ngl_camera_init_look_at(float x, float y, float z);
 void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);

@@ -54,6 +54,13 @@ The `positions` and `normals` arguments are both optional.
 
 This function returns a model object that can be used in `ngl_draw_model`.
 
+## ngl_model_init_grid_points(row_count, column_count, row_height, column_width)
+Initialize a two-dimensional grids with one point per grid position. The grid will have row_count * column_count points.
+`row_height` and `column_width` specify the distance between each row and column. This model won't have any normals.
+
+## ngl_model_init_grid_triangles(row_count, column_count, row_height, column_width);
+Initialize a grid that can be used to draw triangles. Point positions are in the X and Z components. The grid will have (row_count-1) * (column_count -1) * 6 points (two triangles per grid "square"). `row_height` and `column_width` specify the distance between each row and column. This model has normals.
+
 ## ngl_load_obj(file)
 Load an OBJ file from disk. The OBJ file should only use triangles, and should have normals exported.
 
