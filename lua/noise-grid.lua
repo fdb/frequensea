@@ -9,8 +9,8 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    vec3 pt = vec3(vp.x * 10, noise1(noise1(uTime * 0.5) * noise1(vp.x * 5.1) * noise1(vp.y * 5.1) * 10), vp.y * 10);
-    gl_PointSize = 3;
+    vec3 pt = vec3(vp.x * 10, noise1(noise1(vp.x * 8.287) + noise1(vp.y * 7.393) + uTime * 0.5), vp.y * 10);
+    gl_PointSize = 2;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
 }
 ]]
@@ -26,7 +26,7 @@ void main() {
 
 function setup()
     shader = ngl_shader_init(GL_POINTS, VERTEX_SHADER, FRAGMENT_SHADER)
-    model = ngl_model_init_grid(500, 400, 0.01, 0.01)
+    model = ngl_model_init_grid(500, 500, 0.005, 0.005)
 end
 
 function draw()
