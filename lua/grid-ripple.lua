@@ -9,15 +9,13 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    float force = 0.1;
+    float force = 0.6;
     float waves = 3.0;
     float speed = 1.5;
-vec2 p = -1.0 + 2.0 * vp.xy / vec2(1,1);
- float len = length(p);
-  vec2 uv = vp.xy + (p/len) * cos(len * 2.0 - uTime * 2.0) * force;
-    //vec3 pt = vec3(vp.x * 20, noise1(noise1(vp.x * 8.287) + noise1(vp.y * 7.393) + uTime * 0.5) + force * cos(vp.x * waves - uTime * speed), vp.y * 20);
-vec3 pt = vec3(uv.x, 0, uv.y);
-
+    vec2 p = -1.0 + 2.0 * vp.xy / vec2(1,1);
+    float len = length(p);
+    vec2 uv = vp.xy + (p/len) * cos(len * 2.0 - uTime * 2.0) * force;
+    vec3 pt = vec3(uv.x, noise1(noise1(uv.x * .287) + noise1(uv.y * 0.393) + uTime * 0.5), uv.y);
     gl_PointSize = 2;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
 }
