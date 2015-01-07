@@ -34,6 +34,11 @@ typedef struct {
 } ngl_shader;
 
 typedef struct {
+    ngl_shader *shader;
+    GLuint texture_id;
+} ngl_texture;
+
+typedef struct {
     mat4 transform;
     mat4 projection;
     ngl_color background;
@@ -48,6 +53,9 @@ void ngl_check_link_error(GLuint program);
 ngl_shader *ngl_shader_init(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source);
 ngl_shader *ngl_load_shader(GLenum draw_mode, const char *vertex_fname, const char *fragment_fname);
 void ngl_delete_shader(ngl_shader *shader);
+ngl_texture *ngl_texture_create(ngl_shader *shader, const char *uniform_name);
+void ngl_texture_update(ngl_texture *texture, GLint format, GLsizei width, GLsizei height, const float *data);
+void ngl_texture_delete(ngl_texture *texture);
 ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals);
 ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float row_height, float column_width);

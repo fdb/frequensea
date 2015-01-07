@@ -133,6 +133,52 @@ void ngl_delete_shader(ngl_shader *shader) {
     free(shader);
 }
 
+// Textures //////////////////////////////////////////////////////////////////
+
+ngl_texture *ngl_texture_create(ngl_shader *shader, const char *uniform_name) {
+    ngl_texture *texture = malloc(sizeof(ngl_texture));
+    texture->shader = shader;
+
+    glGenTextures(1, &texture->texture_id);
+    NGL_CHECK_ERROR();
+    printf("gen %d\n", texture->texture_id);
+    glActiveTexture(GL_TEXTURE0);
+    NGL_CHECK_ERROR();
+    glBindTexture(GL_TEXTURE_2D, texture->texture_id);
+    NGL_CHECK_ERROR();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    NGL_CHECK_ERROR();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    NGL_CHECK_ERROR();
+
+    GLuint u_texture = glGetUniformLocation(shader->program, uniform_name);
+    NGL_CHECK_ERROR();
+    if (u_texture == -1) {
+        fprintf(stderr, "WARN OpenGL: Could not find uniform %s\n", uniform_name);
+    }
+
+    return texture;
+}
+
+// format: one of GL_RED, GL_RG, GL_RGB or GL_RGBA. Used both for internalFormat and format parameters.
+// The values are assumed to be GL_FLOATs.
+
+void ngl_texture_update(ngl_texture *texture, GLint format, GLsizei width, GLsizei height, const float *data) {
+    glActiveTexture(GL_TEXTURE0);
+    NGL_CHECK_ERROR();
+    glBindTexture(GL_TEXTURE_2D, texture->texture_id);
+    NGL_CHECK_ERROR();
+    //printf("f %d w %d h %d d %.2f\n", format, width, height, data[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, data);
+    NGL_CHECK_ERROR();
+}
+
+void ngl_texture_delete(ngl_texture *texture) {
+    glDeleteTextures(1, &texture->texture_id);
+    NGL_CHECK_ERROR();
+    free(texture);
+}
+
 // Model initialization //////////////////////////////////////////////////////
 
 ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals) {
@@ -330,7 +376,9 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     mat4 mv = mat4_mul(&model->transform, &view);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    NGL_CHECK_ERROR();
     glEnable(GL_BLEND);
+    NGL_CHECK_ERROR();
     glUseProgram(shader->program);
     NGL_CHECK_ERROR();
     glUniform1f(shader->time_uniform, nwm_get_time());
@@ -339,6 +387,7 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
     glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&projection.m);
     NGL_CHECK_ERROR();
+
     glBindVertexArray(model->vao);
     NGL_CHECK_ERROR();
     glDrawArrays(shader->draw_mode, 0, model->point_count);

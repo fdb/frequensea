@@ -51,6 +51,10 @@ static ngl_shader* l_to_ngl_shader(lua_State *L, int index) {
     return (ngl_shader*) l_from_table(L, "ngl_shader", index);
 }
 
+static ngl_texture* l_to_ngl_texture(lua_State *L, int index) {
+    return (ngl_texture*) l_from_table(L, "ngl_texture", index);
+}
+
 static nrf_device* l_to_nrf_device(lua_State *L, int index) {
     return (nrf_device*) l_from_table(L, "nrf_device", index);
 }
@@ -128,6 +132,28 @@ static int l_ngl_load_shader(lua_State *L) {
     ngl_shader *shader = ngl_load_shader(draw_mode, vertex_fname, fragment_fname);
     l_to_table(L, "ngl_shader", shader);
     return 1;
+}
+
+static int l_ngl_texture_create(lua_State *L) {
+    ngl_shader *shader = l_to_ngl_shader(L, 1);
+    const char *uniform_name = lua_tostring(L, 2);
+    ngl_texture *texture = ngl_texture_create(shader, uniform_name);
+    l_to_table(L, "ngl_texture", texture);
+    return 1;
+}
+
+static int l_ngl_texture_update(lua_State *L) {
+    ngl_texture *texture = l_to_ngl_texture(L, 1);
+    int format = luaL_checkint(L, 2);
+    int width = luaL_checkint(L, 3);
+    int height = luaL_checkint(L, 4);
+    float *data = NULL;
+    if (!lua_isnoneornil(L, 5)) {
+        luaL_checkany(L, 5);
+        data = (float *) lua_touserdata(L, 5);
+    }
+    ngl_texture_update(texture, format, width, height, data);
+    return 0;
 }
 
 static int l_ngl_model_init_positions(lua_State *L) {
@@ -236,6 +262,8 @@ int main(int argc, char **argv) {
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
     l_register_function(L, "ngl_shader_init", l_ngl_shader_init);
     l_register_function(L, "ngl_load_shader", l_ngl_load_shader);
+    l_register_function(L, "ngl_texture_create", l_ngl_texture_create);
+    l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
     l_register_function(L, "ngl_model_init_grid_points", l_ngl_model_init_grid_points);
     l_register_function(L, "ngl_model_init_grid_triangles", l_ngl_model_init_grid_triangles);
@@ -246,6 +274,10 @@ int main(int argc, char **argv) {
     l_register_function(L, "nrf_freq_set", l_nrf_freq_set);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
+    l_register_constant(L, "GL_RED", GL_RED);
+    l_register_constant(L, "GL_RG", GL_RG);
+    l_register_constant(L, "GL_RGB", GL_RGB);
+    l_register_constant(L, "GL_RGBA", GL_RGBA);
     l_register_constant(L, "GL_POINTS", GL_POINTS);
     l_register_constant(L, "GL_LINE_STRIP", GL_LINE_STRIP);
     l_register_constant(L, "GL_LINE_LOOP", GL_LINE_LOOP);
