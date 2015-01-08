@@ -180,7 +180,7 @@ void ngl_texture_delete(ngl_texture *texture) {
 
 // Model initialization //////////////////////////////////////////////////////
 
-ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals) {
+ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals, float* uvs) {
     ngl_model *model = malloc(sizeof(ngl_model));
     model->point_count = point_count;
     model->transform = mat4_init_identity();
@@ -203,6 +203,15 @@ ngl_model* ngl_model_init_positions(int component_count, int point_count, float*
         model->normal_vbo = -1;
     }
 
+    if (uvs != NULL) {
+        glGenBuffers(1, &model->uv_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, model->uv_vbo);
+        glBufferData(GL_ARRAY_BUFFER, point_count * 2 * sizeof(GLfloat), uvs, GL_DYNAMIC_DRAW);
+        NGL_CHECK_ERROR();
+    } else {
+        model->uv_vbo = -1;
+    }
+
     glGenVertexArrays(1, &model->vao);
     glBindVertexArray(model->vao);
 
@@ -217,6 +226,13 @@ ngl_model* ngl_model_init_positions(int component_count, int point_count, float*
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
         glVertexAttribPointer(1, component_count, GL_FLOAT, GL_FALSE, 0, NULL);
+        NGL_CHECK_ERROR();
+    }
+
+    if (uvs != NULL) {
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, model->uv_vbo);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
         NGL_CHECK_ERROR();
     }
 
@@ -237,7 +253,7 @@ ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row
             points[i++] = top + y * row_height;
         }
     }
-    return ngl_model_init_positions(2, i / 2, points, NULL);
+    return ngl_model_init_positions(2, i / 2, points, NULL, NULL);
 }
 
 ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
@@ -246,11 +262,13 @@ ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float 
     int point_count = face_count * 3;
     float* points = malloc(point_count * 3 * sizeof(float));
     float* normals = malloc(point_count * 3 * sizeof(float));
+    float* uvs = malloc(point_count * 2 * sizeof(float));
     float total_width = (column_count - 1) * column_width;
     float total_height = (row_count - 1) * row_height;
     float left = - total_width / 2;
     float top = - total_height / 2;
     int pt_index = 0;
+    int uv_index = 0;
     for (int ri = 0; ri < row_count - 1; ri++) {
         for (int ci = 0; ci < column_count - 1; ci++) {
             float x = left + ci * column_width;
@@ -262,59 +280,70 @@ ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float 
             vec3 v22 = vec3_init(x + column_width, 0, z + row_height);
             vec3 n1 = vec3_normal(&v11, &v12, &v21);
             vec3 n2 = vec3_normal(&v12, &v22, &v21);
+            vec2 uv11 = vec2_init(ci / (float) (column_count - 1), ri / (float) (row_count - 1));
+            vec2 uv12 = vec2_init((ci + 1) / (float) (column_count - 1), ri / (float) (row_count - 1));
+            vec2 uv21 = vec2_init(ci / (float) (column_count - 1), (ri + 1) / (float) (row_count - 1));
+            vec2 uv22 = vec2_init((ci + 1) / (float) (column_count - 1), (ri + 1) / (float) (row_count - 1));
 
             points[pt_index] = v11.x;
             points[pt_index + 1] = v11.y;
             points[pt_index + 2] = v11.z;
+            normals[pt_index] = n1.x;
+            normals[pt_index + 1] = n1.y;
+            normals[pt_index + 2] = n1.z;
+            uvs[uv_index] = uv11.x;
+            uvs[uv_index + 1] = uv11.y;
 
             points[pt_index + 3] = v12.x;
             points[pt_index + 4] = v12.y;
             points[pt_index + 5] = v12.z;
+            normals[pt_index + 3] = n1.x;
+            normals[pt_index + 4] = n1.y;
+            normals[pt_index + 5] = n1.z;
+            uvs[uv_index + 2] = uv12.x;
+            uvs[uv_index + 3] = uv12.y;
 
             points[pt_index + 6] = v21.x;
             points[pt_index + 7] = v21.y;
             points[pt_index + 8] = v21.z;
+            normals[pt_index + 6] = n1.x;
+            normals[pt_index + 7] = n1.y;
+            normals[pt_index + 8] = n1.z;
+            uvs[uv_index + 4] = uv21.x;
+            uvs[uv_index + 5] = uv21.y;
 
             points[pt_index + 9] = v12.x;
             points[pt_index + 10] = v12.y;
             points[pt_index + 11] = v12.z;
+            normals[pt_index + 9] = n2.x;
+            normals[pt_index + 10] = n2.y;
+            normals[pt_index + 11] = n2.z;
+            uvs[uv_index + 6] = uv12.x;
+            uvs[uv_index + 7] = uv12.y;
 
             points[pt_index + 12] = v22.x;
             points[pt_index + 13] = v22.y;
             points[pt_index + 14] = v22.z;
+            normals[pt_index + 12] = n2.x;
+            normals[pt_index + 13] = n2.y;
+            normals[pt_index + 14] = n2.z;
+            uvs[uv_index + 8] = uv22.x;
+            uvs[uv_index + 9] = uv22.y;
 
             points[pt_index + 15] = v21.x;
             points[pt_index + 16] = v21.y;
             points[pt_index + 17] = v21.z;
-
-            normals[pt_index] = n1.x;
-            normals[pt_index + 1] = n1.y;
-            normals[pt_index + 2] = n1.z;
-
-            normals[pt_index + 3] = n1.x;
-            normals[pt_index + 4] = n1.y;
-            normals[pt_index + 5] = n1.z;
-
-            normals[pt_index + 6] = n1.x;
-            normals[pt_index + 7] = n1.y;
-            normals[pt_index + 8] = n1.z;
-
-            normals[pt_index + 9] = n2.x;
-            normals[pt_index + 10] = n2.y;
-            normals[pt_index + 11] = n2.z;
-
-            normals[pt_index + 12] = n2.x;
-            normals[pt_index + 13] = n2.y;
-            normals[pt_index + 14] = n2.z;
-
             normals[pt_index + 15] = n2.x;
             normals[pt_index + 16] = n2.y;
             normals[pt_index + 17] = n2.z;
+            uvs[uv_index + 10] = uv21.x;
+            uvs[uv_index + 11] = uv21.y;
 
             pt_index += 18;
+            uv_index += 12;
         }
     }
-    return ngl_model_init_positions(3, point_count, points, normals);
+    return ngl_model_init_positions(3, point_count, points, normals, uvs);
 }
 
 ngl_model* ngl_load_obj(const char* fname) {

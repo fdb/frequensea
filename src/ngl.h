@@ -21,6 +21,7 @@ typedef struct {
     int point_count;
     GLuint position_vbo;
     GLuint normal_vbo;
+    GLuint uv_vbo;
     GLuint vao;
     mat4 transform;
 } ngl_model;
@@ -56,7 +57,7 @@ void ngl_delete_shader(ngl_shader *shader);
 ngl_texture *ngl_texture_create(ngl_shader *shader, const char *uniform_name);
 void ngl_texture_update(ngl_texture *texture, GLint format, GLsizei width, GLsizei height, const float *data);
 void ngl_texture_delete(ngl_texture *texture);
-ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals);
+ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals, float* uvs);
 ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_load_obj(const char* fname);

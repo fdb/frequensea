@@ -169,7 +169,12 @@ static int l_ngl_model_init_positions(lua_State *L) {
         luaL_checkany(L, 4);
         normals = (float *) lua_touserdata(L, 4);
     }
-    ngl_model *model = ngl_model_init_positions(component_count, point_count, positions, normals);
+    float *uvs = NULL;
+    if (!lua_isnoneornil(L, 5)) {
+        luaL_checkany(L, 5);
+        uvs = (float *) lua_touserdata(L, 5);
+    }
+    ngl_model *model = ngl_model_init_positions(component_count, point_count, positions, normals, uvs);
     l_to_table(L, "ngl_model", model);
     return  1;
 }

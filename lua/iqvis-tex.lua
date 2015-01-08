@@ -5,13 +5,14 @@ VERTEX_SHADER = [[
 #version 400
 layout (location = 0) in vec3 vp;
 layout (location = 1) in vec3 vn;
+layout (location = 2) in vec2 vt;
 out vec3 color;
 out vec2 texCoord;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    texCoord = vec2(vp.x + 0.5, vp.z + 0.5);
+    texCoord = vt; // vec2(vp.x + 0.5, vp.z + 0.5);
     gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
 }
 ]]
@@ -42,6 +43,6 @@ function draw()
     ngl_texture_update(texture, GL_RED, 512, 512, device.samples)
     ngl_draw_model(camera, model, shader)
 
-    nrf_freq_set(device, freq)
-    freq = freq + 0.0001
+    --nrf_freq_set(device, freq)
+    --freq = freq + 0.0001
 end
