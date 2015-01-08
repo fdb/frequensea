@@ -141,7 +141,6 @@ ngl_texture *ngl_texture_create(ngl_shader *shader, const char *uniform_name) {
 
     glGenTextures(1, &texture->texture_id);
     NGL_CHECK_ERROR();
-    printf("gen %d\n", texture->texture_id);
     glActiveTexture(GL_TEXTURE0);
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
