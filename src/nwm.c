@@ -19,7 +19,7 @@ void nwm_init() {
     glfwSetErrorCallback(_nwm_on_error);
 }
 
-nwm_window *nwm_create_window(int width, int height) {
+nwm_window *nwm_create_window(int x, int y, int width, int height) {
     nwm_window* window;
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -31,14 +31,14 @@ nwm_window *nwm_create_window(int width, int height) {
     #endif
     window = glfwCreateWindow(width, height, "Window", NULL, NULL);
     assert(window);
+    if (x != 0 || y != 0) {
+        glfwSetWindowPos(window, x, y);
+    }
     glfwMakeContextCurrent(window);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    // if (x != 0 || y != 0) {
-    //     glfwSetWindowPos(window, x, y);
-    // }
     return (nwm_window*) window;
 }
 
@@ -64,13 +64,4 @@ void nwm_terminate() {
 
 double nwm_get_time() {
     return glfwGetTime();
-}
-
-void nwm_frame_begin() {
-    // Do nothing for now.
-}
-
-void nwm_frame_end(nwm_window* window) {
-    nwm_poll_events();
-    nwm_swap_buffers(window);
 }

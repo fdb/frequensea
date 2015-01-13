@@ -1,19 +1,23 @@
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
 
-#include "ngl.h"
-#include "nrf.h"
-#include "nwm.h"
-#include "vec.h"
-#include "nfile.h"
+extern "C" {
+    #include <lua.h>
+    #include <lauxlib.h>
+    #include <lualib.h>
+    #include "ngl.h"
+    #include "nrf.h"
+    #include "nvr.h"
+    #include "nwm.h"
+    #include "vec.h"
+    #include "nfile.h"
+}
 
 // Lua utility functions ////////////////////////////////////////////////////
 
 
-static void l_to_table(lua_State *L, char *type, void *obj) {
+static void l_to_table(lua_State *L, const char *type, void *obj) {
     lua_newtable(L);
     lua_pushliteral(L, "__type__");
     lua_pushstring(L, type);
@@ -23,7 +27,7 @@ static void l_to_table(lua_State *L, char *type, void *obj) {
     lua_settable(L, -3);
 }
 
-static void* l_from_table(lua_State *L, char *type, int index) {
+static void* l_from_table(lua_State *L, const char *type, int index) {
     luaL_checktype(L, index, LUA_TTABLE);
     lua_pushliteral(L, "__type__");
     lua_gettable(L, index);
@@ -245,17 +249,48 @@ static int l_nrf_freq_set(lua_State *L) {
 // Main /////////////////////////////////////////////////////////////////////
 
 void usage() {
-    printf("Usage: frequensea FILE.lua\n");
+    printf("Usage: frequensea [--vr] FILE.lua\n");
+    printf("Options:\n");
+    printf("    --vr    Render to Oculus VR\n");
+}
+
+int str_ends_with(const char *s, const char *suffix) {
+    if (!s || !suffix) {
+        return 0;
+    }
+    size_t s_length = strlen(s);
+    size_t suffix_length = strlen(suffix);
+    if (suffix_length >  s_length) {
+        return 0;
+    }
+    return strncmp(s + s_length - suffix_length, suffix, suffix_length) == 0;
+}
+
+static void draw(lua_State *L) {
+    int error = l_call_function(L, "draw");
+    if (error) {
+        exit(-1);
+    }
 }
 
 int main(int argc, char **argv) {
-    char *fname;
+    char *fname = NULL;
+    int use_vr = 0;
 
-    if (argc != 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            usage();
+            exit(0);
+        } else if (strcmp(argv[i], "--vr") == 0) {
+            use_vr = 1;
+        } else if (str_ends_with(argv[i], ".lua")) {
+            fname = argv[i];
+        }
+    }
+
+    if (fname == NULL) {
         usage();
         exit(0);
-    } else {
-        fname = argv[1];
     }
 
     int error;
@@ -301,7 +336,16 @@ int main(int argc, char **argv) {
     }
 
     nwm_init();
-    nwm_window *window = nwm_create_window(800, 600);
+    nwm_window *window = NULL;
+    nvr_device *device = NULL;
+    if (use_vr) {
+        device = nvr_device_init();
+        window = nvr_create_window(device);
+        nvr_init_eyes(device);
+    } else {
+        window = nwm_create_window(0, 0, 800, 600);
+    }
+    assert(window);
 
     error = l_call_function(L, "setup");
     if (error) {
@@ -329,12 +373,13 @@ int main(int argc, char **argv) {
             }
             frames_to_check = 10;
         }
-        nwm_frame_begin(window);
-        error = l_call_function(L, "draw");
-        if (error) {
-            exit(-1);
+        if (use_vr) {
+            nvr_draw_eyes(device, (nvr_render_cb_fn)draw, L);
+        } else {
+            draw(L);
+            nwm_swap_buffers(window);
         }
-        nwm_frame_end(window);
+        nwm_poll_events();
     }
 
     nwm_destroy_window(window);

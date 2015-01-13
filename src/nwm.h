@@ -5,9 +5,8 @@
 #include <GLFW/glfw3.h>
 
 #ifdef __APPLE__
-#define OVR_OS_MAC
-#define GLFW_EXPOSE_NATIVE_COCOA
-#define GLFW_EXPOSE_NATIVE_NSGL
+    #define GLFW_EXPOSE_NATIVE_COCOA
+    #define GLFW_EXPOSE_NATIVE_NSGL
 #endif
 
 #include <GLFW/glfw3native.h>
@@ -15,14 +14,12 @@
 typedef GLFWwindow nwm_window;
 
 void nwm_init();
-nwm_window* nwm_create_window(int width, int height);
+nwm_window *nwm_create_window(int x, int y, int width, int height);
 void nwm_destroy_window(nwm_window* window);
 int nwm_window_should_close(nwm_window* window);
 void nwm_poll_events();
 void nwm_swap_buffers(nwm_window* window);
 void nwm_terminate();
 double nwm_get_time();
-void nwm_frame_begin();
-void nwm_frame_end(nwm_window* window);
 
 #endif // NWM_H
