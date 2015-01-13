@@ -246,6 +246,9 @@ static int l_nrf_freq_set(lua_State *L) {
 
 // Main /////////////////////////////////////////////////////////////////////
 
+int use_vr = 0;
+nvr_device *device = NULL;
+
 void usage() {
     printf("Usage: frequensea [--vr] FILE.lua\n");
     printf("Options:\n");
@@ -278,9 +281,25 @@ static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
     draw(L);
 }
 
+static void on_key(nwm_window* window, int key, int scancode, int action, int mods) {
+    printf("on_key %d\n", key);
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, GL_TRUE);
+        }
+        if (use_vr) {
+            static ovrHSWDisplayState hswDisplayState;
+            ovrHmd_GetHSWDisplayState(device->hmd, &hswDisplayState);
+            if (hswDisplayState.Displayed) {
+                ovrHmd_DismissHSWDisplay(device->hmd);
+                return;
+            }
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     char *fname = NULL;
-    int use_vr = 0;
 
     for (int i = 0; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -342,7 +361,6 @@ int main(int argc, char **argv) {
 
     nwm_init();
     nwm_window *window = NULL;
-    nvr_device *device = NULL;
     if (use_vr) {
         device = nvr_device_init();
         window = nvr_create_window(device);
@@ -351,6 +369,7 @@ int main(int argc, char **argv) {
         window = nwm_create_window(0, 0, 800, 600);
     }
     assert(window);
+    nwm_set_key_callback(window, on_key);
 
     error = l_call_function(L, "setup");
     if (error) {

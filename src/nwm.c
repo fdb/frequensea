@@ -65,3 +65,7 @@ void nwm_terminate() {
 double nwm_get_time() {
     return glfwGetTime();
 }
+
+void nwm_set_key_callback(nwm_window *window, nwm_key_cb_fn callback) {
+    glfwSetKeyCallback(window, callback);
+}
