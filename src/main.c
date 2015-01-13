@@ -406,6 +406,9 @@ int main(int argc, char **argv) {
         nwm_poll_events();
     }
 
+    if (use_vr) {
+        nvr_device_destroy(device);
+    }
     nwm_destroy_window(window);
     nwm_terminate();
 

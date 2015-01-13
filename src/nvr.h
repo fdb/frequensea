@@ -32,6 +32,7 @@ typedef struct {
 typedef void (*nvr_render_cb_fn)(nvr_device *device, nvr_eye *eye, void *);
 
 nvr_device *nvr_device_init();
+void nvr_device_destroy(nvr_device *device);
 nwm_window *nvr_create_window(nvr_device *device);
 void nvr_init_eyes(nvr_device *device);
 void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx);

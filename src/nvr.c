@@ -59,6 +59,11 @@ nvr_device *nvr_device_init() {
     return device;
 }
 
+void nvr_device_destroy(nvr_device *device) {
+    ovrHmd_Destroy(device->hmd);
+    device->hmd = NULL;
+}
+
 nwm_window *nvr_create_window(nvr_device *device) {
     assert(device != NULL);
     ovrHmd hmd = device->hmd;
