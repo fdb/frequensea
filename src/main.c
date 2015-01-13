@@ -1,18 +1,16 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
-extern "C" {
-    #include <lua.h>
-    #include <lauxlib.h>
-    #include <lualib.h>
-    #include "ngl.h"
-    #include "nrf.h"
-    #include "nvr.h"
-    #include "nwm.h"
-    #include "vec.h"
-    #include "nfile.h"
-}
+#include "ngl.h"
+#include "nrf.h"
+#include "nvr.h"
+#include "nwm.h"
+#include "vec.h"
+#include "nfile.h"
 
 // Lua utility functions ////////////////////////////////////////////////////
 
