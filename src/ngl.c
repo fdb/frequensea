@@ -390,7 +390,7 @@ ngl_camera* ngl_camera_init_look_at(float x, float y, float z) {
     vec3 loc = vec3_init(x, y, z);
     vec3 target = vec3_zero();
     vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
-    camera->transform = mat4_init_look_at(&loc, &target, &up);
+    camera->view = mat4_init_look_at(&loc, &target, &up);
     camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
     return camera;
@@ -399,7 +399,7 @@ ngl_camera* ngl_camera_init_look_at(float x, float y, float z) {
 // Model drawing /////////////////////////////////////////////////////////////
 
 void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
-    mat4 view = camera->transform;
+    mat4 view = camera->view;
     mat4 projection = camera->projection;
     mat4 mv = mat4_mul(&model->transform, &view);
 

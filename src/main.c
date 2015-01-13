@@ -271,6 +271,13 @@ static void draw(lua_State *L) {
     }
 }
 
+static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
+    ngl_camera camera = nvr_eye_to_camera(device, eye);
+    l_to_table(L, "ngl_camera", &camera);
+    lua_setglobal(L, "camera");
+    draw(L);
+}
+
 int main(int argc, char **argv) {
     char *fname = NULL;
     int use_vr = 0;
@@ -372,7 +379,7 @@ int main(int argc, char **argv) {
             frames_to_check = 10;
         }
         if (use_vr) {
-            nvr_draw_eyes(device, (nvr_render_cb_fn)draw, L);
+            nvr_draw_eyes(device, (nvr_render_cb_fn)draw_eye, L);
         } else {
             draw(L);
             nwm_swap_buffers(window);

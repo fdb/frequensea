@@ -14,6 +14,7 @@
 #include "nwm.h"
 
 typedef struct {
+    ovrEyeType type;
     int width;
     int height;
     mat4 projection;
@@ -26,14 +27,14 @@ typedef struct {
     ovrHmd hmd;
     nvr_eye left_eye;
     nvr_eye right_eye;
-
 } nvr_device;
 
-typedef void (*nvr_render_cb_fn)(void *);
+typedef void (*nvr_render_cb_fn)(nvr_device *device, nvr_eye *eye, void *);
 
 nvr_device *nvr_device_init();
 nwm_window *nvr_create_window(nvr_device *device);
 void nvr_init_eyes(nvr_device *device);
 void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx);
+ngl_camera nvr_eye_to_camera(nvr_device *device, nvr_eye *eye);
 
 #endif // NVR_H

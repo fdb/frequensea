@@ -89,7 +89,7 @@ void nvr_init_eyes(nvr_device *device) {
         } else {
             eye = &device->right_eye;
         }
-
+        eye->type = eye_type;
         ovrTextureHeader *eyeTextureHeader = &eye->texture.Header;
         eyeFovPorts[eye_type] = hmd->DefaultEyeFov[eye_type];
         ovrSizei texture_size = ovrHmd_GetFovTextureSize(hmd, eye_type, hmd->DefaultEyeFov[eye_type], 1.0f);
@@ -186,20 +186,26 @@ void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
 
         // Apply the per-eye offset & the head pose
         eyePoses[eye_type] = ovrHmd_GetEyePose(hmd, eye_type);
-        //quat q = ovr_quat_to_quat(&eyePoses[eye_type].Orientation);
-        //mat4 orientation = quat_to_mat4(&q);
-        //mat4 position = mat4_init_identity();
-        //position = mat4_rotate_y(&position, camera_rot_y);
-        //position = mat4_translate(&position, camera_x, camera_y, camera_z);
-        //mat4 eye_pose = mat4_mul(&orientation, &position);
-        //mat4 inv_eye_pose = mat4_inverse(&eye_pose);
-        callback(ctx);
-        //scene_draw(elapsed_seconds, &inv_eye_pose, &eye_arg.projection);
+        callback(device, eye, ctx);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     ovrTexture textures[2];
     textures[0] = device->left_eye.texture;
     textures[1] = device->right_eye.texture;
     ovrHmd_EndFrame(hmd, eyePoses, textures);
+}
+
+ngl_camera nvr_eye_to_camera(nvr_device *device, nvr_eye *eye) {
+    ovrHmd hmd = device->hmd;
+    ovrPosef eyePose = ovrHmd_GetEyePose(hmd, eye->type);
+    quat q = ovr_quat_to_quat(&eyePose.Orientation);
+    mat4 orientation = quat_to_mat4(&q);
+    mat4 position = mat4_init_identity();
+    mat4 eye_pose = mat4_mul(&orientation, &position);
+    mat4 inv_eye_pose = mat4_inverse(&eye_pose);
+    ngl_camera camera;
+    camera.view = inv_eye_pose;
+    camera.projection = eye->projection;
+    return camera;
 }
 
