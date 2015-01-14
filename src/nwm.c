@@ -69,3 +69,11 @@ double nwm_get_time() {
 void nwm_set_key_callback(nwm_window *window, nwm_key_cb_fn callback) {
     glfwSetKeyCallback(window, callback);
 }
+
+void nwm_window_set_user_data(nwm_window *window, void *data) {
+    glfwSetWindowUserPointer(window, data);
+}
+
+void *nwm_window_get_user_data(nwm_window *window) {
+    return glfwGetWindowUserPointer(window);
+}

@@ -295,7 +295,6 @@ static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
 }
 
 static void on_key(nwm_window* window, int key, int scancode, int action, int mods) {
-    printf("on_key %d\n", key);
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
@@ -306,6 +305,20 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
             if (hswDisplayState.Displayed) {
                 ovrHmd_DismissHSWDisplay(device->hmd);
                 return;
+            }
+        }
+        lua_State *L = nwm_window_get_user_data(window);
+        if (L) {
+            lua_getglobal(L, "on_key");
+            if (lua_isfunction(L, -1)) {
+                lua_pushinteger(L, key);
+                int error = lua_pcall(L, 1, 0, 0);
+                if (error) {
+                    fprintf(stderr, "Error calling on_key(): %s\n", lua_tostring(L, -1));
+                    lua_pop(L, 1);
+                }
+            } else {
+                lua_pop(L, 1);
             }
         }
     }
@@ -367,6 +380,12 @@ int main(int argc, char **argv) {
     long old_mtime = nfile_mtime(fname);
     long frames_to_check = 10;
 
+    error = luaL_loadfile(L, "../lua/_keys.lua") || lua_pcall(L, 0, 0, 0);
+    if (error) {
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
         fprintf(stderr, "%s\n", lua_tostring(L, -1));
@@ -383,6 +402,7 @@ int main(int argc, char **argv) {
         window = nwm_create_window(0, 0, 800, 600);
     }
     assert(window);
+    nwm_window_set_user_data(window, L);
     nwm_set_key_callback(window, on_key);
 
     error = l_call_function(L, "setup");

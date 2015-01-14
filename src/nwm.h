@@ -24,5 +24,7 @@ void nwm_swap_buffers(nwm_window* window);
 void nwm_terminate();
 double nwm_get_time();
 void nwm_set_key_callback(nwm_window *window, nwm_key_cb_fn callback);
+void *nwm_window_get_user_data(nwm_window *window);
+void nwm_window_set_user_data(nwm_window *window, void *data);
 
 #endif // NWM_H
