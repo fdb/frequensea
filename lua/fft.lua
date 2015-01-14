@@ -28,8 +28,9 @@ void main() {
 }
 ]]
 
+freq = 900
+
 function setup()
-    freq = 97
     device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
     camera = ngl_camera_init_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -41,7 +42,16 @@ function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     ngl_texture_update(texture, GL_RED, 1024, 512, device.fft)
     ngl_draw_model(camera, model, shader)
+end
 
-    --nrf_freq_set(device, freq)
-    --freq = freq + 0.0001
+function on_key(key)
+    if key == KEY_UP then
+        freq = freq + 0.01
+        nrf_freq_set(device, freq)
+        print("Frequency: " .. freq)
+    elseif key == KEY_DOWN then
+        freq = freq - 0.01
+        nrf_freq_set(device, freq)
+        print("Frequency: " .. freq)
+    end
 end
