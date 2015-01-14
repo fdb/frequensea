@@ -54,6 +54,12 @@ The `positions` and `normals` arguments are both optional.
 
 This function returns a model object that can be used in `ngl_draw_model`.
 
+## ngl_texture_create(shader, uniform_name)
+Create an empty texture object. The name refers to the texture uniform name in the shader. Returns a texture object.
+
+## ngl_texture_update(texture, format, width, height, data)
+Set the texture data. `texture` is the texture object returned by `ngl_texture_create.` `format` is one of `GL_RED`, `GL_RG`, `GL_RGB` or `GL_RGBA`. `width` and `height` refer to texture size. Ideally, these are powers of two (e.g. 256, 512, 1024). `data` is a buffer containing floating-point values. We assume data has `n_components * width * height` floats. If the data is too small, the program will crash.
+
 ## ngl_model_init_grid_points(row_count, column_count, row_height, column_width)
 Initialize a two-dimensional grids with one point per grid position. The grid will have row_count * column_count points.
 `row_height` and `column_width` specify the distance between each row and column. This model won't have any normals.
@@ -88,6 +94,9 @@ Tune the HackRF to the given frequency (in MHz) and start receiving data. The fu
 
 ## nrf_stop(device)
 Stop receiving data.
+
+### nrf_req_set(device, freq_mhz)
+Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_start`.
 
 ## NRF_SAMPLES_SIZE
 A constant with the number of samples the HackRF device returns.
