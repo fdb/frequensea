@@ -24,8 +24,9 @@ void main() {
 ]]
 
 function setup()
-    camera = ngl_camera_init_look_at(-20, 18, 50)
+    camera = ngl_camera_init_look_at(0, 2, 5)
     model = ngl_load_obj("../obj/c004.obj")
+    ngl_model_translate(model, 20, -18, -50)
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
