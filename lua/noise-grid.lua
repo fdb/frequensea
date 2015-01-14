@@ -7,10 +7,14 @@ layout (location = 1) in vec3 vn;
 out vec3 color;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
+
 void main() {
-    color = vec3(1.0, 1.0, 1.0);
-    vec3 pt = vec3(vp.x * 10, noise1(noise1(vp.x * 8.287) + noise1(vp.y * 7.393) + uTime * 0.5), vp.y * 10);
-    gl_PointSize = 2;
+    float increase = 6.0;
+    vec3 pt = vec3(vp.x * 10, noise1(noise1((vp.x) * increase) + noise1(vp.y * increase) + uTime * 0.5), vp.y * 10);
+    color.r = .25;
+    color.g = (pt.z * (pt.y/3.0));
+    color.b = .5+(pt.y * 2.0);
+    gl_PointSize = 5;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
 }
 ]]
