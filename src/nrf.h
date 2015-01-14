@@ -5,6 +5,7 @@
 
 #include <libhackrf/hackrf.h>
 #include <fftw3.h>
+#include <pthread.h>
 
 #include "vec.h"
 
@@ -19,6 +20,10 @@ typedef struct {
     fftw_complex *fft_in;
     fftw_complex *fft_out;
     fftw_plan fft_plan;
+    pthread_t fake_sample_receiver_thread;
+    unsigned char *fake_sample_blocks;
+    int fake_sample_block_size;
+    int fake_sample_block_index;
 } nrf_device;
 
 nrf_device *nrf_start(double freq_mhz, const char* data_file);

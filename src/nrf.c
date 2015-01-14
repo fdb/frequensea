@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "nrf.h"
 
@@ -17,14 +19,13 @@ if (status != 0) { \
 } \
 
 
-static int receive_sample_block(hackrf_transfer *transfer) {
-    nrf_device *device = (nrf_device *)transfer->rx_ctx;
+static int process_sample_block(nrf_device *device, int length, unsigned char *buffer) {
     int j = 0;
     int ii = 0;
-    for (int i = 0; i < transfer->valid_length; i += 2) {
-        float t = i / (float) transfer->valid_length;
-        int vi = transfer->buffer[i];
-        int vq = transfer->buffer[i + 1];
+    for (int i = 0; i < length; i += 2) {
+        float t = i / (float) length;
+        int vi = buffer[i];
+        int vq = buffer[i + 1];
         vi = (vi + 128) % 256;
         vq = (vq + 128) % 256;
         device->samples[j++] = vi / 256.0f;
@@ -32,8 +33,8 @@ static int receive_sample_block(hackrf_transfer *transfer) {
         device->samples[j++] = t;
 
         fftw_complex *p = device->fft_in;
-        p[ii][0] = transfer->buffer[i] / 255.0;
-        p[ii][1] = transfer->buffer[i + 1] / 255.0;
+        p[ii][0] = buffer[i] / 255.0;
+        p[ii][1] = buffer[i + 1] / 255.0;
         ii++;
     }
     fftw_execute(device->fft_plan);
@@ -48,13 +49,40 @@ static int receive_sample_block(hackrf_transfer *transfer) {
     return 0;
 }
 
+static int receive_sample_block(hackrf_transfer *transfer) {
+    nrf_device *device = (nrf_device *)transfer->rx_ctx;
+    return process_sample_block(device, transfer->valid_length, transfer->buffer);
+}
+
+#define MILLISECS 1000000
+
+static void sleep_milliseconds(int millis) {
+    struct timespec t1, t2;
+    t1.tv_sec = 0;
+    t1.tv_nsec = millis * MILLISECS;
+    nanosleep(&t1 , &t2);
+}
+
+static void *receive_fake_samples(nrf_device *device) {
+    while (1) {
+        unsigned char *buffer = device->fake_sample_blocks + device->fake_sample_block_index;
+        process_sample_block(device, NRF_SAMPLES_SIZE * 2, buffer);
+        device->fake_sample_block_index++;
+        if (device->fake_sample_block_index >= device->fake_sample_block_size) {
+            device->fake_sample_block_index = 0;
+        }
+        sleep_milliseconds(1000 / 60);
+    }
+    return NULL;
+}
+
 // Start receiving on the given frequency.
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
 nrf_device *nrf_start(double freq_mhz, const char* data_file) {
     int status;
 
-    nrf_device *device = malloc(sizeof(nrf_device));
+    nrf_device *device = calloc(1, sizeof(nrf_device));
 
     device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
     device->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
@@ -93,23 +121,20 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
         if (data_file != NULL) {
             FILE *fp = fopen(data_file, "rb");
             if (fp != NULL) {
-                fread(int_buffer, NRF_SAMPLES_SIZE * 2, 1, fp);
+                fseek(fp, 0L, SEEK_END);
+                long size = ftell(fp);
+                rewind(fp);
+                device->fake_sample_block_size = size / (131072 * 2);
+                device->fake_sample_block_index = 0;
+                device->fake_sample_blocks = calloc(size, sizeof(unsigned char));
+                fread(device->fake_sample_blocks, size, 1, fp);
                 fclose(fp);
             } else {
                 fprintf(stderr, "WARN nrf_start: Couldn't open %s. Using empty buffer.\n", data_file);
             }
         }
-        int j = 0;
-        for (int i = 0; i < NRF_SAMPLES_SIZE * 2; i += 2) {
-            float t = i / (float) NRF_SAMPLES_SIZE * 2;
-            int vi = int_buffer[i];
-            int vq = int_buffer[i + 1];
-            vi = (vi + 128) % 256;
-            vq = (vq + 128) % 256;
-            device->samples[j++] = vi / 256.0f;
-            device->samples[j++] = vq / 256.0f;
-            device->samples[j++] = t;
-        }
+
+        pthread_create(&device->fake_sample_receiver_thread, NULL, (void *(*)(void *))&receive_fake_samples, device);
     }
 
     return device;
@@ -127,6 +152,9 @@ void nrf_stop(nrf_device *device) {
     if (device->device != NULL) {
         hackrf_stop_rx(device->device);
         hackrf_close(device->device);
+    }
+    if (device->fake_sample_receiver_thread != NULL) {
+        pthread_kill(device->fake_sample_receiver_thread, 1);
     }
     hackrf_exit();
     fftw_destroy_plan(device->fft_plan);

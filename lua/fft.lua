@@ -28,10 +28,10 @@ void main() {
 }
 ]]
 
-freq = 900
+freq = 200.5
 
 function setup()
-    device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
+    device = nrf_start(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_init_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_create(shader, "uTexture")
