@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-const long BUFFER_SIZE = 1e6;
+const long NRF_SAMPLES_SIZE = 262144;
+const long BUFFER_SIZE = NRF_SAMPLES_SIZE * 100;
 uint8_t buffer[BUFFER_SIZE];
 long buffer_pos = 0;
+
+int skip = 10;
 
 #define CHECK_STATUS(status, message) \
     if (status != 0) { \
@@ -16,8 +19,13 @@ long buffer_pos = 0;
     } \
 
 int receive_sample_block(hackrf_transfer *transfer) {
+    if (skip > 0) {
+        printf("skip: %d\n", skip);
+        skip--;
+        return 0;
+    }
     printf("block length: %d\n", transfer->valid_length);
-    for (int i = 0; i < transfer->valid_length; i+= 2) {
+    for (int i = 0; i < transfer->valid_length; i++) {
         if (buffer_pos < BUFFER_SIZE) {
             buffer[buffer_pos++] = transfer->buffer[i];
         }
@@ -45,7 +53,7 @@ int main(int argc, char **argv) {
     status = hackrf_open(&device);
     CHECK_STATUS(status, "hackrf_open");
 
-    status = hackrf_set_freq(device, 100.9e6);
+    status = hackrf_set_freq(device, 200.5e6);
     CHECK_STATUS(status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(device, 10e6);
@@ -54,7 +62,7 @@ int main(int argc, char **argv) {
     status = hackrf_start_rx(device, receive_sample_block, NULL);
     CHECK_STATUS(status, "hackrf_start_rx");
 
-    sleep(1);
+    sleep(10);
 
     hackrf_stop_rx(device);
     hackrf_close(device);
