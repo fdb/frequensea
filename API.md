@@ -66,6 +66,9 @@ Load an OBJ file from disk. The OBJ file should only use triangles, and should h
 
 This function returns a model object that can be used in `ngl_draw_model`.
 
+## ngl_model_translate(model, tx, ty, tz)
+Translate the model. The model is transformed in-place; no data is returned.
+
 ## ngl_draw_model(camera, model, shader)
 Draw the model with the given shader. Use the same camera object if you want consistent views of the scene.
 
