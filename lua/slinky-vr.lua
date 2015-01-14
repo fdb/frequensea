@@ -24,19 +24,14 @@ void main() {
 ]]
 
 function setup()
-    device = nrf_start(4.5, "../rfdata/rf-100.900-2.raw")
+    device = nrf_start(0.8, "../rfdata/rf-100.900-2.raw")
     shader = ngl_shader_init(GL_POINTS, VERTEX_SHADER, FRAGMENT_SHADER)
-    camera = ngl_camera_init_look_at(0, 0, 0)
+    camera = ngl_camera_init_look_at(4, 0.5, 10)
 end
 
 function draw()
     time = nwm_get_time()
-    -- camera_x = math.sin(time * 0.5) * 2.0
-    -- camera_y = 1.0
-    -- camera_z = math.cos(time * 0.5) * 2.0
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     model = ngl_model_init_positions(3, NRF_SAMPLES_SIZE, device.samples)
-
-    --ngl_model_translate(model, 2, -0.5, 0)
     ngl_draw_model(camera, model, shader)
 end
