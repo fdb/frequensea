@@ -69,7 +69,7 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
         status = hackrf_set_freq(device->device, freq_mhz * 1e6);
         HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
-        status = hackrf_set_sample_rate(device->device, 10e6);
+        status = hackrf_set_sample_rate(device->device, 5e6);
         HACKRF_CHECK_STATUS(device, status, "hackrf_set_sample_rate");
 
         status = hackrf_set_amp_enable(device->device, 0);

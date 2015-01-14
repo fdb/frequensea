@@ -208,6 +208,15 @@ static int l_ngl_load_obj(lua_State *L) {
     return 1;
 }
 
+static int l_ngl_model_translate(lua_State *L) {
+    ngl_model* model = l_to_ngl_model(L, 1);
+    float tx = luaL_checknumber(L, 2);
+    float ty = luaL_checknumber(L, 3);
+    float tz = luaL_checknumber(L, 4);
+    ngl_model_translate(model, tx, ty, tz);
+    return 0;
+}
+
 static int l_ngl_draw_model(lua_State *L) {
     ngl_camera* camera = l_to_ngl_camera(L, 1);
     ngl_model* model = l_to_ngl_model(L, 2);
@@ -336,6 +345,7 @@ int main(int argc, char **argv) {
     l_register_function(L, "ngl_model_init_grid_points", l_ngl_model_init_grid_points);
     l_register_function(L, "ngl_model_init_grid_triangles", l_ngl_model_init_grid_triangles);
     l_register_function(L, "ngl_load_obj", l_ngl_load_obj);
+    l_register_function(L, "ngl_model_translate", l_ngl_model_translate);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_start", l_nrf_start);
     l_register_function(L, "nrf_stop", l_nrf_stop);

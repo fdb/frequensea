@@ -383,6 +383,11 @@ ngl_model* ngl_load_obj(const char* fname) {
     return model;
 }
 
+void ngl_model_translate(ngl_model *model, float tx, float ty, float tz) {
+    mat4 m = mat4_init_translate(tx, ty, tz);
+    model->transform = mat4_mul(&model->transform, &m);
+}
+
 // Camera ////////////////////////////////////////////////////////////////////
 
 ngl_camera* ngl_camera_init_look_at(float x, float y, float z) {
