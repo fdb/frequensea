@@ -18,7 +18,11 @@
 
 ## Running
 
-    ./frequensea ../lua/main.lua
+    ./frequensea ../lua/static.lua
+
+With the Oculus:
+
+    ./frequensea --vr ../lua/static.lua
 
 
 ## Build and Run
