@@ -40,7 +40,7 @@ typedef struct {
 } ngl_texture;
 
 typedef struct {
-    mat4 transform;
+    mat4 view;
     mat4 projection;
     ngl_color background;
 } ngl_camera;

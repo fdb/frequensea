@@ -12,11 +12,10 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float offset = -0.2;
-    float power = 0.3;
-    float t1 = offset + texture(uTexture, vt).r * power;
-    float t2 = offset + texture(uTexture, vt + vec2(0.01, 0)).r * power;
-    float t3 = offset + texture(uTexture, vt + vec2(0, 0.01)).r * power;
+    float d = 0.0005;
+    float t1 = texture(uTexture, vt).r * d;
+    float t2 = texture(uTexture, vt + vec2(0.01, 0)).r * d;
+    float t3 = texture(uTexture, vt + vec2(0, 0.01)).r * d;
     vec3 v1 = vec3(vp.x, t1, vp.z);
     vec3 v2 = vec3(vp.x + 0.01, t2, vp.z);
     vec3 v3 = vec3(vp.x, t3, vp.z + 0.01);
@@ -28,8 +27,8 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 0.5;
-    color += vec4(0.2, 0.2, 0.4, 0.5);
+    color = vec4(1.0, 1.0, 1.0, 0.95) * dot(normalize(v1), normalize(n)) * 0.5;
+    color += vec4(0.2, 0.2, 0.4, 1.0);
     color *= 2;
 
     float l = 1.0 - ((vp.x * vp.x + vp.z * vp.z) * 2.0);
@@ -50,9 +49,9 @@ void main() {
 ]]
 
 function setup()
-    freq = 201.2
+    freq = 200
     device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
-    camera = ngl_camera_init_look_at(0, 0.3, 0.5)
+    camera = ngl_camera_init_look_at(0, 1.0, 1.0)
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_create(shader, "uTexture")
     model = ngl_model_init_grid_triangles(100, 100, 0.01, 0.01)
@@ -60,7 +59,7 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RG, 512, 256, device.samples)
+    ngl_texture_update(texture, GL_RED, 1024, 512, device.fft)
     ngl_draw_model(camera, model, shader)
 
     --nrf_freq_set(device, freq)
