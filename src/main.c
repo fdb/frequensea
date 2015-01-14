@@ -226,6 +226,10 @@ static int l_nrf_start(lua_State *L) {
     lua_pushlightuserdata(L, device->samples);
     lua_settable(L, -3);
 
+    lua_pushliteral(L, "fft");
+    lua_pushlightuserdata(L, device->fft);
+    lua_settable(L, -3);
+
     return 1;
 }
 

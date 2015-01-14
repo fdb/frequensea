@@ -4,12 +4,21 @@
 #define NRF_H
 
 #include <libhackrf/hackrf.h>
+#include <fftw3.h>
+
+#include "vec.h"
 
 #define NRF_SAMPLES_SIZE 131072
+#define FFT_SIZE 1024
+#define FFT_HISTORY_SIZE 512
 
 typedef struct {
     hackrf_device *device;
     float samples[NRF_SAMPLES_SIZE * 3];
+    vec3 fft[FFT_SIZE * FFT_HISTORY_SIZE];
+    fftw_complex *fft_in;
+    fftw_complex *fft_out;
+    fftw_plan fft_plan;
 } nrf_device;
 
 nrf_device *nrf_start(double freq_mhz, const char* data_file);

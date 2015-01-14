@@ -20,6 +20,7 @@ if (status != 0) { \
 static int receive_sample_block(hackrf_transfer *transfer) {
     nrf_device *device = (nrf_device *)transfer->rx_ctx;
     int j = 0;
+    int ii = 0;
     for (int i = 0; i < transfer->valid_length; i += 2) {
         float t = i / (float) transfer->valid_length;
         int vi = transfer->buffer[i];
@@ -29,6 +30,20 @@ static int receive_sample_block(hackrf_transfer *transfer) {
         device->samples[j++] = vi / 256.0f;
         device->samples[j++] = vq / 256.0f;
         device->samples[j++] = t;
+
+        fftw_complex *p = device->fft_in;
+        p[ii][0] = transfer->buffer[i] / 255.0;
+        p[ii][1] = transfer->buffer[i + 1] / 255.0;
+        ii++;
+    }
+    fftw_execute(device->fft_plan);
+    // Move the previous lines down
+    memcpy((char *)&device->fft + FFT_SIZE * sizeof(vec3), &device->fft, FFT_SIZE * (FFT_HISTORY_SIZE - 1) * sizeof(vec3));
+    // Set the first line
+    for (int i = 0; i < FFT_SIZE; i++) {
+        float t = i / (float) FFT_SIZE;
+        fftw_complex *out = device->fft_out;
+        device->fft[i] = vec3_init(out[i][0], out[i][1], t);
     }
     return 0;
 }
@@ -41,6 +56,11 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
 
     nrf_device *device = malloc(sizeof(nrf_device));
 
+    device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
+    device->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
+    device->fft_plan = fftw_plan_dft_1d(FFT_SIZE, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
+    memset(device->fft, 0, sizeof(vec3) * FFT_SIZE * FFT_HISTORY_SIZE);
+
     status = hackrf_init();
     HACKRF_CHECK_STATUS(device, status, "hackrf_init");
 
@@ -49,7 +69,7 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
         status = hackrf_set_freq(device->device, freq_mhz * 1e6);
         HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
-        status = hackrf_set_sample_rate(device->device, 5e6);
+        status = hackrf_set_sample_rate(device->device, 10e6);
         HACKRF_CHECK_STATUS(device, status, "hackrf_set_sample_rate");
 
         status = hackrf_set_amp_enable(device->device, 0);
@@ -109,5 +129,8 @@ void nrf_stop(nrf_device *device) {
         hackrf_close(device->device);
     }
     hackrf_exit();
+    fftw_destroy_plan(device->fft_plan);
+    fftw_free(device->fft_in);
+    fftw_free(device->fft_out);
     free(device);
 }
