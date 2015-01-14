@@ -49,12 +49,13 @@ void main() {
 ]]
 
 function setup()
-    freq = 200
+    freq = 97
     device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
-    camera = ngl_camera_init_look_at(0, 1.0, 1.0)
+    camera = ngl_camera_init_look_at(0, 0.1, 0.5)
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_create(shader, "uTexture")
-    model = ngl_model_init_grid_triangles(100, 100, 0.01, 0.01)
+    model = ngl_model_init_grid_triangles(400, 400, 0.002, 0.002)
+    ngl_model_translate(model, 0, -0.02, 0)
 end
 
 function draw()
