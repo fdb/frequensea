@@ -1,4 +1,4 @@
--- Visualize IQ data as a texture from the HackRF
+-- Visualize FFT data as a texture from the HackRF
 -- Calculate normals and lighting
 
 VERTEX_SHADER = [[
