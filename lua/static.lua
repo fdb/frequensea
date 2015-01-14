@@ -23,14 +23,33 @@ void main() {
 }
 ]]
 
+camera_x = -20
+camera_y = 18
+camera_z = 50
+
 function setup()
-    camera = ngl_camera_init_look_at(0, 2, 5)
     model = ngl_load_obj("../obj/c004.obj")
-    ngl_model_translate(model, 20, -18, -50)
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1)
+    camera = ngl_camera_init_look_at(camera_x, camera_y, camera_z)
     ngl_draw_model(camera, model, shader)
+end
+
+function on_key(key)
+    if key == KEY_W then
+        camera_z = camera_z - 0.5
+    elseif key == KEY_S then
+        camera_z = camera_z + 0.5
+    elseif key == KEY_A then
+        camera_x = camera_x - 0.5
+    elseif key == KEY_D then
+        camera_x = camera_x + 0.5
+    elseif key == KEY_Q then
+        camera_y = camera_y - 0.5
+    elseif key == KEY_E then
+        camera_y = camera_y + 0.5
+    end
 end
