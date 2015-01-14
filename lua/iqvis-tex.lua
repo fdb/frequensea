@@ -30,7 +30,7 @@ void main() {
 ]]
 
 function setup()
-    freq = 2.5
+    freq = 200
     device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
     camera = ngl_camera_init_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -39,8 +39,11 @@ function setup()
 end
 
 function draw()
+    TEXTURE_SIZE = 256
+    SAMPLES = TEXTURE_SIZE * TEXTURE_SIZE
+    nrf_samples_consume(device, SAMPLES)
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RED, 512, 512, device.samples)
+    ngl_texture_update(texture, GL_RED, TEXTURE_SIZE, TEXTURE_SIZE, device.samples)
     ngl_draw_model(camera, model, shader)
 
     --nrf_freq_set(device, freq)

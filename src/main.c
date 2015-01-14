@@ -244,6 +244,13 @@ static int l_nrf_freq_set(lua_State *L) {
     return 0;
 }
 
+static int l_nrf_samples_consume(lua_State *L) {
+    nrf_device *device = l_to_nrf_device(L, 1);
+    int sample_count = luaL_checkint(L, 2);
+    nrf_samples_consume(device, sample_count);
+    return 0;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 int use_vr = 0;
@@ -336,6 +343,7 @@ int main(int argc, char **argv) {
     l_register_function(L, "nrf_start", l_nrf_start);
     l_register_function(L, "nrf_stop", l_nrf_stop);
     l_register_function(L, "nrf_freq_set", l_nrf_freq_set);
+    l_register_function(L, "nrf_samples_consume", l_nrf_samples_consume);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "GL_RED", GL_RED);

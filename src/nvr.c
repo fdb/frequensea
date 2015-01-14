@@ -172,9 +172,11 @@ void nvr_init_eyes(nvr_device *device) {
 
 void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
     ovrHmd hmd = device->hmd;
-    static int frameIndex = 0;
     static ovrPosef eyePoses[2];
-    ovrHmd_BeginFrame(hmd, frameIndex++);
+    ovrPosef headPose;
+    ovrFrameTiming timing = ovrHmd_BeginFrame(hmd, 0);
+    ovrTrackingState trackState = ovrHmd_GetTrackingState(hmd, timing.ScanoutMidpointSeconds);
+    headPose = trackState.HeadPose.ThePose;
     glEnable(GL_DEPTH_TEST);
     for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
         ovrEyeType eye_type = hmd->EyeRenderOrder[eyeIndex];
