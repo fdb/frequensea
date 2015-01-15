@@ -37,7 +37,7 @@ static void* l_from_table(lua_State *L, const char *type, int index) {
         return data;
     } else {
         fprintf(stderr, "Lua: invalid type for param %d: expected %s, was %s\n", index, type, table_type);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -283,7 +283,7 @@ int str_ends_with(const char *s, const char *suffix) {
 static void draw(lua_State *L) {
     int error = l_call_function(L, "draw");
     if (error) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -407,7 +407,7 @@ int main(int argc, char **argv) {
 
     error = l_call_function(L, "setup");
     if (error) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     while (!nwm_window_should_close(window)) {
@@ -425,7 +425,7 @@ int main(int argc, char **argv) {
                 // Call setup
                 error = l_call_function(L, "setup");
                 if (error) {
-                    exit(-1);
+                    exit(EXIT_FAILURE);
                 }
                 old_mtime = new_mtime;
             }

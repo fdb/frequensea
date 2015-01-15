@@ -24,7 +24,7 @@ uint8_t buffer[WIDTH * HEIGHT];
         printf("FAIL: %s\n", message); \
         hackrf_close(device); \
         hackrf_exit(); \
-        exit(-1); \
+        exit(EXIT_FAILURE); \
     } \
 
 void export_buffer() {

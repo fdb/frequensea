@@ -23,7 +23,7 @@ int paused = 0;
         printf("FAIL: %s\n", message); \
         hackrf_close(device); \
         hackrf_exit(); \
-        exit(-1); \
+        exit(EXIT_FAILURE); \
     } \
 
 int receive_sample_block(hackrf_transfer *transfer) {
@@ -101,13 +101,13 @@ static void setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    const char *vertex_shader_source = 
+    const char *vertex_shader_source =
         "void main(void) {"
         "  gl_TexCoord[0] = gl_MultiTexCoord0;"
         "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
         "}";
 
-    const char *fragment_shader_source = 
+    const char *fragment_shader_source =
         "uniform sampler2D texture;"
         "void main(void) {"
         "  vec4 c = texture2D(texture, gl_TexCoord[0].st);"
@@ -135,7 +135,7 @@ static void setup() {
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
 
-    glActiveTexture(0); 
+    glActiveTexture(0);
     GLuint u_texture = glGetUniformLocation(program, "texture");
     glUniform1i(u_texture, texture_id);
 }

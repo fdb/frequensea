@@ -40,7 +40,7 @@ void ngl_check_gl_error(const char *file, int line) {
         err = glGetError();
     }
     if (has_error) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -72,7 +72,7 @@ void ngl_check_compile_error(GLuint shader) {
         char infoLog[LOG_MAX_LENGTH];
         glGetShaderInfoLog(shader, LOG_MAX_LENGTH, NULL, infoLog);
         fprintf(stderr, "Shader %d compile error: %s\n", shader, infoLog);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -84,7 +84,7 @@ void ngl_check_link_error(GLuint program) {
         char infoLog[LOG_MAX_LENGTH];
         glGetProgramInfoLog(program, LOG_MAX_LENGTH, NULL, infoLog);
         fprintf(stderr, "Shader link error: %s\n", infoLog);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 

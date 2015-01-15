@@ -9,7 +9,7 @@ char *nfile_read(const char* fname) {
     FILE *fp = fopen(fname, "rb");
     if (!fp) {
         perror(fname);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     fseek(fp, 0L, SEEK_END);
@@ -21,7 +21,7 @@ char *nfile_read(const char* fname) {
     if (!buffer) {
         fclose(fp);
         fputs("ERR: nfile_read: failed to allocate memory.", stderr);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     // Copy the file into the buffer
@@ -29,7 +29,7 @@ char *nfile_read(const char* fname) {
         fclose(fp);
         free(buffer);
         fputs("ERR: nfile_read: failed to read file.", stderr);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     fclose(fp);

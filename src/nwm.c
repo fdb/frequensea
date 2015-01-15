@@ -7,13 +7,13 @@
 
 static void _nwm_on_error(int error, const char* message) {
     fprintf(stderr, "GLFW ERROR %d: %s\n", error, message);
-    exit(-1);
+    exit(EXIT_FAILURE);
 }
 
 void nwm_init() {
     if (!glfwInit()) {
         fprintf(stderr, "GLFW ERROR: Failed to initialize.\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     glfwSetErrorCallback(_nwm_on_error);

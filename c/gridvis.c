@@ -33,7 +33,7 @@ float camera_z = -50;
         printf("FAIL: %s\n", message); \
         hackrf_close(device); \
         hackrf_exit(); \
-        exit(-1); \
+        exit(EXIT_FAILURE); \
     } \
 
 int receive_sample_block(hackrf_transfer *transfer) {
@@ -63,7 +63,7 @@ static void setup_fake() {
     FILE *fp = fopen(fname, "rb");
     if (!fp) {
         printf("ERROR: Could not write open file %s.\n", fname);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     fread(buffer, 512 * 512, 1, fp);
     fclose(fp);
@@ -128,7 +128,7 @@ static void check_shader_error(char *prefix, GLuint shader) {
         char message[length];
         glGetShaderInfoLog(shader, length, NULL, message);
         printf("%s: %s\n", prefix, message);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 }
 

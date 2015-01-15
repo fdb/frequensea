@@ -16,7 +16,7 @@ if (status != 0) { \
     fprintf(stderr, "HackRF error: %s\n", message); \
     hackrf_close(device); \
     hackrf_exit(); \
-    exit(-1); \
+    exit(EXIT_FAILURE); \
 } \
 
 void nal_check_error(const char *file, int line) {
@@ -46,7 +46,7 @@ void nal_check_error(const char *file, int line) {
         err = alGetError();
     }
     if (has_error) {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 

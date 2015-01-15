@@ -15,7 +15,7 @@ if (status != 0) { \
     printf("FAIL: %s\n", message); \
     hackrf_close(device->device); \
     hackrf_exit(); \
-    exit(-1); \
+    exit(EXIT_FAILURE); \
 } \
 
 

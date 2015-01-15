@@ -20,7 +20,7 @@ uint8_t buffer[SAMPLE_SIZE];
         printf("FAIL: %s\n", message); \
         hackrf_close(device); \
         hackrf_exit(); \
-        exit(-1); \
+        exit(EXIT_FAILURE); \
     } \
 
 void export_buffer(uint8_t *buffer) {
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
     if (argc != 3) {
         printf("Usage: rfcap FREQ N_SAMPLES\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     current_freq = atof(argv[1]);

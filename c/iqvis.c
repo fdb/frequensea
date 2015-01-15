@@ -24,7 +24,7 @@ float intensity = 0.01;
         printf("FAIL: %s\n", message); \
         hackrf_close(device); \
         hackrf_exit(); \
-        exit(-1); \
+        exit(EXIT_FAILURE); \
     } \
 
 int receive_sample_block(hackrf_transfer *transfer) {

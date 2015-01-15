@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     if (status != 0) {
         printf("FAIL: hackrf_init\n");
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     hackrf_device *device;
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     if (status != 0) {
         printf("FAIL: hackrf_open\n");
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_set_freq(device, 100.9e6);
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_set_freq: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_set_amp_enable(device, 1);
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_set_amp_enable: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_set_lna_gain(device, 40);
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_set_lna_gain: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_set_vga_gain(device, 62);
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_set_vga_gain: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_set_txvga_gain(device, 47);
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_set_txvga_gain: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     status = hackrf_start_tx(device, send_sample_block, NULL);
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         printf("FAIL: hackrf_start_rx: %d\n", status);
         hackrf_close(device);
         hackrf_exit();
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     sleep(3);
