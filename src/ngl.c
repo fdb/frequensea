@@ -108,7 +108,7 @@ ngl_shader *ngl_shader_init(GLenum draw_mode, const char *vertex_shader_source, 
     ngl_check_link_error(program);
     NGL_CHECK_ERROR();
 
-    ngl_shader *shader = malloc(sizeof(ngl_shader));
+    ngl_shader *shader = calloc(1, sizeof(ngl_shader));
     shader->draw_mode = draw_mode;
     shader->program = program;
     shader->time_uniform = glGetUniformLocation(program, "uTime");
@@ -136,7 +136,7 @@ void ngl_delete_shader(ngl_shader *shader) {
 // Textures //////////////////////////////////////////////////////////////////
 
 ngl_texture *ngl_texture_create(ngl_shader *shader, const char *uniform_name) {
-    ngl_texture *texture = malloc(sizeof(ngl_texture));
+    ngl_texture *texture = calloc(1, sizeof(ngl_texture));
     texture->shader = shader;
 
     glGenTextures(1, &texture->texture_id);
@@ -181,7 +181,7 @@ void ngl_texture_delete(ngl_texture *texture) {
 // Model initialization //////////////////////////////////////////////////////
 
 ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals, float* uvs) {
-    ngl_model *model = malloc(sizeof(ngl_model));
+    ngl_model *model = calloc(1, sizeof(ngl_model));
     model->point_count = point_count;
     model->transform = mat4_init_identity();
 
@@ -241,7 +241,7 @@ ngl_model* ngl_model_init_positions(int component_count, int point_count, float*
 
 ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row_height, float column_width) {
     int point_count = row_count * column_count;
-    float* points = malloc(point_count * 2 * sizeof(float));
+    float* points = calloc(point_count * 2, sizeof(float));
     float total_width = (column_count - 1) * column_width;
     float total_height = (row_count - 1) * row_height;
     float left = - total_width / 2;
@@ -260,9 +260,9 @@ ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float 
     int square_count = (row_count - 1) * (column_count - 1);
     int face_count = square_count * 2;
     int point_count = face_count * 3;
-    float* points = malloc(point_count * 3 * sizeof(float));
-    float* normals = malloc(point_count * 3 * sizeof(float));
-    float* uvs = malloc(point_count * 2 * sizeof(float));
+    float* points = calloc(point_count * 3, sizeof(float));
+    float* normals = calloc(point_count * 3, sizeof(float));
+    float* uvs = calloc(point_count * 2, sizeof(float));
     float total_width = (column_count - 1) * column_width;
     float total_height = (row_count - 1) * row_height;
     float left = - total_width / 2;
@@ -347,7 +347,7 @@ ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float 
 }
 
 ngl_model* ngl_load_obj(const char* fname) {
-    ngl_model *model = malloc(sizeof(ngl_model));
+    ngl_model *model = calloc(1, sizeof(ngl_model));
 
     model->transform = mat4_init_identity();
 
@@ -391,7 +391,7 @@ void ngl_model_translate(ngl_model *model, float tx, float ty, float tz) {
 // Camera ////////////////////////////////////////////////////////////////////
 
 ngl_camera* ngl_camera_init_look_at(float x, float y, float z) {
-    ngl_camera *camera = malloc(sizeof(ngl_camera));
+    ngl_camera *camera = calloc(1, sizeof(ngl_camera));
     vec3 loc = vec3_init(x, y, z);
     vec3 target = vec3_zero();
     vec3 up = vec3_init(0.0f, 1.0f, 0.0f);

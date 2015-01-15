@@ -54,7 +54,7 @@ nvr_device *nvr_device_init() {
     }
     ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position, 0);
     ovrHmd_RecenterPose(hmd);
-    nvr_device *device = malloc(sizeof(nvr_device));
+    nvr_device *device = calloc(1, sizeof(nvr_device));
     device->hmd = hmd;
     return device;
 }

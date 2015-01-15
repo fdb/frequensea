@@ -30,13 +30,13 @@ int obj_parse(const char *file_name, float** points_ptr, float** normals_ptr, in
     }
     rewind(fp);
 
-    float* vp_array = malloc(vp_count * 3 * sizeof(float));
-    float* vn_array = malloc(vn_count * 3 * sizeof(float));
+    float* vp_array = calloc(vp_count * 3, sizeof(float));
+    float* vn_array = calloc(vn_count * 3, sizeof(float));
     int vp_index = 0;
     int vn_index = 0;
     int pt_index = 0;
-    float* points = malloc(3 * face_count * 3 * sizeof(float));
-    float* normals = malloc(3 * face_count * 3 * sizeof(float));
+    float* points = calloc(3 * face_count * 3, sizeof(float));
+    float* normals = calloc(3 * face_count * 3, sizeof(float));
     *points_ptr = points;
     *normals_ptr = normals;
     *face_count_ptr = face_count;
