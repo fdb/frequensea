@@ -288,7 +288,7 @@ static void draw(lua_State *L) {
 }
 
 static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
-    ngl_camera camera = nvr_eye_to_camera(device, eye);
+    ngl_camera camera = nvr_device_eye_to_camera(device, eye);
     l_to_table(L, "ngl_camera", &camera);
     lua_setglobal(L, "camera");
     draw(L);
@@ -396,14 +396,14 @@ int main(int argc, char **argv) {
     nwm_window *window = NULL;
     if (use_vr) {
         device = nvr_device_init();
-        window = nvr_create_window(device);
-        nvr_init_eyes(device);
+        window = nvr_device_window_init(device);
+        nvr_device_init_eyes(device);
     } else {
-        window = nwm_create_window(0, 0, 800, 600);
+        window = nwm_window_init(0, 0, 800, 600);
     }
     assert(window);
     nwm_window_set_user_data(window, L);
-    nwm_set_key_callback(window, on_key);
+    nwm_window_set_key_callback(window, on_key);
 
     error = l_call_function(L, "setup");
     if (error) {
@@ -432,10 +432,10 @@ int main(int argc, char **argv) {
             frames_to_check = 10;
         }
         if (use_vr) {
-            nvr_draw_eyes(device, (nvr_render_cb_fn)draw_eye, L);
+            nvr_device_draw(device, (nvr_render_cb_fn)draw_eye, L);
         } else {
             draw(L);
-            nwm_swap_buffers(window);
+            nwm_window_swap_buffers(window);
         }
         nwm_poll_events();
     }
@@ -443,7 +443,7 @@ int main(int argc, char **argv) {
     if (use_vr) {
         nvr_device_destroy(device);
     }
-    nwm_destroy_window(window);
+    nwm_window_destroy(window);
     nwm_terminate();
 
     lua_close(L);

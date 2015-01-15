@@ -64,12 +64,12 @@ void nvr_device_destroy(nvr_device *device) {
     device->hmd = NULL;
 }
 
-nwm_window *nvr_create_window(nvr_device *device) {
+nwm_window *nvr_device_window_init(nvr_device *device) {
     assert(device != NULL);
     ovrHmd hmd = device->hmd;
     glfwWindowHint(GLFW_DECORATED, 0);
     printf("Window %d %d %d %d\n", hmd->WindowsPos.x, hmd->WindowsPos.y, hmd->Resolution.w, hmd->Resolution.h);
-    nwm_window* window = nwm_create_window(hmd->WindowsPos.x, hmd->WindowsPos.y, hmd->Resolution.w, hmd->Resolution.h);
+    nwm_window* window = nwm_window_init(hmd->WindowsPos.x, hmd->WindowsPos.y, hmd->Resolution.w, hmd->Resolution.h);
     assert(window);
     void *window_ptr = NULL;
 #if __APPLE__
@@ -81,7 +81,7 @@ nwm_window *nvr_create_window(nvr_device *device) {
     return window;
 }
 
-void nvr_init_eyes(nvr_device *device) {
+void nvr_device_init_eyes(nvr_device *device) {
     ovrHmd hmd = device->hmd;
     printf("Product: %s\n", hmd->ProductName);
 
@@ -170,7 +170,7 @@ void nvr_init_eyes(nvr_device *device) {
     }
 }
 
-void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
+void nvr_device_draw(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
     ovrHmd hmd = device->hmd;
     static int frameIndex = 0;
     static ovrPosef eyePoses[2];
@@ -200,7 +200,7 @@ void nvr_draw_eyes(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
     ovrHmd_EndFrame(hmd, eyePoses, textures);
 }
 
-ngl_camera nvr_eye_to_camera(nvr_device *device, nvr_eye *eye) {
+ngl_camera nvr_device_eye_to_camera(nvr_device *device, nvr_eye *eye) {
     ovrHmd hmd = device->hmd;
     ovrPosef eyePose = ovrHmd_GetEyePose(hmd, eye->type);
     quat q = ovr_quat_to_quat(&eyePose.Orientation);
