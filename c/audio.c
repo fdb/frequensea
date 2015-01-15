@@ -55,7 +55,7 @@ void nal_check_error(const char *file, int line) {
 ALuint buffer;
 ALenum format = AL_FORMAT_MONO8;
 const ALsizei freq = 48000;
-const ALsizei size = freq * 3;
+const ALsizei size = freq * 5;
 ALuint source;
 
 ALuint *data;
@@ -70,7 +70,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
     for (int i = 0; i < transfer->valid_length; i += 200) {
         float ii = transfer->buffer[i];
         float qq = transfer->buffer[i+1];
-        int mag = sqrt(ii * ii + qq * qq) * 1;
+        ALuint mag = sqrt(ii * ii + qq * qq) * 1;
         data[received_size++] = mag ;
     }
     printf("Received %.1f%%\n", received_size / (float)size * 100);
@@ -90,7 +90,7 @@ int main() {
     int status;
     hackrf_device *hrf;
 
-    data = calloc(size, sizeof(ALuint));
+    data = calloc(size + freq, sizeof(ALuint)); // We need a bit of extra data because we go over the buffer size.
 
     // Initialize the audio context
     ALCdevice *device = alcOpenDevice(NULL);
@@ -130,7 +130,7 @@ int main() {
     status = hackrf_open(&hrf);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_open");
 
-    status = hackrf_set_freq(hrf, 124.2e6);
+    status = hackrf_set_freq(hrf, 124.20005e6);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(hrf, 5e6);
@@ -150,7 +150,7 @@ int main() {
 
 
     // Playing is asynchronous so wait a while
-    sleep(7);
+    sleep(10);
 
     // Cleanup
     alDeleteBuffers(1, &buffer);
