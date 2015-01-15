@@ -11,4 +11,4 @@
 /rust/target
 *.png
 /build
-
+*.dSYM
