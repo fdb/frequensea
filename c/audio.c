@@ -11,10 +11,16 @@
 
 #include <libhackrf/hackrf.h>
 
+
+typedef struct {
+    float x;
+    float y;
+} vec2;
+
 #define HACKRF_CHECK_STATUS(device, status, message) \
 if (status != 0) { \
     fprintf(stderr, "HackRF error: %s\n", message); \
-    hackrf_close(device); \
+    if (device != NULL) hackrf_close(device); \
     hackrf_exit(); \
     exit(EXIT_FAILURE); \
 } \
@@ -62,17 +68,39 @@ ALuint *data;
 int has_received = 0;
 
 int received_size = 0;
+vec2 *vec_buffer;
+
+#define HACKRF_SAMPLES_SIZE 131072
+#define HACKRF_BUFFER_SIZE 262144
+
 
 int receive_sample_block(hackrf_transfer *transfer) {
     if (received_size > size) return 0;
 
-
-    for (int i = 0; i < transfer->valid_length; i += 200) {
-        float ii = transfer->buffer[i];
-        float qq = transfer->buffer[i+1];
-        ALuint mag = sqrt(ii * ii + qq * qq) * 1;
-        data[received_size++] = mag ;
+    // Convert to vec2
+    for (int i = 0; i < HACKRF_SAMPLES_SIZE; i++) {
+        unsigned int vi = transfer->buffer[i * 2];
+        unsigned int vq = transfer->buffer[i * 2 + 1];
+        vec_buffer[i].x = vi; //(vi - 128.0) / 256.0;
+        vec_buffer[i].y = vq; // (vq - 128.0) / 256.0;
     }
+
+    // Moving average
+    int decimation_rate = 100;
+
+    for (int i = 0; i < HACKRF_SAMPLES_SIZE; i += decimation_rate) {
+        float sum_i = 0;
+        float sum_q = 0;
+        for (int j = 0; j < decimation_rate; j++) {
+            sum_i += vec_buffer[i + j].x;
+            sum_q += vec_buffer[i + j].y;
+        }
+        float avg_i = sum_i / (float) decimation_rate;
+        float avg_q = sum_q / (float) decimation_rate;
+        ALuint mag = sqrt(avg_i * avg_i + avg_q * avg_q) * 10;
+        data[received_size++] = mag;
+    }
+
     printf("Received %.1f%%\n", received_size / (float)size * 100);
     if (received_size > size) {
         alBufferData(buffer, format, data, size, freq);
@@ -91,6 +119,7 @@ int main() {
     hackrf_device *hrf;
 
     data = calloc(size + freq, sizeof(ALuint)); // We need a bit of extra data because we go over the buffer size.
+    vec_buffer = calloc(HACKRF_BUFFER_SIZE, sizeof(vec2));
 
     // Initialize the audio context
     ALCdevice *device = alcOpenDevice(NULL);
@@ -125,12 +154,12 @@ int main() {
     //NAL_CHECK_ERROR();
 
     status = hackrf_init();
-    HACKRF_CHECK_STATUS(hrf, status, "hackrf_init");
+    HACKRF_CHECK_STATUS(NULL, status, "hackrf_init");
 
     status = hackrf_open(&hrf);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_open");
 
-    status = hackrf_set_freq(hrf, 124.20005e6);
+    status = hackrf_set_freq(hrf, 124.2001e6);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(hrf, 5e6);
