@@ -1,11 +1,23 @@
 // Play random noise as audio
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
+
+#include <libhackrf/hackrf.h>
+
+#define HACKRF_CHECK_STATUS(device, status, message) \
+if (status != 0) { \
+    fprintf(stderr, "HackRF error: %s\n", message); \
+    hackrf_close(device); \
+    hackrf_exit(); \
+    exit(-1); \
+} \
 
 void nal_check_error(const char *file, int line) {
     ALenum err = alGetError();
@@ -40,7 +52,46 @@ void nal_check_error(const char *file, int line) {
 
 #define NAL_CHECK_ERROR() nal_check_error(__FILE__, __LINE__)
 
+ALuint buffer;
+ALenum format = AL_FORMAT_MONO8;
+const ALsizei freq = 48000;
+const ALsizei size = freq * 3;
+ALuint source;
+
+ALuint *data;
+int has_received = 0;
+
+int received_size = 0;
+
+int receive_sample_block(hackrf_transfer *transfer) {
+    if (received_size > size) return 0;
+
+
+    for (int i = 0; i < transfer->valid_length; i += 200) {
+        float ii = transfer->buffer[i];
+        float qq = transfer->buffer[i+1];
+        int mag = sqrt(ii * ii + qq * qq) * 1;
+        data[received_size++] = mag ;
+    }
+    printf("Received %.1f%%\n", received_size / (float)size * 100);
+    if (received_size > size) {
+        alBufferData(buffer, format, data, size, freq);
+        NAL_CHECK_ERROR();
+        alSourcei(source, AL_BUFFER, buffer);
+        NAL_CHECK_ERROR();
+        alSourcePlay(source);
+        NAL_CHECK_ERROR();
+
+    }
+    return 0;
+}
+
 int main() {
+    int status;
+    hackrf_device *hrf;
+
+    data = calloc(size, sizeof(ALuint));
+
     // Initialize the audio context
     ALCdevice *device = alcOpenDevice(NULL);
     if (!device) {
@@ -51,36 +102,55 @@ int main() {
     alcMakeContextCurrent(ctx);
 
     // Initialize an audio buffer
-    ALuint buffer;
     alGetError(); // clear error code
     alGenBuffers(1, &buffer);
     NAL_CHECK_ERROR();
 
     // Fill buffer with random data
-    ALenum format = AL_FORMAT_MONO8;
-    ALsizei size = 44100;
-    ALsizei freq = 44100;
+    //arc4random_buf(data, size);
 
-    unsigned char *data[size];
-    arc4random_buf(data, size);
 
-    alBufferData(buffer, format, data, size, freq);
+    //alBufferData(buffer, format, data, size, freq);
 
     // Initialize a source
-    ALuint source;
     alGenSources(1, &source);
     NAL_CHECK_ERROR();
 
     // Attach buffer to source
-    alSourcei(source, AL_BUFFER, buffer);
-    NAL_CHECK_ERROR();
+    //alSourcei(source, AL_BUFFER, buffer);
+    //NAL_CHECK_ERROR();
 
     // Play
-    alSourcePlay(source);
-    NAL_CHECK_ERROR();
+    //alSourcePlay(source);
+    //NAL_CHECK_ERROR();
+
+    status = hackrf_init();
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_init");
+
+    status = hackrf_open(&hrf);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_open");
+
+    status = hackrf_set_freq(hrf, 124.2e6);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_freq");
+
+    status = hackrf_set_sample_rate(hrf, 5e6);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_sample_rate");
+
+    status = hackrf_set_amp_enable(hrf, 0);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_amp_enable");
+
+    status = hackrf_set_lna_gain(hrf, 32);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_lna_gain");
+
+    status = hackrf_set_vga_gain(hrf, 30);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_lna_gain");
+
+    status = hackrf_start_rx(hrf, receive_sample_block, NULL);
+    HACKRF_CHECK_STATUS(hrf, status, "hackrf_start_rx");
+
 
     // Playing is asynchronous so wait a while
-    sleep(1);
+    sleep(7);
 
     // Cleanup
     alDeleteBuffers(1, &buffer);
@@ -88,5 +158,8 @@ int main() {
     alcDestroyContext(ctx);
     alcCloseDevice(device);
 
+    hackrf_stop_rx(hrf);
+    hackrf_close(hrf);
+    hackrf_exit();
     return 0;
 }
