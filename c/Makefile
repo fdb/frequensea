@@ -22,5 +22,8 @@ fft: fft.c
 iqvis: iqvis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o iqvis iqvis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
+iqvis-rtl: iqvis-rtl.c
+	gcc -I /usr/local/include -L /usr/local/lib -o iqvis-rtl iqvis-rtl.c -l glfw3 -l rtlsdr -lpng -framework OpenGL
+
 audio: audio.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -framework OpenAL -o audio audio.c

@@ -5,7 +5,7 @@
 ## Installing dependencies (OS X)
 
     brew update
-    brew install cmake lua homebrew/versions/glfw3 fftw
+    brew install cmake lua homebrew/versions/glfw3 fftw librtlsdr
     brew tap robotastic/homebrew-hackrf
     brew install --HEAD hackrf
 
@@ -23,7 +23,6 @@
 With the Oculus:
 
     ./frequensea --vr ../lua/static.lua
-
 
 ## Build and Run
 
