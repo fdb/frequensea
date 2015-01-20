@@ -14,9 +14,24 @@
 
 // Lua utility functions ////////////////////////////////////////////////////
 
+static int l_gc(lua_State *L) {
+    printf("TODO: Implement GC\n");
+    return 0;
+}
+
+static void l_register_type(lua_State *L, const char *type, lua_CFunction gc_fn) {
+    luaL_newmetatable(L, type);
+    if (gc_fn != NULL) {
+        lua_pushcfunction(L, gc_fn);
+        lua_setfield(L, -2, "__gc");
+        lua_pop(L, 1);
+    }
+}
 
 static void l_to_table(lua_State *L, const char *type, void *obj) {
     lua_newtable(L);
+    luaL_getmetatable(L, type);
+    lua_setmetatable(L, -2);
     lua_pushliteral(L, "__type__");
     lua_pushstring(L, type);
     lua_settable(L, -3);
@@ -257,6 +272,12 @@ static int l_nrf_freq_set(lua_State *L) {
     return 0;
 }
 
+static int l_nrf_gc(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nrf_stop(device);
+    return 0;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 int use_vr = 0;
@@ -324,28 +345,16 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
     }
 }
 
-int main(int argc, char **argv) {
-    char *fname = NULL;
-
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-            usage();
-            exit(0);
-        } else if (strcmp(argv[i], "--vr") == 0) {
-            use_vr = 1;
-        } else if (str_ends_with(argv[i], ".lua")) {
-            fname = argv[i];
-        }
-    }
-
-    if (fname == NULL) {
-        usage();
-        exit(0);
-    }
-
-    int error;
+// Initializes Lua
+static lua_State *l_init() {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
+
+    l_register_type(L, "ngl_camera", l_gc);
+    l_register_type(L, "ngl_model", l_gc);
+    l_register_type(L, "ngl_shader", l_gc);
+    l_register_type(L, "ngl_texture", l_gc);
+    l_register_type(L, "nrf_device", l_nrf_gc);
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
@@ -377,14 +386,40 @@ int main(int argc, char **argv) {
     l_register_constant(L, "GL_TRIANGLE_FAN", GL_TRIANGLE_FAN);
     l_register_constant(L, "GL_TRIANGLES", GL_TRIANGLES);
 
-    long old_mtime = nfile_mtime(fname);
-    long frames_to_check = 10;
-
-    error = luaL_loadfile(L, "../lua/_keys.lua") || lua_pcall(L, 0, 0, 0);
+    int error = luaL_loadfile(L, "../lua/_keys.lua") || lua_pcall(L, 0, 0, 0);
     if (error) {
         fprintf(stderr, "%s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
     }
+
+    return L;
+}
+
+int main(int argc, char **argv) {
+    char *fname = NULL;
+
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            usage();
+            exit(0);
+        } else if (strcmp(argv[i], "--vr") == 0) {
+            use_vr = 1;
+        } else if (str_ends_with(argv[i], ".lua")) {
+            fname = argv[i];
+        }
+    }
+
+    if (fname == NULL) {
+        usage();
+        exit(0);
+    }
+
+    int error;
+
+    lua_State *L = l_init();
+
+    long old_mtime = nfile_mtime(fname);
+    long frames_to_check = 10;
 
     error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
     if (error) {
@@ -416,6 +451,13 @@ int main(int argc, char **argv) {
             long new_mtime = nfile_mtime(fname);
             if (old_mtime != new_mtime) {
                 fprintf(stderr, "Reloading (%lu)\n", new_mtime);
+                // Close the Lua context. This triggers garbage collection on all objects.
+                lua_close(L);
+
+                // Re-initialize Lua.
+                L = l_init();
+                nwm_window_set_user_data(window, L);
+
                 // Load the file again
                 error = luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0);
                 if (error) {
