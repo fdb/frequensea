@@ -159,12 +159,6 @@ ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name) {
     return texture;
 }
 
-void ngl_texture_free(ngl_texture *texture) {
-    glDeleteTextures(1, &texture->texture_id);
-    NGL_CHECK_ERROR();
-    free(texture);
-}
-
 // format: one of GL_RED, GL_RG, GL_RGB or GL_RGBA. Used both for internalFormat and format parameters.
 // The values are assumed to be GL_FLOATs.
 
@@ -176,6 +170,12 @@ void ngl_texture_update(ngl_texture *texture, GLint format, GLsizei width, GLsiz
     //printf("f %d w %d h %d d %.2f\n", format, width, height, data[0]);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, data);
     NGL_CHECK_ERROR();
+}
+
+void ngl_texture_free(ngl_texture *texture) {
+    glDeleteTextures(1, &texture->texture_id);
+    NGL_CHECK_ERROR();
+    free(texture);
 }
 
 // Model initialization //////////////////////////////////////////////////////

@@ -179,6 +179,12 @@ static int l_ngl_texture_update(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_texture_free(lua_State *L) {
+    ngl_texture *texture = l_to_ngl_texture(L, 1);
+    free(texture);
+    return 0;
+}
+
 static int l_ngl_model_new(lua_State *L) {
     int component_count = luaL_checkint(L, 1);
     int point_count = luaL_checkint(L, 2);
@@ -353,7 +359,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_camera", l_ngl_camera_free);
     l_register_type(L, "ngl_model", l_gc);
     l_register_type(L, "ngl_shader", l_gc);
-    l_register_type(L, "ngl_texture", l_gc);
+    l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
