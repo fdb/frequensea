@@ -24,7 +24,7 @@ void main() {
 ]]
 
 function setup()
-    shader = ngl_shader_init(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     model = ngl_model_init_grid_triangles(100, 100, 0.01, 0.01)
 end
 

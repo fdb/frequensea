@@ -27,7 +27,7 @@ void main() {
 
 function setup()
     device = nrf_device_new(2.5, "../rfdata/rf-2.500-1.raw")
-    shader = ngl_shader_init(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()

@@ -29,7 +29,7 @@ camera_z = 50
 
 function setup()
     model = ngl_load_obj("../obj/c004.obj")
-    shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()

@@ -33,7 +33,7 @@ void main() {
 ]]
 
 function setup()
-    shader = ngl_shader_init(GL_POINTS, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader = ngl_shader_new(GL_POINTS, VERTEX_SHADER, FRAGMENT_SHADER)
     model = ngl_model_init_grid_points(500, 500, 0.05, 0.05)
 end
 

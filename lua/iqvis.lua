@@ -26,7 +26,7 @@ void main() {
 function setup()
     device = nrf_device_new(204.0, "../rfdata/rf-202.500-2.raw")
     camera = ngl_camera_init_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
-    shader = ngl_shader_init(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()

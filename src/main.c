@@ -131,22 +131,22 @@ static int l_ngl_camera_init_look_at(lua_State *L) {
     return 1;
 }
 
-static int l_ngl_shader_init(lua_State *L) {
+static int l_ngl_shader_new(lua_State *L) {
     GLenum draw_mode = luaL_checkint(L, 1);
     const char *vertex_shader = lua_tostring(L, 2);
     const char *fragment_shader = lua_tostring(L, 3);
 
-    ngl_shader *shader = ngl_shader_init(draw_mode, vertex_shader, fragment_shader);
+    ngl_shader *shader = ngl_shader_new(draw_mode, vertex_shader, fragment_shader);
     l_to_table(L, "ngl_shader", shader);
     return 1;
 }
 
-static int l_ngl_load_shader(lua_State *L) {
+static int l_ngl_shader_new_from_file(lua_State *L) {
     GLenum draw_mode = luaL_checkint(L, 1);
     const char *vertex_fname = lua_tostring(L, 2);
     const char *fragment_fname = lua_tostring(L, 3);
 
-    ngl_shader *shader = ngl_load_shader(draw_mode, vertex_fname, fragment_fname);
+    ngl_shader *shader = ngl_shader_new_from_file(draw_mode, vertex_fname, fragment_fname);
     l_to_table(L, "ngl_shader", shader);
     return 1;
 }
@@ -353,8 +353,8 @@ static lua_State *l_init() {
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
-    l_register_function(L, "ngl_shader_init", l_ngl_shader_init);
-    l_register_function(L, "ngl_load_shader", l_ngl_load_shader);
+    l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
+    l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
     l_register_function(L, "ngl_texture_create", l_ngl_texture_create);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
