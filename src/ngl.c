@@ -110,6 +110,8 @@ ngl_shader *ngl_shader_new(GLenum draw_mode, const char *vertex_shader_source, c
 
     ngl_shader *shader = calloc(1, sizeof(ngl_shader));
     shader->draw_mode = draw_mode;
+    shader->vertex_shader = vertex_shader;
+    shader->fragment_shader = fragment_shader;
     shader->program = program;
     shader->time_uniform = glGetUniformLocation(program, "uTime");
     shader->view_matrix_uniform = glGetUniformLocation(program, "uViewMatrix");
@@ -128,6 +130,8 @@ ngl_shader *ngl_shader_new_from_file(GLenum draw_mode, const char *vertex_fname,
 }
 
 void ngl_shader_free(ngl_shader *shader) {
+    glDeleteShader(shader->vertex_shader);
+    glDeleteShader(shader->fragment_shader);
     glDeleteProgram(shader->program);
     NGL_CHECK_ERROR();
     free(shader);

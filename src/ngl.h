@@ -28,6 +28,8 @@ typedef struct {
 
 typedef struct {
     GLenum draw_mode;
+    GLuint vertex_shader;
+    GLuint fragment_shader;
     GLuint program;
     GLint time_uniform;
     GLint view_matrix_uniform;

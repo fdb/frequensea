@@ -14,11 +14,6 @@
 
 // Lua utility functions ////////////////////////////////////////////////////
 
-static int l_gc(lua_State *L) {
-    printf("TODO: Implement GC\n");
-    return 0;
-}
-
 static void l_register_type(lua_State *L, const char *type, lua_CFunction gc_fn) {
     luaL_newmetatable(L, type);
     if (gc_fn != NULL) {
@@ -155,6 +150,12 @@ static int l_ngl_shader_new_from_file(lua_State *L) {
     ngl_shader *shader = ngl_shader_new_from_file(draw_mode, vertex_fname, fragment_fname);
     l_to_table(L, "ngl_shader", shader);
     return 1;
+}
+
+static int l_ngl_shader_free(lua_State *L) {
+    ngl_shader *shader = l_to_ngl_shader(L, 1);
+    ngl_shader_free(shader);
+    return 0;
 }
 
 static int l_ngl_texture_new(lua_State *L) {
@@ -364,7 +365,7 @@ static lua_State *l_init() {
 
     l_register_type(L, "ngl_camera", l_ngl_camera_free);
     l_register_type(L, "ngl_model", l_ngl_model_free);
-    l_register_type(L, "ngl_shader", l_gc);
+    l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
 
