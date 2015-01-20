@@ -33,6 +33,7 @@ typedef struct {
     int dummy_block_index;
 
     float samples[NRF_SAMPLES_SIZE * 3];
+    float iq[256 * 256];
 
     vec3 fft[FFT_SIZE * FFT_HISTORY_SIZE];
     fftw_complex *fft_in;

@@ -271,6 +271,10 @@ static int l_nrf_device_new(lua_State *L) {
     lua_pushlightuserdata(L, device->samples);
     lua_settable(L, -3);
 
+    lua_pushliteral(L, "iq");
+    lua_pushlightuserdata(L, device->iq);
+    lua_settable(L, -3);
+
     lua_pushliteral(L, "fft");
     lua_pushlightuserdata(L, device->fft);
     lua_settable(L, -3);

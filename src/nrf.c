@@ -40,15 +40,21 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
     int j = 0;
     int ii = 0;
+    memset(device->iq, 0, 256 * 256 * sizeof(float));
     for (int i = 0; i < length; i += 2) {
         float t = i / (float) length;
         int vi = buffer[i];
         int vq = buffer[i + 1];
-        vi = (vi + 128) % 256;
-        vq = (vq + 128) % 256;
+        if (device->device_type == NRF_DEVICE_HACKRF || device->device_type == NRF_DEVICE_DUMMY) {
+            vi = (vi + 128) % 256;
+            vq = (vq + 128) % 256;
+        }
         device->samples[j++] = vi / 256.0f;
         device->samples[j++] = vq / 256.0f;
         device->samples[j++] = t;
+
+        int iq_index = vi * 256 + vq;
+        device->iq[iq_index]++;
 
         fftw_complex *p = device->fft_in;
         p[ii][0] = buffer[i] / 255.0;
