@@ -29,7 +29,7 @@ void main() {
 }
 ]]
 
-freq = 2.5
+freq = 50
 
 function setup()
     device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
