@@ -51,7 +51,7 @@ void main() {
 freq = 97
 
 function setup()
-    device = nrf_start(freq, "../rfdata/rf-200.500-big.raw")
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_init_look_at(0, 0.1, 0.5)
     shader = ngl_shader_init(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_create(shader, "uTexture")
@@ -68,11 +68,11 @@ end
 function on_key(key)
     if key == KEY_UP then
         freq = freq + 0.01
-        nrf_freq_set(device, freq)
+        nrf_device_set_frequency(device, freq)
         print("Frequency: " .. freq)
     elseif key == KEY_DOWN then
         freq = freq - 0.01
-        nrf_freq_set(device, freq)
+        nrf_device_set_frequency(device, freq)
         print("Frequency: " .. freq)
     end
 end

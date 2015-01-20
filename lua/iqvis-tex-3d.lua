@@ -34,7 +34,7 @@ void main() {
 
 function setup()
     freq = 200.2
-    device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
     camera = ngl_camera_init_look_at(0, 2, 4)
     shader = ngl_shader_init(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_create(shader, "uTexture")
@@ -46,6 +46,6 @@ function draw()
     ngl_texture_update(texture, GL_RED, 512, 512, device.samples)
     ngl_draw_model(camera, model, shader)
 
-    --nrf_freq_set(device, freq)
+    --nrf_device_set_frequency(device, freq)
     --freq = freq + 0.0001
 end

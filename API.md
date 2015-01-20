@@ -83,20 +83,20 @@ Functions for reading data from a HackRF device.
 
 Here's a basic example:
 
-    device = nrf_start(204.0)
+    device = nrf_device_new(204.0)
     while true do
         -- Do something with device.samples
     end
-    nrf_stop(device)
+    nrf_device_free(device)
 
-## nrf_start(freq_mhz)
+## nrf_device_new(freq_mhz)
 Tune the HackRF to the given frequency (in MHz) and start receiving data. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
 
-## nrf_stop(device)
+## nrf_device_free(device)
 Stop receiving data.
 
-### nrf_req_set(device, freq_mhz)
-Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_start`.
+### nrf_device_set_frequency(device, freq_mhz)
+Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_device_new`.
 
 ## NRF_SAMPLES_SIZE
 A constant with the number of samples the HackRF device returns.

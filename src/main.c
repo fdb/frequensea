@@ -242,10 +242,10 @@ static int l_ngl_draw_model(lua_State *L) {
 
 // Lua NRF wrappers /////////////////////////////////////////////////////////
 
-static int l_nrf_start(lua_State *L) {
+static int l_nrf_device_new(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
     const char *file_name = lua_tostring(L, 2);
-    nrf_device *device = nrf_start(freq_mhz, file_name);
+    nrf_device *device = nrf_device_new(freq_mhz, file_name);
     l_to_table(L, "nrf_device", device);
 
     lua_pushliteral(L, "samples");
@@ -259,22 +259,16 @@ static int l_nrf_start(lua_State *L) {
     return 1;
 }
 
-static int l_nrf_stop(lua_State *L) {
+static int l_nrf_device_free(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_stop(device);
+    nrf_device_free(device);
     return 0;
 }
 
-static int l_nrf_freq_set(lua_State *L) {
+static int l_nrf_device_set_frequency(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     double freq_mhz = luaL_checknumber(L, 2);
-    nrf_freq_set(device, freq_mhz);
-    return 0;
-}
-
-static int l_nrf_gc(lua_State *L) {
-    nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_stop(device);
+    nrf_device_set_frequency(device, freq_mhz);
     return 0;
 }
 
@@ -354,7 +348,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_model", l_gc);
     l_register_type(L, "ngl_shader", l_gc);
     l_register_type(L, "ngl_texture", l_gc);
-    l_register_type(L, "nrf_device", l_nrf_gc);
+    l_register_type(L, "nrf_device", l_nrf_device_free);
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
@@ -369,9 +363,9 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_load_obj", l_ngl_load_obj);
     l_register_function(L, "ngl_model_translate", l_ngl_model_translate);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
-    l_register_function(L, "nrf_start", l_nrf_start);
-    l_register_function(L, "nrf_stop", l_nrf_stop);
-    l_register_function(L, "nrf_freq_set", l_nrf_freq_set);
+    l_register_function(L, "nrf_device_new", l_nrf_device_new);
+    l_register_function(L, "nrf_device_free", l_nrf_device_free);
+    l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "GL_RED", GL_RED);

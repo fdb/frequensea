@@ -25,9 +25,9 @@ void main() {
 
 function setup()
     -- Start the device for a minute, wait a bit, and stop again
-    device = nrf_start(2.5, "../rfdata/rf-2.500-1.raw")
+    device = nrf_device_new(2.5, "../rfdata/rf-2.500-1.raw")
     os.execute("sleep " .. 1)
-    nrf_stop(device)
+    nrf_device_free(device)
 
     camera = ngl_camera_init_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
     shader = ngl_shader_init(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)

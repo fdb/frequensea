@@ -26,7 +26,7 @@ void main() {
 function setup()
     freq = 200
 
-    device = nrf_start(freq, "../rfdata/rf-202.500-2.raw")
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
     camera = ngl_camera_init_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
     shader = ngl_shader_init(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
@@ -37,5 +37,5 @@ function draw()
     ngl_draw_model(camera, model, shader)
 
     freq = freq + 0.01
-    nrf_freq_set(device, freq)
+    nrf_device_set_frequency(device, freq)
 end

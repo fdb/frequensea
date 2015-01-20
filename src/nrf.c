@@ -37,7 +37,7 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 
 #define _NRF_HACKRF_CHECK_STATUS(device, status, message) _nrf_hackrf_check_status(device, status, message, __FILE__, __LINE__)
 
-static int _nrf_process_sample_block(nrf_device *device, int length, unsigned char *buffer) {
+static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
     int j = 0;
     int ii = 0;
     for (int i = 0; i < length; i += 2) {
@@ -77,14 +77,14 @@ void *_nrf_rtlsdr_receive_loop(nrf_device *device) {
             fprintf(stderr, "Short read, samples lost, exiting!\n");
             exit(EXIT_FAILURE);
         }
-        _nrf_process_sample_block(device, NRF_BUFFER_LENGTH, device->buffer);
+        _nrf_process_sample_block(device, device->buffer, NRF_BUFFER_LENGTH);
     }
     return NULL;
 }
 
 static int _nrf_hackrf_receive_sample_block(hackrf_transfer *transfer) {
     nrf_device *device = (nrf_device *)transfer->rx_ctx;
-    return _nrf_process_sample_block(device, transfer->valid_length, transfer->buffer);
+    return _nrf_process_sample_block(device, transfer->buffer, transfer->valid_length);
 }
 
 #define MILLISECS 1000000
@@ -99,7 +99,7 @@ static void _nrf_sleep_milliseconds(int millis) {
 static void *_nrf_dummy_receive_loop(nrf_device *device) {
     while (device->receiving) {
         unsigned char *buffer = device->buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
-        _nrf_process_sample_block(device, NRF_BUFFER_LENGTH, buffer);
+        _nrf_process_sample_block(device, buffer, NRF_BUFFER_LENGTH);
         device->dummy_block_index++;
         if (device->dummy_block_index >= device->dummy_block_length) {
             device->dummy_block_index = 0;
@@ -183,7 +183,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
 
 static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     device->device_type = NRF_DEVICE_DUMMY;
-    fprintf(stderr, "WARN nrf_start: Couldn't open SDR device. Falling back on data file %s\n", data_file);
+    fprintf(stderr, "WARN nrf_device_new: Couldn't open SDR device. Falling back on data file %s\n", data_file);
     if (data_file != NULL) {
         FILE *fp = fopen(data_file, "rb");
         if (fp != NULL) {
@@ -196,7 +196,7 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
             fread(device->buffer, size, 1, fp);
             fclose(fp);
         } else {
-            fprintf(stderr, "WARN nrf_start: Couldn't open %s. Using empty buffer.\n", data_file);
+            fprintf(stderr, "WARN nrf_device_new: Couldn't open %s. Using empty buffer.\n", data_file);
         }
     }
 
@@ -210,7 +210,7 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // Start receiving on the given frequency.
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
-nrf_device *nrf_start(double freq_mhz, const char* data_file) {
+nrf_device *nrf_device_new(double freq_mhz, const char* data_file) {
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
 
@@ -227,7 +227,7 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
         if (status != 0) {
             status = _nrf_dummy_start(device, data_file);
             if (status != 0) {
-                fprintf(stderr, "ERROR nrf_start: Couldn't even start dummy device. Exiting.\n");
+                fprintf(stderr, "ERROR nrf_device_new: Couldn't even start dummy device. Exiting.\n");
             }
         }
     }
@@ -236,7 +236,7 @@ nrf_device *nrf_start(double freq_mhz, const char* data_file) {
 }
 
 // Change the frequency to the given frequency, in MHz.
-void nrf_freq_set(nrf_device *device, double freq_mhz) {
+void nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
     if (device->device_type == NRF_DEVICE_RTLSDR) {
         int status = rtlsdr_set_center_freq((rtlsdr_dev_t*) device->device, freq_mhz * 1e6);
         _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_center_freq");
@@ -247,7 +247,7 @@ void nrf_freq_set(nrf_device *device, double freq_mhz) {
 }
 
 // Stop receiving data
-void nrf_stop(nrf_device *device) {
+void nrf_device_free(nrf_device *device) {
     if (device->device_type == NRF_DEVICE_RTLSDR) {
         device->receiving = 0;
         pthread_join(device->receive_thread, NULL);
