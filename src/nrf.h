@@ -3,7 +3,6 @@
 #ifndef NRF_H
 #define NRF_H
 
-#include <libhackrf/hackrf.h>
 #include <fftw3.h>
 #include <pthread.h>
 
@@ -13,14 +12,21 @@
 #define FFT_SIZE 1024
 #define FFT_HISTORY_SIZE 512
 
+enum nrf_device_type {
+    NRF_DEVICE_DUMMY = 0,
+    NRF_DEVICE_RTLSDR,
+    NRF_DEVICE_HACKRF
+};
+
 typedef struct {
-    hackrf_device *device;
+    enum nrf_device_type device_type;
+    void *device;
     float samples[NRF_SAMPLES_SIZE * 3];
     vec3 fft[FFT_SIZE * FFT_HISTORY_SIZE];
     fftw_complex *fft_in;
     fftw_complex *fft_out;
     fftw_plan fft_plan;
-    pthread_t fake_sample_receiver_thread;
+    pthread_t receive_thread;
     unsigned char *fake_sample_blocks;
     int fake_sample_block_size;
     int fake_sample_block_index;
