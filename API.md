@@ -21,7 +21,7 @@ The API that loads models, shaders, initializes the camera and can draw things o
 ## ngl_clear(red, green, blue, alpha)
 Clear the screen. The alpha component doesn't do anything at the moment, I don't know why.
 
-## ngl_camera_init_look_at(x, y, z)
+## ngl_camera_new_look_at(x, y, z)
 Create a camera object that is positioned at the given x/y/z values and looks at
 the origin (0,0,0) of the scene.
 

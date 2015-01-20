@@ -34,7 +34,7 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1)
-    camera = ngl_camera_init_look_at(camera_x, camera_y, camera_z)
+    camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     ngl_draw_model(camera, model, shader)
 end
 

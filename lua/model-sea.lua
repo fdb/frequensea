@@ -38,7 +38,7 @@ function draw()
     time = nwm_get_time()
     camera_x = math.sin(time * 0.5) * 50.0
     camera_z = math.cos(time * 0.5) * 50.0
-    --camera = ngl_camera_init_look_at(camera_x,10,camera_z)
-    camera = ngl_camera_init_look_at(camera_x,30,80)
+    --camera = ngl_camera_new_look_at(camera_x,10,camera_z)
+    camera = ngl_camera_new_look_at(camera_x,30,80)
     ngl_draw_model(camera, model, shader)
 end

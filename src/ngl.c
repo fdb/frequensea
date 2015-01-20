@@ -390,7 +390,7 @@ void ngl_model_translate(ngl_model *model, float tx, float ty, float tz) {
 
 // Camera ////////////////////////////////////////////////////////////////////
 
-ngl_camera* ngl_camera_init_look_at(float x, float y, float z) {
+ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
     ngl_camera *camera = calloc(1, sizeof(ngl_camera));
     vec3 loc = vec3_init(x, y, z);
     vec3 target = vec3_zero();

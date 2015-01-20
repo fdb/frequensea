@@ -35,7 +35,7 @@ function draw()
     camera_y = 1.0
     camera_z = math.cos(time * 0.5) * 2.0
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    camera = ngl_camera_init_look_at(camera_x, camera_y, camera_z)
+    camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     model = ngl_model_new(3, NRF_SAMPLES_SIZE, device.samples)
     ngl_draw_model(camera, model, shader)
 end

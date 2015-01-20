@@ -122,11 +122,11 @@ static int l_ngl_clear(lua_State *L) {
     return 0;
 }
 
-static int l_ngl_camera_init_look_at(lua_State *L) {
+static int l_ngl_camera_new_look_at(lua_State *L) {
     float camera_x = luaL_checknumber(L, 1);
     float camera_y = luaL_checknumber(L, 2);
     float camera_z = luaL_checknumber(L, 3);
-    ngl_camera *camera = ngl_camera_init_look_at(camera_x, camera_y, camera_z);
+    ngl_camera *camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z);
     l_to_table(L, "ngl_camera", camera);
     return 1;
 }
@@ -352,7 +352,7 @@ static lua_State *l_init() {
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
-    l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
+    l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
     l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
     l_register_function(L, "ngl_texture_new", l_ngl_texture_new);
