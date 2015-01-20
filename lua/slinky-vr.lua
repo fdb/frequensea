@@ -32,6 +32,6 @@ end
 function draw()
     time = nwm_get_time()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    model = ngl_model_init_positions(3, NRF_SAMPLES_SIZE, device.samples)
+    model = ngl_model_new(3, NRF_SAMPLES_SIZE, device.samples)
     ngl_draw_model(camera, model, shader)
 end

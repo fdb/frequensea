@@ -55,7 +55,7 @@ function setup()
     camera = ngl_camera_init_look_at(0, 0.3, 0.5)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_init_grid_triangles(100, 100, 0.01, 0.01)
+    model = ngl_model_new_grid_triangles(100, 100, 0.01, 0.01)
 end
 
 function draw()

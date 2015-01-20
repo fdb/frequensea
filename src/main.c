@@ -173,7 +173,7 @@ static int l_ngl_texture_update(lua_State *L) {
     return 0;
 }
 
-static int l_ngl_model_init_positions(lua_State *L) {
+static int l_ngl_model_new(lua_State *L) {
     int component_count = luaL_checkint(L, 1);
     int point_count = luaL_checkint(L, 2);
     float *positions = NULL;
@@ -191,34 +191,34 @@ static int l_ngl_model_init_positions(lua_State *L) {
         luaL_checkany(L, 5);
         uvs = (float *) lua_touserdata(L, 5);
     }
-    ngl_model *model = ngl_model_init_positions(component_count, point_count, positions, normals, uvs);
+    ngl_model *model = ngl_model_new(component_count, point_count, positions, normals, uvs);
     l_to_table(L, "ngl_model", model);
     return  1;
 }
 
-static int l_ngl_model_init_grid_points(lua_State *L) {
+static int l_ngl_model_new_grid_points(lua_State *L) {
     int row_count = luaL_checkint(L, 1);
     int column_count = luaL_checkint(L, 2);
     float row_height = luaL_checknumber(L, 3);
     float column_width = luaL_checknumber(L, 4);
-    ngl_model *model = ngl_model_init_grid_points(row_count, column_count, row_height, column_width);
+    ngl_model *model = ngl_model_new_grid_points(row_count, column_count, row_height, column_width);
     l_to_table(L, "ngl_model", model);
     return 1;
 }
 
-static int l_ngl_model_init_grid_triangles(lua_State *L) {
+static int l_ngl_model_new_grid_triangles(lua_State *L) {
     int row_count = luaL_checkint(L, 1);
     int column_count = luaL_checkint(L, 2);
     float row_height = luaL_checknumber(L, 3);
     float column_width = luaL_checknumber(L, 4);
-    ngl_model *model = ngl_model_init_grid_triangles(row_count, column_count, row_height, column_width);
+    ngl_model *model = ngl_model_new_grid_triangles(row_count, column_count, row_height, column_width);
     l_to_table(L, "ngl_model", model);
     return 1;
 }
 
-static int l_ngl_load_obj(lua_State *L) {
+static int l_ngl_model_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
-    ngl_model *model = ngl_load_obj(fname);
+    ngl_model *model = ngl_model_load_obj(fname);
     l_to_table(L, "ngl_model", model);
     return 1;
 }
@@ -357,10 +357,10 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
     l_register_function(L, "ngl_texture_new", l_ngl_texture_new);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
-    l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
-    l_register_function(L, "ngl_model_init_grid_points", l_ngl_model_init_grid_points);
-    l_register_function(L, "ngl_model_init_grid_triangles", l_ngl_model_init_grid_triangles);
-    l_register_function(L, "ngl_load_obj", l_ngl_load_obj);
+    l_register_function(L, "ngl_model_new", l_ngl_model_new);
+    l_register_function(L, "ngl_model_new_grid_points", l_ngl_model_new_grid_points);
+    l_register_function(L, "ngl_model_new_grid_triangles", l_ngl_model_new_grid_triangles);
+    l_register_function(L, "ngl_model_load_obj", l_ngl_model_load_obj);
     l_register_function(L, "ngl_model_translate", l_ngl_model_translate);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);

@@ -36,18 +36,18 @@ Note that you can use Lua's multi-line strings:
         <Rest of the shader code goes here>
     ]]
 
-The first argument is a OpenGL draw mode. For a scene loaded using `ngl_load_obj`
+The first argument is a OpenGL draw mode. For a scene loaded using `ngl_model_load_obj`
 this should probably be GL_TRIANGLES.
 
 Other modes are `GL_POINTS`, `GL_LINE_STRIP`, `GL_LINE_LOOP`, `GL_LINES`, `GL_TRIANGLE_STRIP`, `GL_TRIANGLE_FAN`, `GL_TRIANGLES`. See [glDrawArrays](https://www.opengl.org/sdk/docs/man3/xhtml/glDrawArrays.xml) for more info on drawing modes.
 
 ## ngl_shader_new_from_file(draw_mode, vertex_file, fragment_file)
 Create a new shader by loading the vertex and fragment file. The first argument is a OpenGL draw mode;
-for a scene loaded using `ngl_load_obj` this should probably be GL_TRIANGLES.
+for a scene loaded using `ngl_model_load_obj` this should probably be GL_TRIANGLES.
 
 Other modes are `GL_POINTS`, `GL_LINE_STRIP`, `GL_LINE_LOOP`, `GL_LINES`, `GL_TRIANGLE_STRIP`, `GL_TRIANGLE_FAN`, `GL_TRIANGLES`. See [glDrawArrays](https://www.opengl.org/sdk/docs/man3/xhtml/glDrawArrays.xml) for more info on drawing modes.
 
-## ngl_model_init_positions(component_count, point_count, positions, normals)
+## ngl_model_new(component_count, point_count, positions, normals)
 Create a new model by initializing it with a list of points. The number of components should be 2 for 2D X/Y points, and 3 for 3D X/Y/Z points. The number of points is the number of points passed in. The positions is an array coming from other functions, like NRF's `device.samples` (Lua lists don't work yet). The positions are packed: so a 3D array would be passed in as XYZXYZXYZ... . The total length of the array is component_count * point_count.
 
 The `positions` and `normals` arguments are both optional.
@@ -60,14 +60,14 @@ Create an empty texture object. The name refers to the texture uniform name in t
 ## ngl_texture_update(texture, format, width, height, data)
 Set the texture data. `texture` is the texture object returned by `ngl_texture_new.` `format` is one of `GL_RED`, `GL_RG`, `GL_RGB` or `GL_RGBA`. `width` and `height` refer to texture size. Ideally, these are powers of two (e.g. 256, 512, 1024). `data` is a buffer containing floating-point values. We assume data has `n_components * width * height` floats. If the data is too small, the program will crash.
 
-## ngl_model_init_grid_points(row_count, column_count, row_height, column_width)
+## ngl_model_new_grid_points(row_count, column_count, row_height, column_width)
 Initialize a two-dimensional grids with one point per grid position. The grid will have row_count * column_count points.
 `row_height` and `column_width` specify the distance between each row and column. This model won't have any normals.
 
-## ngl_model_init_grid_triangles(row_count, column_count, row_height, column_width);
+## ngl_model_new_grid_triangles(row_count, column_count, row_height, column_width);
 Initialize a grid that can be used to draw triangles. Point positions are in the X and Z components. The grid will have (row_count-1) * (column_count -1) * 6 points (two triangles per grid "square"). `row_height` and `column_width` specify the distance between each row and column. This model has normals.
 
-## ngl_load_obj(file)
+## ngl_model_load_obj(file)
 Load an OBJ file from disk. The OBJ file should only use triangles, and should have normals exported.
 
 This function returns a model object that can be used in `ngl_draw_model`.

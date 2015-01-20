@@ -180,7 +180,7 @@ void ngl_texture_update(ngl_texture *texture, GLint format, GLsizei width, GLsiz
 
 // Model initialization //////////////////////////////////////////////////////
 
-ngl_model* ngl_model_init_positions(int component_count, int point_count, float* positions, float* normals, float* uvs) {
+ngl_model* ngl_model_new(int component_count, int point_count, float* positions, float* normals, float* uvs) {
     ngl_model *model = calloc(1, sizeof(ngl_model));
     model->point_count = point_count;
     model->transform = mat4_init_identity();
@@ -239,7 +239,7 @@ ngl_model* ngl_model_init_positions(int component_count, int point_count, float*
     return model;
 }
 
-ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row_height, float column_width) {
+ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_height, float column_width) {
     int point_count = row_count * column_count;
     float* points = calloc(point_count * 2, sizeof(float));
     float total_width = (column_count - 1) * column_width;
@@ -253,10 +253,10 @@ ngl_model* ngl_model_init_grid_points(int row_count, int column_count, float row
             points[i++] = top + y * row_height;
         }
     }
-    return ngl_model_init_positions(2, i / 2, points, NULL, NULL);
+    return ngl_model_new(2, i / 2, points, NULL, NULL);
 }
 
-ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
+ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
     int square_count = (row_count - 1) * (column_count - 1);
     int face_count = square_count * 2;
     int point_count = face_count * 3;
@@ -343,10 +343,10 @@ ngl_model* ngl_model_init_grid_triangles(int row_count, int column_count, float 
             uv_index += 12;
         }
     }
-    return ngl_model_init_positions(3, point_count, points, normals, uvs);
+    return ngl_model_new(3, point_count, points, normals, uvs);
 }
 
-ngl_model* ngl_load_obj(const char* fname) {
+ngl_model* ngl_model_load_obj(const char* fname) {
     ngl_model *model = calloc(1, sizeof(ngl_model));
 
     model->transform = mat4_init_identity();

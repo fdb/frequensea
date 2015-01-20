@@ -30,7 +30,7 @@ void main() {
 
 function setup()
     shader = ngl_shader_new(GL_POINTS, VERTEX_SHADER, FRAGMENT_SHADER)
-    model = ngl_model_init_grid_points(500, 500, 0.005, 0.005)
+    model = ngl_model_new_grid_points(500, 500, 0.005, 0.005)
 end
 
 function draw()
