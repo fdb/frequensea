@@ -21,6 +21,9 @@ pthread_t receive_thread;
 double freq_mhz = 124.2;
 int paused = 0;
 float intensity = 0.03;
+void *rtl_buffer;
+const uint32_t rtl_buffer_length = (16 * 16384);
+int rtl_should_quit = 0;
 
 void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, const char *file, int line) {
     if (status != 0) {
@@ -35,6 +38,7 @@ void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, con
 #define RTL_CHECK_STATUS(device, status, message) rtl_check_status(device, status, message, __FILE__, __LINE__)
 
 void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) {
+    printf("o\n");
     if (paused) return;
     memset(buffer, 0, sizeof(GLfloat) * WIDTH * HEIGHT);
     for (int i = 0; i < buffer_length; i += 2) {
@@ -50,14 +54,26 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
 }
 
 // This function will block, so needs to be called on its own thread.
-void *_start_receiving(rtlsdr_dev_t *device) {
-    int status = rtlsdr_read_async(device, receive_block, NULL, 0, 0);
-    RTL_CHECK_STATUS(device, status, "rtlsdr_read_async");
+void *_receive_loop(rtlsdr_dev_t *device) {
+    while (!rtl_should_quit) {
+        int n_read;
+        int status = rtlsdr_read_sync(device, rtl_buffer, rtl_buffer_length, &n_read);
+        RTL_CHECK_STATUS(device, status, "rtlsdr_read_sync");
+
+        if (n_read < rtl_buffer_length) {
+            fprintf(stderr, "Short read, samples lost, exiting!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        receive_block(rtl_buffer, rtl_buffer_length, device);
+    }
     return NULL;
 }
 
 static void setup_rtl() {
     int status;
+
+    rtl_buffer = calloc(rtl_buffer_length, sizeof(uint8_t));
 
     int device_count = rtlsdr_get_device_count();
     if (device_count == 0) {
@@ -88,7 +104,7 @@ static void setup_rtl() {
     RTL_CHECK_STATUS(device, status, "rtlsdr_reset_buffer");
 
     printf("Start\n");
-    pthread_create(&receive_thread, NULL, (void *(*)(void *)) &_start_receiving, device);
+    pthread_create(&receive_thread, NULL, (void *(*)(void *))_receive_loop, device);
     printf("Running\n");
 
 }
@@ -103,17 +119,15 @@ static void set_frequency() {
 static void teardown_rtl() {
     int status;
 
-    printf("Cancelling async\n");
+    rtl_should_quit = 1;
 
-    status = rtlsdr_cancel_async(device);
-    RTL_CHECK_STATUS(device, status, "rtlsdr_cancel_async");
-    //pthread_join(receive_thread, NULL);
+    printf("pthread_join\n");
+    pthread_join(receive_thread, NULL);
 
-    printf("Cancelled\n");
-
-    //status = rtlsdr_close(device);
+    printf("rtlsdr_close\n");
+    status = rtlsdr_close(device);
     //printf("Closed\n");
-    //RTL_CHECK_STATUS(device, status, "rtlsdr_close");
+    RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
 static void check_shader_error(GLuint shader) {
