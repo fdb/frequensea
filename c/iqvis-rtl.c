@@ -274,10 +274,18 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        freq_mhz += 0.1;
+        if (mods == 0) {
+            freq_mhz += 0.1;
+        } else {
+            freq_mhz += 10;
+        }
         set_frequency();
     } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        freq_mhz -= 0.1;
+        if (mods == 0) {
+            freq_mhz -= 0.1;
+        } else {
+            freq_mhz -= 10;
+        }
         set_frequency();
     } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
         paused = !paused;
