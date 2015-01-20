@@ -128,7 +128,7 @@ static int l_ngl_camera_new_look_at(lua_State *L) {
 
 static int l_ngl_camera_free(lua_State *L) {
     ngl_camera *camera = l_to_ngl_camera(L, 1);
-    free(camera);
+    ngl_camera_free(camera);
     return 0;
 }
 
@@ -326,8 +326,8 @@ static void draw(lua_State *L) {
 }
 
 static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
-    ngl_camera camera = nvr_device_eye_to_camera(device, eye);
-    l_to_table(L, "ngl_camera", &camera);
+    ngl_camera *camera = nvr_device_eye_to_camera(device, eye);
+    l_to_table(L, "ngl_camera", camera);
     lua_setglobal(L, "camera");
     draw(L);
 }

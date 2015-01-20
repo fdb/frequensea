@@ -200,7 +200,7 @@ void nvr_device_draw(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
     ovrHmd_EndFrame(hmd, eyePoses, textures);
 }
 
-ngl_camera nvr_device_eye_to_camera(nvr_device *device, nvr_eye *eye) {
+ngl_camera *nvr_device_eye_to_camera(nvr_device *device, nvr_eye *eye) {
     ovrHmd hmd = device->hmd;
     ovrPosef eyePose = ovrHmd_GetEyePose(hmd, eye->type);
     quat q = ovr_quat_to_quat(&eyePose.Orientation);
@@ -208,9 +208,9 @@ ngl_camera nvr_device_eye_to_camera(nvr_device *device, nvr_eye *eye) {
     mat4 position = mat4_init_identity();
     mat4 eye_pose = mat4_mul(&orientation, &position);
     mat4 inv_eye_pose = mat4_inverse(&eye_pose);
-    ngl_camera camera;
-    camera.view = inv_eye_pose;
-    camera.projection = eye->projection;
+    ngl_camera *camera = calloc(1, sizeof(ngl_camera));
+    camera->view = inv_eye_pose;
+    camera->projection = eye->projection;
     return camera;
 }
 
