@@ -131,6 +131,12 @@ static int l_ngl_camera_new_look_at(lua_State *L) {
     return 1;
 }
 
+static int l_ngl_camera_free(lua_State *L) {
+    ngl_camera *camera = l_to_ngl_camera(L, 1);
+    free(camera);
+    return 0;
+}
+
 static int l_ngl_shader_new(lua_State *L) {
     GLenum draw_mode = luaL_checkint(L, 1);
     const char *vertex_shader = lua_tostring(L, 2);
@@ -344,7 +350,7 @@ static lua_State *l_init() {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
-    l_register_type(L, "ngl_camera", l_gc);
+    l_register_type(L, "ngl_camera", l_ngl_camera_free);
     l_register_type(L, "ngl_model", l_gc);
     l_register_type(L, "ngl_shader", l_gc);
     l_register_type(L, "ngl_texture", l_gc);

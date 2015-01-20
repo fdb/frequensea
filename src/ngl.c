@@ -401,6 +401,10 @@ ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
     return camera;
 }
 
+void ngl_camera_free(ngl_camera* camera) {
+    free(camera);
+}
+
 // Model drawing /////////////////////////////////////////////////////////////
 
 void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
