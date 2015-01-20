@@ -62,6 +62,7 @@ ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_
 ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_model_load_obj(const char* fname);
 void ngl_model_translate(ngl_model *model, float tx, float ty, float tz);
+void ngl_model_free(ngl_model *model);
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z);
 void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);
 

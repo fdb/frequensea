@@ -388,6 +388,14 @@ void ngl_model_translate(ngl_model *model, float tx, float ty, float tz) {
     model->transform = mat4_mul(&model->transform, &m);
 }
 
+void ngl_model_free(ngl_model *model) {
+    glDeleteBuffers(1, &model->position_vbo);
+    glDeleteBuffers(1, &model->normal_vbo);
+    glDeleteBuffers(1, &model->uv_vbo);
+    glDeleteVertexArrays(1, &model->vao);
+    free(model);
+}
+
 // Camera ////////////////////////////////////////////////////////////////////
 
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {

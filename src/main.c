@@ -244,6 +244,12 @@ static int l_ngl_model_translate(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_model_free(lua_State *L) {
+    ngl_model *model = l_to_ngl_model(L, 1);
+    ngl_model_free(model);
+    return 0;
+}
+
 static int l_ngl_draw_model(lua_State *L) {
     ngl_camera* camera = l_to_ngl_camera(L, 1);
     ngl_model* model = l_to_ngl_model(L, 2);
@@ -357,7 +363,7 @@ static lua_State *l_init() {
     luaL_openlibs(L);
 
     l_register_type(L, "ngl_camera", l_ngl_camera_free);
-    l_register_type(L, "ngl_model", l_gc);
+    l_register_type(L, "ngl_model", l_ngl_model_free);
     l_register_type(L, "ngl_shader", l_gc);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
