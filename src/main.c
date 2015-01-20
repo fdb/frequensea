@@ -151,10 +151,10 @@ static int l_ngl_shader_new_from_file(lua_State *L) {
     return 1;
 }
 
-static int l_ngl_texture_create(lua_State *L) {
+static int l_ngl_texture_new(lua_State *L) {
     ngl_shader *shader = l_to_ngl_shader(L, 1);
     const char *uniform_name = lua_tostring(L, 2);
-    ngl_texture *texture = ngl_texture_create(shader, uniform_name);
+    ngl_texture *texture = ngl_texture_new(shader, uniform_name);
     l_to_table(L, "ngl_texture", texture);
     return 1;
 }
@@ -355,7 +355,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_camera_init_look_at", l_ngl_camera_init_look_at);
     l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
-    l_register_function(L, "ngl_texture_create", l_ngl_texture_create);
+    l_register_function(L, "ngl_texture_new", l_ngl_texture_new);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_init_positions", l_ngl_model_init_positions);
     l_register_function(L, "ngl_model_init_grid_points", l_ngl_model_init_grid_points);
