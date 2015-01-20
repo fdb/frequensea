@@ -8,28 +8,36 @@
 
 #include "vec.h"
 
+#define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
 #define FFT_SIZE 1024
 #define FFT_HISTORY_SIZE 512
 
-enum nrf_device_type {
+typedef enum {
     NRF_DEVICE_DUMMY = 0,
     NRF_DEVICE_RTLSDR,
     NRF_DEVICE_HACKRF
-};
+} nrf_device_type;
 
 typedef struct {
-    enum nrf_device_type device_type;
+    nrf_device_type device_type;
     void *device;
+
+    pthread_t receive_thread;
+    int receiving;
+
+    uint8_t *buffer;
+    int buffer_size;
+
+    int dummy_block_length;
+    int dummy_block_index;
+
     float samples[NRF_SAMPLES_SIZE * 3];
+
     vec3 fft[FFT_SIZE * FFT_HISTORY_SIZE];
     fftw_complex *fft_in;
     fftw_complex *fft_out;
     fftw_plan fft_plan;
-    pthread_t receive_thread;
-    unsigned char *fake_sample_blocks;
-    int fake_sample_block_size;
-    int fake_sample_block_index;
 } nrf_device;
 
 nrf_device *nrf_start(double freq_mhz, const char* data_file);

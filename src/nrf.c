@@ -67,16 +67,18 @@ static int _nrf_process_sample_block(nrf_device *device, int length, unsigned ch
     return 0;
 }
 
-
-static void _nrf_rtlsdr_receive_sample_block(unsigned char *buffer, uint32_t buffer_length, void *ctx) {
-    nrf_device *device = (nrf_device *) ctx;
-    _nrf_process_sample_block(device, buffer_length, buffer);
-}
-
 // This function will block, so needs to be called on its own thread.
-void *_nrf_rtlsdr_start_receiving(nrf_device *device) {
-    int status = rtlsdr_read_async((rtlsdr_dev_t*)device->device, _nrf_rtlsdr_receive_sample_block, device, 0, 0);
-    _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_read_async");
+void *_nrf_rtlsdr_receive_loop(nrf_device *device) {
+    while (device->receiving) {
+        int n_read;
+        int status = rtlsdr_read_sync((rtlsdr_dev_t*) device->device, device->buffer, NRF_BUFFER_LENGTH, &n_read);
+        _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_read_sync");
+        if (n_read < NRF_BUFFER_LENGTH) {
+            fprintf(stderr, "Short read, samples lost, exiting!\n");
+            exit(EXIT_FAILURE);
+        }
+        _nrf_process_sample_block(device, NRF_BUFFER_LENGTH, device->buffer);
+    }
     return NULL;
 }
 
@@ -94,13 +96,13 @@ static void _nrf_sleep_milliseconds(int millis) {
     nanosleep(&t1 , &t2);
 }
 
-static void *_nrf_receive_fake_samples(nrf_device *device) {
-    while (1) {
-        unsigned char *buffer = device->fake_sample_blocks + device->fake_sample_block_index;
-        _nrf_process_sample_block(device, NRF_SAMPLES_SIZE * 2, buffer);
-        device->fake_sample_block_index++;
-        if (device->fake_sample_block_index >= device->fake_sample_block_size) {
-            device->fake_sample_block_index = 0;
+static void *_nrf_dummy_receive_loop(nrf_device *device) {
+    while (device->receiving) {
+        unsigned char *buffer = device->buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
+        _nrf_process_sample_block(device, NRF_BUFFER_LENGTH, buffer);
+        device->dummy_block_index++;
+        if (device->dummy_block_index >= device->dummy_block_length) {
+            device->dummy_block_index = 0;
         }
         _nrf_sleep_milliseconds(1000 / 60);
     }
@@ -110,15 +112,13 @@ static void *_nrf_receive_fake_samples(nrf_device *device) {
 static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     int status;
 
-    const char *device_name = rtlsdr_get_device_name(0);
-    printf("Device %s\n", device_name);
-
     status = rtlsdr_open((rtlsdr_dev_t**)&device->device, 0);
     if (status != 0) {
         return status;
     }
 
     device->device_type = NRF_DEVICE_RTLSDR;
+    device->buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
@@ -138,9 +138,8 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     status = rtlsdr_reset_buffer(dev);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_reset_buffer");
 
-    printf("Start\n");
-    pthread_create(&device->receive_thread, NULL, (void *(*)(void *)) &_nrf_rtlsdr_start_receiving, device);
-    printf("Running\n");
+    device->receiving = 1;
+    pthread_create(&device->receive_thread, NULL, (void *(*)(void *)) &_nrf_rtlsdr_receive_loop, device);
 
     return 0;
 }
@@ -175,6 +174,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     status = hackrf_set_vga_gain(dev, 30);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_lna_gain");
 
+    device->receiving = 1;
     status = hackrf_start_rx(dev, _nrf_hackrf_receive_sample_block, device);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_start_rx");
 
@@ -184,25 +184,24 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
 static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     device->device_type = NRF_DEVICE_DUMMY;
     fprintf(stderr, "WARN nrf_start: Couldn't open SDR device. Falling back on data file %s\n", data_file);
-    uint8_t int_buffer[NRF_SAMPLES_SIZE * 2];
-    memset(int_buffer, 0, NRF_SAMPLES_SIZE * 2);
     if (data_file != NULL) {
         FILE *fp = fopen(data_file, "rb");
         if (fp != NULL) {
             fseek(fp, 0L, SEEK_END);
             long size = ftell(fp);
             rewind(fp);
-            device->fake_sample_block_size = size / (131072 * 2);
-            device->fake_sample_block_index = 0;
-            device->fake_sample_blocks = calloc(size, sizeof(unsigned char));
-            fread(device->fake_sample_blocks, size, 1, fp);
+            device->buffer = calloc(size, sizeof(uint8_t));
+            device->dummy_block_length = size / NRF_BUFFER_LENGTH;
+            device->dummy_block_index = 0;
+            fread(device->buffer, size, 1, fp);
             fclose(fp);
         } else {
             fprintf(stderr, "WARN nrf_start: Couldn't open %s. Using empty buffer.\n", data_file);
         }
     }
 
-    pthread_create(&device->receive_thread, NULL, (void *(*)(void *))&_nrf_receive_fake_samples, device);
+    device->receiving = 1;
+    pthread_create(&device->receive_thread, NULL, (void *(*)(void *))&_nrf_dummy_receive_loop, device);
 
     return 0;
 }
@@ -250,13 +249,19 @@ void nrf_freq_set(nrf_device *device, double freq_mhz) {
 // Stop receiving data
 void nrf_stop(nrf_device *device) {
     if (device->device_type == NRF_DEVICE_RTLSDR) {
-        rtlsdr_cancel_async((rtlsdr_dev_t*) device->device);
-        pthread_kill(device->receive_thread, 1);
-        rtlsdr_close((rtlsdr_dev_t*) device);
+        device->receiving = 0;
+        pthread_join(device->receive_thread, NULL);
+        rtlsdr_close((rtlsdr_dev_t*) device->device);
     } else if (device->device_type == NRF_DEVICE_HACKRF) {
         hackrf_stop_rx((hackrf_device*) device->device);
         hackrf_close((hackrf_device*) device->device);
         hackrf_exit();
+    } else if (device->device_type == NRF_DEVICE_DUMMY) {
+        device->receiving = 0;
+        pthread_join(device->receive_thread, NULL);
+    }
+    if (device->buffer) {
+        free(device->buffer);
     }
     fftw_destroy_plan(device->fft_plan);
     fftw_free(device->fft_in);
