@@ -9,7 +9,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    vec2 pt = vec2((vp.x - 0.5) * 1.8, (vp.y - 0.5) * 1.8);
+    vec2 pt = vec2((vp.x - 0.5) * 2, (vp.y - 0.5) * 2);
     gl_Position = vec4(pt.x, pt.y, 0.0, 1.0);
 }
 ]]
