@@ -24,7 +24,8 @@ void main() {
 ]]
 
 function setup()
-    device = nrf_device_new(200.0, "../rfdata/rf-100.900-2.raw")
+    freq = 200
+    device = nrf_device_new(freq, "../rfdata/rf-100.900-2.raw")
     shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
@@ -37,4 +38,8 @@ function draw()
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     model = ngl_model_new(3, NRF_SAMPLES_SIZE, device.samples)
     ngl_draw_model(camera, model, shader)
+end
+
+function on_key(key, mods)
+    keys_frequency_handler(key, mods)
 end

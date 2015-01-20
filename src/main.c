@@ -350,7 +350,8 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
             lua_getglobal(L, "on_key");
             if (lua_isfunction(L, -1)) {
                 lua_pushinteger(L, key);
-                int error = lua_pcall(L, 1, 0, 0);
+                lua_pushinteger(L, mods);
+                int error = lua_pcall(L, 2, 0, 0);
                 if (error) {
                     fprintf(stderr, "Error calling on_key(): %s\n", lua_tostring(L, -1));
                     lua_pop(L, 1);

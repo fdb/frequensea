@@ -45,7 +45,9 @@ function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     ngl_texture_update(texture, GL_RED, 512, 512, device.samples)
     ngl_draw_model(camera, model, shader)
-
-    --nrf_device_set_frequency(device, freq)
-    --freq = freq + 0.0001
 end
+
+function on_key(key, mods)
+    keys_frequency_handler(key, mods)
+end
+

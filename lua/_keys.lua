@@ -119,3 +119,45 @@ KEY_RIGHT_CONTROL = 345
 KEY_RIGHT_ALT = 346
 KEY_RIGHT_SUPER = 347
 KEY_MENU = 348
+
+function keys_camera_handler(key, mods)
+    if (mods == 1) then -- Shift key
+        d = 1
+    elseif (mods == 4) then -- Alt key
+        d = 0.001
+    else
+        d = 0.1
+    end
+    if key == KEY_W then
+        camera_z = camera_z - d
+    elseif key == KEY_S then
+        camera_z = camera_z + d
+    elseif key == KEY_A then
+        camera_x = camera_x - d
+    elseif key == KEY_D then
+        camera_x = camera_x + d
+    elseif key == KEY_Q then
+        camera_y = camera_y - d
+    elseif key == KEY_E then
+        camera_y = camera_y + d
+    end
+end
+
+function keys_frequency_handler(key, mods)
+    if (mods == 1) then -- Shift key
+        d = 10
+    elseif (mods == 4) then -- Alt key
+        d = 0.001
+    else
+        d = 0.1
+    end
+    if key == KEY_RIGHT then
+        freq = freq + d
+        nrf_device_set_frequency(device, freq)
+        print("Frequency: " .. freq)
+    elseif key == KEY_LEFT then
+        freq = freq - d
+        nrf_device_set_frequency(device, freq)
+        print("Frequency: " .. freq)
+    end
+end

@@ -38,18 +38,6 @@ function draw()
     ngl_draw_model(camera, model, shader)
 end
 
-function on_key(key)
-    if key == KEY_W then
-        camera_z = camera_z - 0.5
-    elseif key == KEY_S then
-        camera_z = camera_z + 0.5
-    elseif key == KEY_A then
-        camera_x = camera_x - 0.5
-    elseif key == KEY_D then
-        camera_x = camera_x + 0.5
-    elseif key == KEY_Q then
-        camera_y = camera_y - 0.5
-    elseif key == KEY_E then
-        camera_y = camera_y + 0.5
-    end
+function on_key(key, mods)
+    keys_camera_handler(key, mods)
 end

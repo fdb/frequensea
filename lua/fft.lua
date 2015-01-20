@@ -28,9 +28,9 @@ void main() {
 }
 ]]
 
-freq = 200.5
 
 function setup()
+    freq = 200.5
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -44,14 +44,6 @@ function draw()
     ngl_draw_model(camera, model, shader)
 end
 
-function on_key(key)
-    if key == KEY_UP then
-        freq = freq + 0.01
-        nrf_device_set_frequency(device, freq)
-        print("Frequency: " .. freq)
-    elseif key == KEY_DOWN then
-        freq = freq - 0.01
-        nrf_device_set_frequency(device, freq)
-        print("Frequency: " .. freq)
-    end
+function on_key(key, mods)
+    keys_frequency_handler(key, mods)
 end
