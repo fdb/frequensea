@@ -12,7 +12,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.0005;
+    float d = 0.01;
     float t1 = texture(uTexture, vt).r * d;
     float t2 = texture(uTexture, vt + vec2(0.01, 0)).r * d;
     float t3 = texture(uTexture, vt + vec2(0, 0.01)).r * d;
@@ -51,7 +51,7 @@ void main() {
 
 function setup()
     freq = 97
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
     camera = ngl_camera_new_look_at(0, 0.1, 0.5)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
