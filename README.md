@@ -24,6 +24,10 @@ With the Oculus:
 
     ./frequensea --vr ../lua/static.lua
 
+Save the output to a PNG sequence:
+
+    ./frequensea --capture ../lua/animate-camera.lua
+
 ## Build and Run
 
     make && ./frequensea ../lua/static.lua
