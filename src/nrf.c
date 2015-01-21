@@ -154,7 +154,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
     device->device_type = NRF_DEVICE_RTLSDR;
     device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
-    device->t_step = 0.1S;
+    device->t_step = 0.1;
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
