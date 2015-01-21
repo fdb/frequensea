@@ -6,6 +6,7 @@
 #include <lualib.h>
 
 #include "ngl.h"
+#include "nim.h"
 #include "nrf.h"
 #include "nvr.h"
 #include "nwm.h"
@@ -421,7 +422,11 @@ static lua_State *l_init() {
 }
 
 int main(int argc, char **argv) {
+    int frame = 1;
+    int capture = 0;
     char *fname = NULL;
+    int window_width = 800;
+    int window_height = 600;
 
     for (int i = 0; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -429,6 +434,8 @@ int main(int argc, char **argv) {
             exit(0);
         } else if (strcmp(argv[i], "--vr") == 0) {
             use_vr = 1;
+        } else if (strcmp(argv[i], "--capture") == 0) {
+            capture = 1;
         } else if (str_ends_with(argv[i], ".lua")) {
             fname = argv[i];
         }
@@ -459,7 +466,7 @@ int main(int argc, char **argv) {
         window = nvr_device_window_init(device);
         nvr_device_init_eyes(device);
     } else {
-        window = nwm_window_init(0, 0, 800, 600);
+        window = nwm_window_init(0, 0, window_width, window_height);
     }
     assert(window);
     nwm_window_set_user_data(window, L);
@@ -503,8 +510,21 @@ int main(int argc, char **argv) {
         } else {
             draw(L);
             nwm_window_swap_buffers(window);
+            if (capture) {
+                int buffer_width;
+                int buffer_height;
+                glfwGetFramebufferSize(window, &buffer_width, &buffer_height);
+                int buffer_channels = 3;
+                int buffer_size = buffer_width * buffer_height * buffer_channels;
+                uint8_t buffer[buffer_size];
+                glReadPixels(0, 0, buffer_width, buffer_height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+                char fname[200];
+                snprintf(fname, 200, "out-%04d.png", frame);
+                nim_png_write(fname, buffer_width, buffer_height, NIM_RGB, buffer);
+            }
         }
         nwm_poll_events();
+        frame++;
     }
 
     if (use_vr) {
