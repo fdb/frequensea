@@ -26,11 +26,14 @@ typedef struct {
     pthread_t receive_thread;
     int receiving;
 
-    uint8_t *buffer;
-    int buffer_size;
-
+    uint8_t *receive_buffer;
     int dummy_block_length;
     int dummy_block_index;
+
+    uint8_t *a_buffer;
+    uint8_t *b_buffer;
+    float t;
+    float t_step;
 
     float samples[NRF_SAMPLES_SIZE * 3];
     float iq[256 * 256];

@@ -1,5 +1,7 @@
 // NDBX Radio Frequency functions, based on HackRF
 
+#include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,28 +39,52 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 
 #define _NRF_HACKRF_CHECK_STATUS(device, status, message) _nrf_hackrf_check_status(device, status, message, __FILE__, __LINE__)
 
+static int _nrf_lerp(float a, float b, float t) {
+    return a * (1.0 - t) + b * t;
+}
+
 static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
+    assert(length == NRF_BUFFER_LENGTH);
+
+    if (device->t >= 1.0) {
+        memcpy(device->a_buffer, device->b_buffer, NRF_BUFFER_LENGTH);
+        memcpy(device->b_buffer, buffer, NRF_BUFFER_LENGTH);
+        device->t = 0.0;
+    } else if (device->t < 0.0) {
+        // Special start-up condition. Set b_buffer and interpolate from zero.
+        memcpy(device->b_buffer, buffer, NRF_BUFFER_LENGTH);
+        device->t = 0.0;
+    }
+
     int j = 0;
     int ii = 0;
     memset(device->iq, 0, 256 * 256 * sizeof(float));
     for (int i = 0; i < length; i += 2) {
-        float t = i / (float) length;
-        int vi = buffer[i];
-        int vq = buffer[i + 1];
-        if (device->device_type == NRF_DEVICE_HACKRF || device->device_type == NRF_DEVICE_DUMMY) {
-            vi = (vi + 128) % 256;
-            vq = (vq + 128) % 256;
-        }
-        device->samples[j++] = vi / 256.0f;
-        device->samples[j++] = vq / 256.0f;
-        device->samples[j++] = t;
+        float buffer_pos = i / (float) length;
 
-        int iq_index = vi * 256 + vq;
+        int a_i = device->a_buffer[i];
+        int a_q = device->a_buffer[i + 1];
+        int b_i = device->b_buffer[i];
+        int b_q = device->b_buffer[i + 1];
+        if (device->device_type == NRF_DEVICE_HACKRF || device->device_type == NRF_DEVICE_DUMMY) {
+            a_i = (a_i + 128) % 256;
+            a_q = (a_q + 128) % 256;
+            b_i = (b_i + 128) % 256;
+            b_q = (b_q + 128) % 256;
+        }
+        float v_i = _nrf_lerp(a_i, b_i, device->t);
+        float v_q = _nrf_lerp(a_q, b_q, device->t);
+
+        device->samples[j++] = v_i / 256.0;
+        device->samples[j++] = v_q / 256.0;
+        device->samples[j++] = buffer_pos;
+
+        int iq_index = (int) (roundf(v_i * 256) + roundf(v_q));
         device->iq[iq_index]++;
 
         fftw_complex *p = device->fft_in;
-        p[ii][0] = buffer[i] / 255.0;
-        p[ii][1] = buffer[i + 1] / 255.0;
+        p[ii][0] = v_i / 256.0;
+        p[ii][1] = v_q / 256.0;
         ii++;
     }
     fftw_execute(device->fft_plan);
@@ -66,10 +92,13 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
     memcpy((char *)&device->fft + FFT_SIZE * sizeof(vec3), &device->fft, FFT_SIZE * (FFT_HISTORY_SIZE - 1) * sizeof(vec3));
     // Set the first line
     for (int i = 0; i < FFT_SIZE; i++) {
-        float t = i / (float) FFT_SIZE;
+        float buffer_pos = i / (float) FFT_SIZE;
         fftw_complex *out = device->fft_out;
-        device->fft[i] = vec3_init(out[i][0], out[i][1], t);
+        device->fft[i] = vec3_init(out[i][0], out[i][1], buffer_pos);
     }
+
+    device->t += device->t_step;
+
     return 0;
 }
 
@@ -77,13 +106,13 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
 void *_nrf_rtlsdr_receive_loop(nrf_device *device) {
     while (device->receiving) {
         int n_read;
-        int status = rtlsdr_read_sync((rtlsdr_dev_t*) device->device, device->buffer, NRF_BUFFER_LENGTH, &n_read);
+        int status = rtlsdr_read_sync((rtlsdr_dev_t*) device->device, device->receive_buffer, NRF_BUFFER_LENGTH, &n_read);
         _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_read_sync");
         if (n_read < NRF_BUFFER_LENGTH) {
             fprintf(stderr, "Short read, samples lost, exiting!\n");
             exit(EXIT_FAILURE);
         }
-        _nrf_process_sample_block(device, device->buffer, NRF_BUFFER_LENGTH);
+        _nrf_process_sample_block(device, device->receive_buffer, NRF_BUFFER_LENGTH);
     }
     return NULL;
 }
@@ -104,7 +133,7 @@ static void _nrf_sleep_milliseconds(int millis) {
 
 static void *_nrf_dummy_receive_loop(nrf_device *device) {
     while (device->receiving) {
-        unsigned char *buffer = device->buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
+        unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
         _nrf_process_sample_block(device, buffer, NRF_BUFFER_LENGTH);
         device->dummy_block_index++;
         if (device->dummy_block_index >= device->dummy_block_length) {
@@ -124,7 +153,8 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     }
 
     device->device_type = NRF_DEVICE_RTLSDR;
-    device->buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+    device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+    device->t_step = 0.1S;
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
@@ -162,6 +192,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     }
 
     device->device_type = NRF_DEVICE_HACKRF;
+    device->t_step = 0.1;
 
     hackrf_device *dev = (hackrf_device*) device->device;
 
@@ -189,6 +220,8 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
 
 static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     device->device_type = NRF_DEVICE_DUMMY;
+    device->t_step = 0.1;
+
     fprintf(stderr, "WARN nrf_device_new: Couldn't open SDR device. Falling back on data file %s\n", data_file);
     if (data_file != NULL) {
         FILE *fp = fopen(data_file, "rb");
@@ -196,10 +229,10 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
             fseek(fp, 0L, SEEK_END);
             long size = ftell(fp);
             rewind(fp);
-            device->buffer = calloc(size, sizeof(uint8_t));
+            device->receive_buffer = calloc(size, sizeof(uint8_t));
             device->dummy_block_length = size / NRF_BUFFER_LENGTH;
             device->dummy_block_index = 0;
-            fread(device->buffer, size, 1, fp);
+            fread(device->receive_buffer, size, 1, fp);
             fclose(fp);
         } else {
             fprintf(stderr, "WARN nrf_device_new: Couldn't open %s. Using empty buffer.\n", data_file);
@@ -219,6 +252,11 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file) {
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
+
+    device->a_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+    device->b_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+    device->t = -1;
+    device->t_step = 0.1;
 
     memset(device->samples, 0, NRF_SAMPLES_SIZE * 3 * sizeof(float));
     device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
@@ -266,8 +304,10 @@ void nrf_device_free(nrf_device *device) {
         device->receiving = 0;
         pthread_join(device->receive_thread, NULL);
     }
-    if (device->buffer) {
-        free(device->buffer);
+    free(device->a_buffer);
+    free(device->b_buffer);
+    if (device->receive_buffer) {
+        free(device->receive_buffer);
     }
     fftw_destroy_plan(device->fft_plan);
     fftw_free(device->fft_in);
