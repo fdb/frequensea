@@ -79,7 +79,7 @@ Translate the model. The model is transformed in-place; no data is returned.
 Draw the model with the given shader. Use the same camera object if you want consistent views of the scene.
 
 ## NRF -- NDBX Radio Frequency
-Functions for reading data from a HackRF device.
+Functions for reading data from a software defined radio (SDR) device.
 
 Here's a basic example:
 
@@ -89,8 +89,8 @@ Here's a basic example:
     end
     nrf_device_free(device)
 
-## nrf_device_new(freq_mhz)
-Tune the HackRF to the given frequency (in MHz) and start receiving data. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
+## nrf_device_new(freq_mhz, data_file)
+Tune the SDR device to the given frequency (in MHz) and start receiving data. We can receive data from RTL-SDR, HackRF, or fall back to a data file. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
 
 ## nrf_device_free(device)
 Stop receiving data.
@@ -99,4 +99,4 @@ Stop receiving data.
 Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_device_new`.
 
 ## NRF_SAMPLES_SIZE
-A constant with the number of samples the HackRF device returns.
+A constant with the number of samples the SDR device returns.
