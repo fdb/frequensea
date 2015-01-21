@@ -291,8 +291,9 @@ static int l_nrf_device_free(lua_State *L) {
 static int l_nrf_device_set_frequency(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     double freq_mhz = luaL_checknumber(L, 2);
-    nrf_device_set_frequency(device, freq_mhz);
-    return 0;
+    freq_mhz = nrf_device_set_frequency(device, freq_mhz);
+    lua_pushnumber(L, freq_mhz);
+    return 1;
 }
 
 // Main /////////////////////////////////////////////////////////////////////

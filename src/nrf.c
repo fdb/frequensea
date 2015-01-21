@@ -43,6 +43,17 @@ static int _nrf_lerp(float a, float b, float t) {
     return a * (1.0 - t) + b * t;
 }
 
+// Limit the frequency range to a possible value.
+double _nrf_clamp_frequency(nrf_device *device, double freq_mhz) {
+    if (device->device_type == NRF_DEVICE_RTLSDR) {
+        return freq_mhz < 10 ? 10 : freq_mhz > 1766 ? 1766 : freq_mhz;
+    } else if (device->device_type == NRF_DEVICE_HACKRF) {
+        return freq_mhz < 1 ? 1 : freq_mhz > 6000 ? 6000 : freq_mhz;
+    } else {
+        return freq_mhz;
+    }
+}
+
 static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
     assert(length == NRF_BUFFER_LENGTH);
 
@@ -168,6 +179,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     status = rtlsdr_set_agc_mode(dev, 1);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_agc_mode");
 
+    freq_mhz = _nrf_clamp_frequency(device, freq_mhz);
     status = rtlsdr_set_center_freq(dev, freq_mhz * 1e6);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_center_freq");
 
@@ -196,6 +208,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
 
     hackrf_device *dev = (hackrf_device*) device->device;
 
+    freq_mhz = _nrf_clamp_frequency(device, freq_mhz);
     status = hackrf_set_freq(dev, freq_mhz * 1e6);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
@@ -245,7 +258,6 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     return 0;
 }
 
-
 // Start receiving on the given frequency.
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
@@ -280,7 +292,8 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file) {
 }
 
 // Change the frequency to the given frequency, in MHz.
-void nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
+double nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
+    freq_mhz = _nrf_clamp_frequency(device, freq_mhz);
     if (device->device_type == NRF_DEVICE_RTLSDR) {
         int status = rtlsdr_set_center_freq((rtlsdr_dev_t*) device->device, freq_mhz * 1e6);
         _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_center_freq");
@@ -288,6 +301,7 @@ void nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
         int status = hackrf_set_freq(device->device, freq_mhz * 1e6);
         _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
     }
+    return freq_mhz;
 }
 
 // Stop receiving data

@@ -45,7 +45,7 @@ typedef struct {
 } nrf_device;
 
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file);
-void nrf_device_set_frequency(nrf_device *device, double freq_mhz);
+double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_free(nrf_device *device);
 
 #endif // NRF_H
