@@ -23,7 +23,7 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 0.02;
+    float r = texture(uTexture, texCoord).r * 0.2;
     fragColor = vec4(r, r, r, 0.95);
 }
 ]]
