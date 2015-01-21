@@ -264,7 +264,13 @@ static int l_ngl_draw_model(lua_State *L) {
 static int l_nrf_device_new(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
     const char *file_name = lua_tostring(L, 2);
-    nrf_device *device = nrf_device_new(freq_mhz, file_name);
+    double interpolate_step;
+    if (!lua_isnoneornil(L, 3)) {
+        interpolate_step = luaL_checknumber(L, 3);
+    } else {
+        interpolate_step = 1;
+    }
+    nrf_device *device = nrf_device_new(freq_mhz, file_name, interpolate_step);
     l_to_table(L, "nrf_device", device);
 
     lua_pushliteral(L, "samples");

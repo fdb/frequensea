@@ -89,8 +89,11 @@ Here's a basic example:
     end
     nrf_device_free(device)
 
-## nrf_device_new(freq_mhz, data_file)
+## nrf_device_new(freq_mhz, data_file, interpolate_step)
 Tune the SDR device to the given frequency (in MHz) and start receiving data. We can receive data from RTL-SDR, HackRF, or fall back to a data file. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
+
+The interpolate_step will decimate the data and smoothly interpolate between two steps. An interpolate step of 0.1 will decimate the data by 10. The default is 1, meaning no interpolation / decimation is performed.
+
 
 ## nrf_device_free(device)
 Stop receiving data.

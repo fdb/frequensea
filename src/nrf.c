@@ -165,7 +165,6 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
     device->device_type = NRF_DEVICE_RTLSDR;
     device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
-    device->t_step = 0.1;
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
@@ -204,7 +203,6 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     }
 
     device->device_type = NRF_DEVICE_HACKRF;
-    device->t_step = 0.1;
 
     hackrf_device *dev = (hackrf_device*) device->device;
 
@@ -233,7 +231,6 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
 
 static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     device->device_type = NRF_DEVICE_DUMMY;
-    device->t_step = 0.1;
 
     fprintf(stderr, "WARN nrf_device_new: Couldn't open SDR device. Falling back on data file %s\n", data_file);
     if (data_file != NULL) {
@@ -261,14 +258,14 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // Start receiving on the given frequency.
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
-nrf_device *nrf_device_new(double freq_mhz, const char* data_file) {
+nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step) {
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
 
     device->a_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
     device->b_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
     device->t = -1;
-    device->t_step = 0.1;
+    device->t_step = interpolate_step;
 
     memset(device->samples, 0, NRF_SAMPLES_SIZE * 3 * sizeof(float));
     device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);

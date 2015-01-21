@@ -44,7 +44,7 @@ typedef struct {
     fftw_plan fft_plan;
 } nrf_device;
 
-nrf_device *nrf_device_new(double freq_mhz, const char* data_file);
+nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step);
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_free(nrf_device *device);
 
