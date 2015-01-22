@@ -333,6 +333,25 @@ static void draw(lua_State *L) {
     }
 }
 
+static void take_screenshot(nwm_window *window, const char *fname) {
+    if (fname == NULL) {
+        time_t t;
+        time(&t);
+        struct tm* tm_info = localtime(&t);
+        char time_fname[100];
+        strftime(time_fname, 100, "screenshot-%Y-%m-%d_%H.%M.%S.png", tm_info);
+        fname = time_fname;
+    }
+    int buffer_width;
+    int buffer_height;
+    glfwGetFramebufferSize(window, &buffer_width, &buffer_height);
+    int buffer_channels = 3;
+    int buffer_size = buffer_width * buffer_height * buffer_channels;
+    uint8_t buffer[buffer_size];
+    glReadPixels(0, 0, buffer_width, buffer_height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    nim_png_write(fname, buffer_width, buffer_height, NIM_RGB, buffer);
+}
+
 static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
     ngl_camera *camera = nvr_device_eye_to_camera(device, eye);
     l_to_table(L, "ngl_camera", camera);
@@ -344,6 +363,8 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
+        } else if (key == GLFW_KEY_EQUAL) {
+            take_screenshot(window, NULL);
         }
         if (use_vr) {
             static ovrHSWDisplayState hswDisplayState;
@@ -511,16 +532,9 @@ int main(int argc, char **argv) {
             draw(L);
             nwm_window_swap_buffers(window);
             if (capture) {
-                int buffer_width;
-                int buffer_height;
-                glfwGetFramebufferSize(window, &buffer_width, &buffer_height);
-                int buffer_channels = 3;
-                int buffer_size = buffer_width * buffer_height * buffer_channels;
-                uint8_t buffer[buffer_size];
-                glReadPixels(0, 0, buffer_width, buffer_height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
                 char fname[200];
                 snprintf(fname, 200, "out-%04d.png", frame);
-                nim_png_write(fname, buffer_width, buffer_height, NIM_RGB, buffer);
+                take_screenshot(window, fname);
             }
         }
         nwm_poll_events();
