@@ -333,23 +333,48 @@ static void draw(lua_State *L) {
     }
 }
 
-static void take_screenshot(nwm_window *window, const char *fname) {
-    if (fname == NULL) {
+typedef struct {
+    pthread_t thread;
+    int width;
+    int height;
+    uint8_t *buffer;
+    char *fname;
+} screenshot_info;
+
+static void _take_screenshot(screenshot_info *info) {
+    const char *real_fname;
+    if (info->fname == NULL) {
         time_t t;
         time(&t);
         struct tm* tm_info = localtime(&t);
         char time_fname[100];
         strftime(time_fname, 100, "screenshot-%Y-%m-%d_%H.%M.%S.png", tm_info);
-        fname = time_fname;
+        real_fname = time_fname;
+    } else {
+        real_fname = info->fname;
     }
-    int buffer_width;
-    int buffer_height;
-    glfwGetFramebufferSize(window, &buffer_width, &buffer_height);
+    nim_png_write(real_fname, info->width, info->height, NIM_RGB, info->buffer);
+    free(info->fname);
+    free(info->buffer);
+    free(info);
+}
+
+static void take_screenshot(nwm_window *window, const char *fname) {
+    screenshot_info *info = calloc(1, sizeof(screenshot_info));
+    if (fname != NULL) {
+        info->fname = calloc(strlen(fname), sizeof(char));
+        strcpy(info->fname, fname);
+    }
+
+    // Capture the OpenGL framebuffer. Do this in the current thread.
+    glfwGetFramebufferSize(window, &info->width, &info->height);
     int buffer_channels = 3;
-    int buffer_size = buffer_width * buffer_height * buffer_channels;
-    uint8_t buffer[buffer_size];
-    glReadPixels(0, 0, buffer_width, buffer_height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-    nim_png_write(fname, buffer_width, buffer_height, NIM_RGB, buffer);
+    int buffer_size = info->width * info->height * buffer_channels;
+    info->buffer = calloc(buffer_size, sizeof(uint8_t));
+    glReadPixels(0, 0, info->width, info->height, GL_RGB, GL_UNSIGNED_BYTE, info->buffer);
+
+    // Create a new thread to save the screenshot.
+    pthread_create(&info->thread, NULL, (void *(*)(void *))_take_screenshot, info);
 }
 
 static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
