@@ -3,6 +3,7 @@
 #ifndef NIM_H
 #define NIM_H
 
+#include <stdint.h>
 #include <png.h>
 
 typedef enum {
