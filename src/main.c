@@ -230,6 +230,21 @@ static int l_ngl_model_new_grid_triangles(lua_State *L) {
     return 1;
 }
 
+static int l_ngl_model_new_with_height_map(lua_State *L) {
+    int row_count = luaL_checkint(L, 1);
+    int column_count = luaL_checkint(L, 2);
+    float row_height = luaL_checknumber(L, 3);
+    float column_width = luaL_checknumber(L, 4);
+    float height_multiplier = luaL_checknumber(L, 5);
+    int buffer_stride = luaL_checkint(L, 6);
+    int buffer_offset = luaL_checkint(L, 7);
+    luaL_checkany(L, 8);
+    float *positions = (float *) lua_touserdata(L, 8);
+    ngl_model *model = ngl_model_new_with_height_map(row_count, column_count, row_height, column_width, height_multiplier, buffer_stride, buffer_offset, positions);
+    l_to_table(L, "ngl_model", model);
+    return 1;
+}
+
 static int l_ngl_model_load_obj(lua_State *L) {
     const char *fname = lua_tostring(L, 1);
     ngl_model *model = ngl_model_load_obj(fname);
@@ -438,6 +453,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_model_new", l_ngl_model_new);
     l_register_function(L, "ngl_model_new_grid_points", l_ngl_model_new_grid_points);
     l_register_function(L, "ngl_model_new_grid_triangles", l_ngl_model_new_grid_triangles);
+    l_register_function(L, "ngl_model_new_with_height_map", l_ngl_model_new_with_height_map);
     l_register_function(L, "ngl_model_load_obj", l_ngl_model_load_obj);
     l_register_function(L, "ngl_model_translate", l_ngl_model_translate);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);

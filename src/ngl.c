@@ -260,7 +260,7 @@ ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_
     return ngl_model_new(2, i / 2, points, NULL, NULL);
 }
 
-ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
+ngl_model* _ngl_model_new_grid_triangles_with_buffer(int row_count, int column_count, float row_height, float column_width, float height_multiplier, int buffer_stride, int buffer_offset, const float *buffer) {
     int square_count = (row_count - 1) * (column_count - 1);
     int face_count = square_count * 2;
     int point_count = face_count * 3;
@@ -278,10 +278,20 @@ ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float r
             float x = left + ci * column_width;
             float z = top + ri * row_height;
 
-            vec3 v11 = vec3_init(x, 0, z);
-            vec3 v12 = vec3_init(x + column_width, 0, z);
-            vec3 v21 = vec3_init(x, 0, z + row_height);
-            vec3 v22 = vec3_init(x + column_width, 0, z + row_height);
+            float y11, y12, y21, y22;
+            if (buffer != NULL) {
+                y11 = buffer[buffer_offset + (ri * column_count * buffer_stride) + ci * buffer_stride] * height_multiplier;
+                y12 = buffer[buffer_offset + (ri * column_count * buffer_stride) + (ci + 1) * buffer_stride] * height_multiplier;
+                y21 = buffer[buffer_offset + ((ri + 1) * column_count * buffer_stride) + ci * buffer_stride] * height_multiplier;
+                y22 = buffer[buffer_offset + ((ri + 1) * column_count * buffer_stride) + (ci + 1) * buffer_stride] * height_multiplier;
+            } else {
+                y11 = y12 = y21 = y22 = 0;
+            }
+
+            vec3 v11 = vec3_init(x, y11, z);
+            vec3 v12 = vec3_init(x + column_width, y12, z);
+            vec3 v21 = vec3_init(x, y21, z + row_height);
+            vec3 v22 = vec3_init(x + column_width, y22, z + row_height);
             vec3 n1 = vec3_normal(&v11, &v12, &v21);
             vec3 n2 = vec3_normal(&v12, &v22, &v21);
             vec2 uv11 = vec2_init(ci / (float) (column_count - 1), ri / (float) (row_count - 1));
@@ -348,6 +358,15 @@ ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float r
         }
     }
     return ngl_model_new(3, point_count, points, normals, uvs);
+}
+
+ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
+    return _ngl_model_new_grid_triangles_with_buffer(row_count, column_count, row_height, column_width, 0, 0, 0, NULL);
+}
+
+// We ask for the channels to calculate the stride, but only use the first value.
+ngl_model* ngl_model_new_with_height_map(int row_count, int column_count, float row_height, float column_width, float height_multiplier, int stride, int offset, const float *buffer) {
+    return _ngl_model_new_grid_triangles_with_buffer(row_count, column_count, row_height, column_width, height_multiplier, stride, offset, buffer);
 }
 
 ngl_model* ngl_model_load_obj(const char* fname) {
