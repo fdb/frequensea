@@ -26,4 +26,7 @@ iqvis-rtl: iqvis-rtl.c
 	gcc -I /usr/local/include -L /usr/local/lib -o iqvis-rtl iqvis-rtl.c -l glfw3 -l rtlsdr -lpng -framework OpenGL
 
 audio: audio.c
-	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -framework OpenAL -o audio audio.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o audio audio.c
+
+play: play.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l sndfile -framework OpenAL -o play play.c

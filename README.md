@@ -5,7 +5,7 @@
 ## Installing dependencies (OS X)
 
     brew update
-    brew install cmake lua homebrew/versions/glfw3 fftw librtlsdr libpng
+    brew install cmake lua homebrew/versions/glfw3 fftw librtlsdr libpng libsndfile
     brew tap robotastic/homebrew-hackrf
     brew install --HEAD hackrf
 
