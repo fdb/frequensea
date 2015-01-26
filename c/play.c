@@ -59,7 +59,6 @@ int main(int argc, char **argv) {
     ALCcontext *ctx = alcCreateContext(device, NULL);
     alcMakeContextCurrent(ctx);
 
-    //alBufferData(buffer, format, data, size, freq);
     SF_INFO wav_file_info;
     SNDFILE* wav_file = sf_open(file_name, SFM_READ, &wav_file_info);
 
