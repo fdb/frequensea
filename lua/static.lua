@@ -8,8 +8,8 @@ out vec3 color;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
-    color = vec3(1.0, 1.0, 1.0) * dot(normalize(vp), normalize(vn)) * 0.3;
-    color += vec3(0.1, 0.1, 0.5);
+    color = vec3(1.0, 1.0, 1.0) * dot(normalize(vp), normalize(vn)) * 0.5;
+    color += vec3(0.2, 0.5, 0.8);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(vp, 1.0);
 }
 ]]
@@ -30,6 +30,7 @@ camera_z = 50
 function setup()
     model = ngl_model_load_obj("../obj/c004.obj")
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
+    camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
 end
 
 function draw()
