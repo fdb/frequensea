@@ -9,6 +9,7 @@
 /c/rfcap
 /c/iqvis
 /c/iqvis-rtl
+/c/play
 /rust/target
 *.png
 /build
