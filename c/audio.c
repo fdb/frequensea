@@ -10,8 +10,9 @@
 #include <OpenAL/alc.h>
 
 #include <libhackrf/hackrf.h>
+#include <sndfile.h>
 
-const int IN_SAMPLE_RATE = 5e6;
+const int IN_SAMPLE_RATE = 2e6;
 const int OUT_SAMPLE_RATE = 48000;
 
 typedef struct {
@@ -61,12 +62,12 @@ void nal_check_error(const char *file, int line) {
 #define NAL_CHECK_ERROR() nal_check_error(__FILE__, __LINE__)
 
 ALuint buffer;
-ALenum format = AL_FORMAT_MONO8;
+ALenum format = AL_FORMAT_MONO16;
 const ALsizei freq = OUT_SAMPLE_RATE;
-const ALsizei size = freq * 3;
+const ALsizei size = freq * 3 * sizeof(format);
 ALuint source;
 
-ALuint *data;
+ALshort *audio_buffer_samples;
 int has_received = 0;
 
 int received_size = 0;
@@ -77,8 +78,8 @@ const int HACKRF_BUFFER_SIZE = 262144;
 
 const float TAU = M_PI * 2;
 
-const int center_freq = 125000000;
-const int desired_freq = 124190000;
+const int desired_freq = 100.9e6;
+const int center_freq = desired_freq + 100000;
 
 // Generates coefficients for a FIR low-pass filter with the given
 // half-amplitude frequency and kernel length at the given sample rate.
@@ -134,10 +135,12 @@ fir_filter *fir_filter_new(int sample_rate, int half_ampl_freq, int length) {
 
 void fir_filter_load(fir_filter *filter, float *samples, int length) {
     float *new_samples = calloc(length + filter->offset, sizeof(float));
-    memcpy(new_samples, filter->samples, (filter->samples_length - filter->offset) * sizeof(float));
-    memcpy(new_samples + filter->offset, samples, length * sizeof(float));
+    int o = (filter->samples_length - filter->offset);
+    memcpy(new_samples, filter->samples + o, filter->offset * sizeof(float));
+    memcpy(new_samples + filter->offset, samples, length - filter->offset * sizeof(float));
     free(filter->samples);
     filter->samples_length = length + filter->offset;
+    //printf("%d\n", filter->samples_length);
     filter->samples = new_samples;
 }
 
@@ -164,14 +167,14 @@ typedef struct {
     float *out_samples;
 } downsampler;
 
-downsampler *downsampler_new(int in_rate, int out_rate, int filter_freq, int kernel_length) {
+downsampler *downsampler_new(int in_rate, int out_rate, int in_length, int filter_freq, int kernel_length) {
     downsampler *d = calloc(1, sizeof(downsampler));
     d->in_rate = in_rate;
     d->out_rate = out_rate;
     d->filter = fir_filter_new(in_rate, filter_freq, kernel_length);
     d->rate_mul = in_rate / (float) out_rate;
     // Fixme: remove HACKRF_SAMPLES_SIZE
-    d->out_length = floor(HACKRF_SAMPLES_SIZE / d->rate_mul);
+    d->out_length = floor(in_length / d->rate_mul);
     d->out_samples = calloc(d->out_length, sizeof(float));
     return d;
 }
@@ -200,6 +203,9 @@ float sine = 0;
 downsampler *downsampler_i;
 downsampler *downsampler_q;
 downsampler *downsampler_audio;
+
+float l_i = 0;
+float l_q = 0;
 
 float average(float *values, int length) {
     float sum = 0;
@@ -242,64 +248,77 @@ int receive_sample_block(hackrf_transfer *transfer) {
     }
 
     // Shift frequency
-    //int freq_offset = desired_freq - center_freq;
-    //shift_frequency(samples_i, samples_q, HACKRF_SAMPLES_SIZE, freq_offset, IN_SAMPLE_RATE, &cosine, &sine);
+    int freq_offset = center_freq - desired_freq;
+    shift_frequency(samples_i, samples_q, HACKRF_SAMPLES_SIZE, freq_offset, IN_SAMPLE_RATE, &cosine, &sine);
 
     // Downsample
     downsampler_process(downsampler_i, samples_i, HACKRF_SAMPLES_SIZE);
     downsampler_process(downsampler_q, samples_q, HACKRF_SAMPLES_SIZE);
 
-    // Take average
-    float avg_i = average(downsampler_i->out_samples, downsampler_i->out_length);
-    float avg_q = average(downsampler_q->out_samples, downsampler_q->out_length);
-
     // Demodulate
     int out_length = downsampler_i->out_length;
     float *demodulated = calloc(out_length, sizeof(float));
 
-    float sigRatio = IN_SAMPLE_RATE / OUT_SAMPLE_RATE;
-    float specSqrSum = 0;
-    float sigSqrSum = 0;
-    float sigSum = 0;
+    float prev = 0;
+    float difSqrSum = 0;
 
+    float AMPL_CONV = 336000 / (2 * M_PI * 75000);
 
     for (int i = 0; i < out_length; i++) {
-        float iv = downsampler_i->out_samples[i] - avg_i;
-        float iq = downsampler_q->out_samples[i] - avg_q;
-        float power = iv * iv + iq * iq;
-        float ampl = sqrt(power);
-        if (i == 0) {
-            printf("%.5f\n", ampl);
+        float real = l_i * downsampler_i->out_samples[i] + l_q * downsampler_q->out_samples[i];
+        float imag = l_i * downsampler_q->out_samples[i] - downsampler_i->out_samples[i] * l_q;
+        float sgn = 1;
+        if (imag < 0) {
+            sgn *= -1;
+            imag *= -1;
         }
-        demodulated[i] = ampl;
-
-        int origIndex = floor(i * sigRatio);
-        float origI = samples_i[origIndex];
-        float origQ = samples_q[origIndex];
-        specSqrSum += origI * origI + origQ * origQ;
-        sigSqrSum += power;
-        sigSum += ampl;
+        float ang = 0;
+        float div;
+        if (real == imag) {
+            div = 1;
+        } else if (real > imag) {
+            div = imag / real;
+        } else {
+            ang = -M_PI / 2;
+            div = real / imag;
+            sgn *= -1;
+        }
+        demodulated[i] = sgn *
+            (ang + div
+                / (0.98419158358617365
+                    + div * (0.093485702629671305
+                        + div * 0.19556307900617517))) * AMPL_CONV;
+        l_i = downsampler_i->out_samples[i];
+        l_q = downsampler_q->out_samples[i];
+        float dif = prev - demodulated[i];
+        difSqrSum += dif * dif;
+        prev = demodulated[i];
     }
-
-    float halfPoint = sigSum / out_length;
-    for (int i = 0; i < out_length; i++) {
-        demodulated[i] = (demodulated[i] - halfPoint) / halfPoint;
-    }
-    //float relSignalPower = sigSqrSum / specSqrSum;
 
     // Downsample again
     downsampler_process(downsampler_audio, demodulated, out_length);
     for (int i = 0; i < out_length; i++) {
-        data[received_size++] = (downsampler_audio->out_samples[i] * 5) - 128;
+        float f_sample = downsampler_audio->out_samples[i];
+        int16_t i_sample = f_sample * 1000;
+        // if (i == 0) {
+        //     printf("%f %f %d\n", downsampler_audio->out_samples[i], f_sample, i_sample);
+
+        // }
+
+        audio_buffer_samples[received_size++] = i_sample;
     }
 
-    //memcpy(buffer + , )
 
     //received_size += out_length;
     printf("Received %.1f%%\n", received_size / (float)size * 100);
 
     if (received_size > size) {
-        alBufferData(buffer, format, data, size, freq);
+        FILE *fp = fopen("out.raw", "w");
+        fwrite(audio_buffer_samples, sizeof(int16_t), size, fp);
+        fclose(fp);
+
+
+        alBufferData(buffer, format, audio_buffer_samples, size, freq);
         NAL_CHECK_ERROR();
         alSourcei(source, AL_BUFFER, buffer);
         NAL_CHECK_ERROR();
@@ -314,7 +333,7 @@ int main() {
     int status;
     hackrf_device *hrf;
 
-    data = calloc(size + freq, sizeof(ALuint)); // We need a bit of extra data because we go over the buffer size.
+    audio_buffer_samples = calloc(size + freq, sizeof(ALshort)); // We need a bit of extra data because we go over the buffer size.
     vec_buffer = calloc(HACKRF_BUFFER_SIZE, sizeof(vec2));
 
     // Initialize the audio context
@@ -334,18 +353,26 @@ int main() {
     samples_i = calloc(HACKRF_SAMPLES_SIZE, sizeof(float));
     samples_q = calloc(HACKRF_SAMPLES_SIZE, sizeof(float));
 
-    const int INTER_RATE = 48000;
-    int bandwidth = 10000;
-    int filter_freq = bandwidth / 2;
-    downsampler_i = downsampler_new(IN_SAMPLE_RATE, INTER_RATE, filter_freq, 351);
-    downsampler_q = downsampler_new(IN_SAMPLE_RATE, INTER_RATE, filter_freq, 351);
-    downsampler_audio = downsampler_new(48000, OUT_SAMPLE_RATE, 10000, 41);
+    const int INTER_RATE = 336000;
+    const int  MAX_F = 75000;
+    const float FILTER = MAX_F * 0.8;
+
+
+//   var demodulator = new FMDemodulator(inRate, INTER_RATE, MAX_F, FILTER, 51);
+// function FMDemodulator(inRate, outRate, maxF, filterFreq, kernelLen) {
+//   var coefs = getLowPassFIRCoeffs(inRate, filterFreq, kernelLen);
+//       var downsamplerI = new Downsampler(inRate, outRate, coefs);
+
+
+
+    int filter_freq = FILTER * 0.8;
+    downsampler_i = downsampler_new(IN_SAMPLE_RATE, INTER_RATE, HACKRF_SAMPLES_SIZE, filter_freq, 51);
+    downsampler_q = downsampler_new(IN_SAMPLE_RATE, INTER_RATE, HACKRF_SAMPLES_SIZE, filter_freq, 51);
+
+    downsampler_audio = downsampler_new(INTER_RATE, OUT_SAMPLE_RATE, downsampler_i->out_length, 10000, 41);
 
     // Fill buffer with random data
     //arc4random_buf(data, size);
-
-
-    //alBufferData(buffer, format, data, size, freq);
 
     // Initialize a source
     alGenSources(1, &source);
@@ -365,7 +392,7 @@ int main() {
     status = hackrf_open(&hrf);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_open");
 
-    status = hackrf_set_freq(hrf, 124190000);
+    status = hackrf_set_freq(hrf, center_freq);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(hrf, IN_SAMPLE_RATE);
