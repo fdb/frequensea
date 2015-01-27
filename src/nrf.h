@@ -1,4 +1,4 @@
-// NDBX Radio Frequency functions, based on HackRF
+// NDBX Software Defined Radio library
 
 #ifndef NRF_H
 #define NRF_H
