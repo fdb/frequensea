@@ -53,7 +53,9 @@ int main(int argc, char **argv) {
     status = hackrf_open(&device);
     CHECK_STATUS(status, "hackrf_open");
 
-    status = hackrf_set_freq(device, 200.5e6);
+    int desired_freq = 100900000;
+    int center_freq = desired_freq + 50000;
+    status = hackrf_set_freq(device, center_freq);
     CHECK_STATUS(status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(device, 10e6);
