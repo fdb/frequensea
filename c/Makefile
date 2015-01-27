@@ -28,5 +28,8 @@ iqvis-rtl: iqvis-rtl.c
 demod-fm: demod-fm.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o demod-fm demod-fm.c
 
+demod-fm-streaming: demod-fm-streaming.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o demod-fm-streaming demod-fm-streaming.c
+
 play: play.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l sndfile -framework OpenAL -o play play.c
