@@ -126,14 +126,25 @@ fir_filter *fir_filter_new(int sample_rate, int half_ampl_freq, int length) {
 }
 
 void fir_filter_load(fir_filter *filter, double *samples, int length) {
-    int static i = 0;
-    i++;
-    if (filter->samples_length != length) {
-        free(filter->samples);
-        filter->samples = calloc(length, sizeof(double));
-        filter->samples_length = length;
+    int should_free = 0;
+    int new_length = length + filter->offset;
+    double *new_samples;
+    if (filter->samples_length != new_length) {
+        should_free = 1;
+        new_samples = calloc(new_length, sizeof(double));
+    } else {
+        new_samples = filter->samples;
     }
-    memcpy(filter->samples, samples, length * sizeof(double));
+
+    // Copy the last `offset` samples to the new buffer.
+    memcpy(new_samples, filter->samples + filter->samples_length - filter->offset, filter->offset * sizeof(double));
+    memcpy(new_samples + filter->offset, samples, length * sizeof(double));
+
+    if (should_free) {
+        free(filter->samples);
+    }
+    filter->samples = new_samples;
+    filter->samples_length = new_length;
 }
 
 double fir_filter_get(fir_filter *filter, int index) {
