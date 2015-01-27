@@ -26,6 +26,7 @@ typedef enum {
 typedef struct {
     nrf_device_type device_type;
     void *device;
+    int sample_rate;
 
     pthread_t receive_thread;
     int receiving;
@@ -143,9 +144,23 @@ typedef struct {
     int samples_length;
 } nrf_decoder;
 
-
 nrf_decoder *nrf_decoder_new(nrf_demodulate_type demodulate_type, int in_sample_rate, int out_sample_rate, int freq_offset);
 void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length);
 
+// Player
+
+typedef struct {
+    nrf_demodulate_type demodulate_type;
+    nrf_device *device;
+    nrf_decoder *decoder;
+    ALCcontext *audio_context;
+    ALCdevice *audio_device;
+    ALuint audio_source;
+    int is_playing;
+    int shutting_down;
+} nrf_player;
+
+nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type);
+void nrf_player_free(nrf_player *player);
 
 #endif // NRF_H

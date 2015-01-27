@@ -157,6 +157,8 @@ static void *_nrf_dummy_receive_loop(nrf_device *device) {
     return NULL;
 }
 
+static const int RTLSDR_DEFAULT_SAMPLE_RATE = 2e6;
+
 static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     int status;
 
@@ -172,6 +174,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
     status = rtlsdr_set_sample_rate(dev, 2e6);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
+    device->sample_rate = RTLSDR_DEFAULT_SAMPLE_RATE;
 
     // Set auto-gain mode
     status = rtlsdr_set_tuner_gain_mode(dev, 0);
@@ -193,6 +196,8 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
     return 0;
 }
 
+static const int HACKRF_DEFAULT_SAMPLE_RATE = 5e6;
+
 static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     int status;
 
@@ -212,8 +217,9 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     status = hackrf_set_freq(dev, freq_mhz * 1e6);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(dev, 5e6);
+    status = hackrf_set_sample_rate(dev, HACKRF_DEFAULT_SAMPLE_RATE);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_sample_rate");
+    device->sample_rate = HACKRF_DEFAULT_SAMPLE_RATE;
 
     status = hackrf_set_amp_enable(dev, 0);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_amp_enable");
@@ -231,8 +237,11 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     return 0;
 }
 
+static const int DUMMY_DEFAULT_SAMPLE_RATE = 5e6;
+
 static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
     device->device_type = NRF_DEVICE_DUMMY;
+    device->sample_rate = DUMMY_DEFAULT_SAMPLE_RATE;
 
     fprintf(stderr, "WARN nrf_device_new: Couldn't open SDR device. Falling back on data file %s\n", data_file);
     if (data_file != NULL) {
@@ -628,4 +637,80 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
 void nrf_decoder_free(nrf_decoder *decoder) {
     nrf_freq_shifter_free(decoder->freq_shifter);
     free(decoder);
+}
+
+// Audio Player
+
+static const int AUDIO_SAMPLE_RATE = 48000;
+static const int FREQ_OFFSET = 50000;
+
+static void _nrf_al_check_error(const char *file, int line) {
+    ALenum err = alGetError();
+    int has_error = 0;
+    while (err != AL_NO_ERROR) {
+        has_error = 1;
+        char *msg = NULL;
+        switch (err) {
+            case AL_INVALID_NAME:
+                msg = "AL_INVALID_NAME";
+                break;
+            case AL_INVALID_ENUM:
+                msg = "AL_INVALID_ENUM";
+                break;
+            case AL_INVALID_VALUE:
+                msg = "AL_INVALID_VALUE";
+                break;
+            case AL_INVALID_OPERATION:
+                msg = "AL_INVALID_OPERATION";
+                break;
+            case AL_OUT_OF_MEMORY:
+                msg = "AL_OUT_OF_MEMORY";
+                break;
+        }
+        fprintf(stderr, "OpenAL error: %s - %s:%d\n", msg, file, line);
+        err = alGetError();
+    }
+    if (has_error) {
+        exit(EXIT_FAILURE);
+    }
+}
+
+#define _NRF_AL_CHECK_ERROR() _nrf_al_check_error(__FILE__, __LINE__)
+
+nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type) {
+    nrf_player *player = calloc(1, sizeof(nrf_player));
+    player->device = device;
+    player->decoder = nrf_decoder_new(demodulate_type, device->sample_rate, AUDIO_SAMPLE_RATE, FREQ_OFFSET);
+
+     // Initialize the audio context
+    player->audio_device = alcOpenDevice(NULL);
+    if (!device) {
+        fprintf(stderr, "Could not open audio device.\n");
+        exit(EXIT_FAILURE);
+    }
+    player->audio_context = alcCreateContext(player->audio_device, NULL);
+    alcMakeContextCurrent(player->audio_context);
+    _NRF_AL_CHECK_ERROR();
+
+    // Initialize an audio source.
+    alGenSources(1, &player->audio_source);
+    _NRF_AL_CHECK_ERROR();
+
+    // Turn off looping.
+    alSourcei(player->audio_source, AL_LOOPING, AL_FALSE);
+    _NRF_AL_CHECK_ERROR();
+
+    return player;
+}
+
+void nrf_player_free(nrf_player *player) {
+    player->shutting_down = 1;
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(player->audio_context);
+    alcCloseDevice(player->audio_device);
+    player->shutting_down = 1;
+
+    // Note we don't own the NRF device, so we're not going to free it.
+    free(player->decoder);
+    free(player);
 }
