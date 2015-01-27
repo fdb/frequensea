@@ -128,26 +128,12 @@ fir_filter *fir_filter_new(int sample_rate, int half_ampl_freq, int length) {
 void fir_filter_load(fir_filter *filter, double *samples, int length) {
     int static i = 0;
     i++;
-    printf("LOAD %d\n", length);
-    double *new_samples = calloc(length + filter->offset, sizeof(double));
-    int o = (filter->samples_length - filter->offset);
-    memcpy(new_samples, filter->samples + o, filter->offset * sizeof(double));
-    memcpy(new_samples + filter->offset, samples, length - filter->offset * sizeof(double));
-    free(filter->samples);
-    filter->samples_length = length + filter->offset;
-    //printf("%d\n", filter->samples_length);
-    filter->samples = new_samples;
-    if (i==1) {
-        FILE *fp = fopen("out-samples.raw", "w");
-        fwrite(samples, sizeof(double), length, fp);
-        fclose(fp);
+    if (filter->samples_length != length) {
+        free(filter->samples);
+        filter->samples = calloc(length, sizeof(double));
+        filter->samples_length = length;
     }
-    if (i== 1) {
-        FILE *fp = fopen("out-filter.raw", "w");
-        fwrite(new_samples, sizeof(double), filter->samples_length, fp);
-        fclose(fp);
-
-    }
+    memcpy(filter->samples, samples, length * sizeof(double));
 }
 
 double fir_filter_get(fir_filter *filter, int index) {
@@ -347,9 +333,10 @@ void process_sample_block(uint8_t *buffer, size_t length) {
 
     if (received_samples > DESIRED_OUT_SAMPLES) {
         printf("Received: %d\n", received_samples);
-        FILE *fp = fopen("out-out.raw", "w");
-        fwrite(audio_buffer_samples, sizeof(int16_t), received_samples * sizeof(ALshort), fp);
-        fclose(fp);
+        // Write out the final sound as 16-bit signed PCM samples at 48000 Hz
+        // FILE *fp = fopen("out-out.raw", "w");
+        // fwrite(audio_buffer_samples, sizeof(int16_t), received_samples * sizeof(ALshort), fp);
+        // fclose(fp);
 
         alBufferData(audio_buffer, AL_BUFFER_FORMAT, audio_buffer_samples, received_samples * sizeof(ALshort), OUT_SAMPLE_RATE);
         NAL_CHECK_ERROR();
