@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
         HACKRF_CHECK_STATUS(hrf, status, "hackrf_start_rx");
 
         // Wait 3 seconds to receive data.
-        sleep(1);
+        sleep(SECONDS);
 
     } else {
         FILE *fp = fopen(fname, "r");
