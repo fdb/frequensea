@@ -29,6 +29,7 @@ ALuint audio_source;
 hackrf_device *hrf = NULL;
 int is_playing = 0;
 int shutting_down = 0;
+double deemphasis_val;
 
 #define HACKRF_CHECK_STATUS(device, status, message) \
 if (status != 0) { \
@@ -341,15 +342,21 @@ void process_sample_block(uint8_t *buffer, size_t length) {
 
     // Downsample again, for audio
     downsampler_process(downsampler_audio, demodulated, out_length);
-
-    // Convert to signed 16-bit integers.
+    double *audio_samples = downsampler_audio->out_samples;
     int audio_length = downsampler_audio->out_length;
-    int16_t *pcm_samples = calloc(audio_length, sizeof(int16_t));
-    for (int i = 0; i < downsampler_audio->out_length; i++) {
-        double f_sample = downsampler_audio->out_samples[i];
-        pcm_samples[i] = f_sample * 32000;
+
+    // De-emphasize samples
+    double alpha = 1.0 / (1.0 + OUT_SAMPLE_RATE * 50.0 / 1e6);
+    for (int i = 0; i < audio_length; i++) {
+        deemphasis_val = deemphasis_val + alpha * (audio_samples[i] - deemphasis_val);
+        audio_samples[i] = deemphasis_val;
     }
 
+    // Convert to signed 16-bit integers.
+    int16_t *pcm_samples = calloc(audio_length, sizeof(int16_t));
+    for (int i = 0; i < audio_length; i++) {
+        pcm_samples[i] = audio_samples[i] * 32000;
+    }
 
     // Since the signal processing takes a while, we check again if we are shutting down.
     if (shutting_down) return;
