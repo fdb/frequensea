@@ -176,7 +176,6 @@ downsampler *downsampler_new(int in_rate, int out_rate, int filter_freq, int ker
     d->out_rate = out_rate;
     d->filter = fir_filter_new(in_rate, filter_freq, kernel_length);
     d->rate_mul = in_rate / (double) out_rate;
-    printf("downsampler_new in %d out %d mul %f\n", in_rate, out_rate, d->rate_mul);
     d->out_length = 0;
     d->out_samples = NULL;
     return d;
@@ -258,24 +257,12 @@ void process_sample_block(uint8_t *buffer, size_t length) {
         //samples_q[i] = (vq - 128.0) / 256.0;
     }
 
-
-    printf("A %f %f %f %f\n", samples_i[0], samples_q[0], samples_i[1], samples_q[1]);
-
     // Shift frequency
     shift_frequency(samples_i, samples_q, length, FREQ_OFFSET, IN_SAMPLE_RATE, &cosine, &sine);
-
-    printf("B %f %f %f %f\n", samples_i[0], samples_q[0], samples_i[1], samples_q[1]);
 
     // Downsample
     downsampler_process(downsampler_i, samples_i, length);
     downsampler_process(downsampler_q, samples_q, length);
-
-    //printf("C %.9f %.9f %.9f %.9f\n", downsampler_i->out_samples[0], downsampler_q->out_samples[0], downsampler_i->out_samples[1], downsampler_q->out_samples[1]);
-
-    for (int i=0;i<10;i++) {
-        printf("C %.9f %.9f\n", downsampler_i->out_samples[i], downsampler_q->out_samples[i]);
-    }
-
 
     // Demodulate
     int out_length = downsampler_i->out_length;
@@ -317,19 +304,10 @@ void process_sample_block(uint8_t *buffer, size_t length) {
         prev = demodulated[i];
     }
 
-    for (int i=0;i<10;i++) {
-        printf("D %.9f\n", demodulated[i]);
-    }
-
-    printf("demod length %d\n", out_length);
-
-    // Downsample again
+    // Downsample again, for audio
     downsampler_process(downsampler_audio, demodulated, out_length);
-    for (int i=0;i<10;i++) {
-        printf("E %.9f\n", downsampler_audio->out_samples[i]);
-    }
 
-    printf("downsample audio length %d\n", downsampler_audio->out_length);
+    // Convert to signed 16-bit integers.
     for (int i = 0; i < downsampler_audio->out_length; i++) {
         if (received_samples > DESIRED_OUT_SAMPLES) {
             break;
@@ -339,11 +317,9 @@ void process_sample_block(uint8_t *buffer, size_t length) {
         audio_buffer_samples[received_samples++] = i_sample;
     }
 
-    //received_samples += out_length;
     printf("Received %.1f%%\n", received_samples / (double) DESIRED_OUT_SAMPLES * 100);
 
     if (received_samples > DESIRED_OUT_SAMPLES) {
-        printf("Received: %d\n", received_samples);
         // Write out the final sound as 16-bit signed PCM samples at 48000 Hz
         // FILE *fp = fopen("out-out.raw", "w");
         // fwrite(audio_buffer_samples, sizeof(int16_t), received_samples * sizeof(ALshort), fp);
