@@ -23,6 +23,13 @@ const int SECONDS = 3;
 const int DESIRED_OUT_SAMPLES = SECONDS * OUT_SAMPLE_RATE;
 const ALenum AL_BUFFER_FORMAT = AL_FORMAT_MONO16;
 
+ALCcontext *ctx;
+ALCdevice *device;
+ALuint audio_source;
+hackrf_device *hrf = NULL;
+int is_playing = 0;
+int shutting_down = 0;
+
 #define HACKRF_CHECK_STATUS(device, status, message) \
 if (status != 0) { \
     fprintf(stderr, "HackRF error: %s\n", message); \
@@ -64,9 +71,7 @@ void nal_check_error(const char *file, int line) {
 
 #define NAL_CHECK_ERROR() nal_check_error(__FILE__, __LINE__)
 
-ALuint audio_source;
 
-int is_playing = 0;
 
 typedef struct {
     int size;
@@ -272,6 +277,8 @@ void shift_frequency(double *samples_i, double *samples_q, int length, int freq_
 }
 
 void process_sample_block(uint8_t *buffer, size_t length) {
+    if (shutting_down) return;
+
     double *samples_i = calloc(length, sizeof(double));
     double *samples_q = calloc(length, sizeof(double));
 
@@ -344,6 +351,9 @@ void process_sample_block(uint8_t *buffer, size_t length) {
     }
 
 
+    // Since the signal processing takes a while, we check again if we are shutting down.
+    if (shutting_down) return;
+
     // Check if there are processed buffers we need to unqueue
     int processed_buffers;
     alGetSourceiv(audio_source, AL_BUFFERS_PROCESSED, &processed_buffers);
@@ -389,17 +399,29 @@ int receive_sample_block(hackrf_transfer *transfer) {
     return 0;
 }
 
+
+void cleanup() {
+    shutting_down = 1;
+
+    hackrf_stop_rx(hrf);
+    hackrf_close(hrf);
+    hackrf_exit();
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(ctx);
+    alcCloseDevice(device);
+}
+
 int main(int argc, char **argv) {
     int status;
-    hackrf_device *hrf = NULL;
 
     // Initialize the audio context
-    ALCdevice *device = alcOpenDevice(NULL);
+    device = alcOpenDevice(NULL);
     if (!device) {
         fprintf(stderr, "Could not open audio device.\n");
         return 1;
     }
-    ALCcontext *ctx = alcCreateContext(device, NULL);
+    ctx = alcCreateContext(device, NULL);
     alcMakeContextCurrent(ctx);
     NAL_CHECK_ERROR();
 
@@ -449,17 +471,10 @@ int main(int argc, char **argv) {
     status = hackrf_start_rx(hrf, receive_sample_block, NULL);
     HACKRF_CHECK_STATUS(hrf, status, "hackrf_start_rx");
 
+    signal(SIGINT, cleanup);
+
     // Playing is asynchronous so pause the main thread
-    //wait(NULL);
     sleep(1000000);
 
-    // Cleanup
-    alcMakeContextCurrent(NULL);
-    alcDestroyContext(ctx);
-    alcCloseDevice(device);
-
-    hackrf_stop_rx(hrf);
-    hackrf_close(hrf);
-    hackrf_exit();
     return 0;
 }
