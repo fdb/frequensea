@@ -473,6 +473,8 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, cleanup);
 
+    printf("Press Ctrl-C to exit.\n");
+
     // Playing is asynchronous so pause the main thread
     sleep(1000000);
 
