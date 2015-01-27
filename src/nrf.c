@@ -248,6 +248,9 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
             fclose(fp);
         } else {
             fprintf(stderr, "WARN nrf_device_new: Couldn't open %s. Using empty buffer.\n", data_file);
+            device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+            device->dummy_block_length = 1;
+            device->dummy_block_index = 0;
         }
     }
 
