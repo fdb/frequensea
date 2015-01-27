@@ -443,7 +443,7 @@ int main(int argc, char **argv) {
         status = hackrf_start_rx(hrf, receive_sample_block, NULL);
         HACKRF_CHECK_STATUS(hrf, status, "hackrf_start_rx");
 
-        // Wait 3 seconds to receive data.
+        // Wait to receive data.
         sleep(SECONDS);
 
     } else {
