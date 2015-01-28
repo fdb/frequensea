@@ -11,7 +11,7 @@ find_library(LIBRARY_HACKRF hackrf)
 find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
-set(CORE_LIBS ${LIBRARY_CPP} ${LIBRARY_FFTW} ${LIBRARY_GLFW} ${LIBRARY_HACKRF} ${LIBRARY_LUA} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
+set(CORE_LIBS ${LIBRARY_FFTW} ${LIBRARY_GLFW} ${LIBRARY_HACKRF} ${LIBRARY_LUA} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
