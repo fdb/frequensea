@@ -8,7 +8,7 @@ include_directories(externals/ovr/include)
 
 find_library(LIBRARY_CPP stdc++)
 find_library(LIBRARY_FFTW fftw3)
-find_library(LIBRARY_GLFW glfw3)
+find_library(LIBRARY_GLFW glfw)
 find_library(LIBRARY_HACKRF hackrf)
 find_library(LIBRARY_LUA lua)
 find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
@@ -23,8 +23,14 @@ if (APPLE)
     find_library(FRAMEWORK_OPENAL OpenAL)
     find_library(FRAMEWORK_CORE_VIDEO CoreVideo)
     find_library(FRAMEWORK_IO_KIT IOKit)
-    set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT})
+    find_library(LIBRARY_GLFW glfw3)
+    set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW})
 endif (APPLE)
+
+if (LINUX)
+    find_library(LIBRARY_GLFW glfw)
+    set(PLATFORM_LIBS ${LIBRARY_GLFW})
+endif (LINUX)
 
 set(SOURCE_FILES
     src/main.c
