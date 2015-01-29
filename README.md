@@ -11,7 +11,18 @@
 
 ## Installing dependencies (Debian Wheezy)
 
-    sudo apt-get install git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev
+
+    # There is no GLFW3 package so install from source
+    wget https://github.com/glfw/glfw/archive/3.1.zip
+    unzip 3.1.zip
+    cd glfw
+    mkdir build
+    cd build
+    cmake ..
+    make
+    sudo make install
+    sudo ldconfig
 
     # There is no rtl-sdr package so install from source
     git clone git://git.osmocom.org/rtl-sdr.git
