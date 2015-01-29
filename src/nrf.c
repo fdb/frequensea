@@ -729,7 +729,13 @@ static void _nrf_al_check_error(const char *file, int line) {
 
 void _nrf_player_decode(nrf_device *device, void *ctx) {
     nrf_player *player = (nrf_player *) ctx;
+
+    if (player->shutting_down) return;
+
+    // Decode/demodulate the signal.
     nrf_decoder_process(player->decoder, device->b_buffer, NRF_SAMPLES_SIZE);
+
+    if (player->shutting_down) return;
 
     // Convert to signed 16-bit integers.
     double *audio_samples = player->decoder->audio_samples;
@@ -738,6 +744,8 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     for (int i = 0; i < audio_samples_length; i++) {
         pcm_samples[i] = audio_samples[i] * 32000;
     }
+
+    if (player->shutting_down) return;
 
     // Check if there are processed buffers we need to unqueue
     int processed_buffers;
