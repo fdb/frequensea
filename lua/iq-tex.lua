@@ -13,7 +13,7 @@ uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
     texCoord = vt;
-    gl_Position = vec4(vp.x*3, vp.z*3, 0, 1.0);
+    gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
 }
 ]]
 
@@ -24,14 +24,14 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 0.02;
+    float r = texture(uTexture, texCoord).r * 0.1;
     fragColor = vec4(r, r, r, 0.95);
 }
 ]]
 
 function setup()
-    freq = 614.005
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.01)
+    freq = 3194
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
