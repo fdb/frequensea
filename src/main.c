@@ -325,9 +325,17 @@ static int l_nrf_device_set_frequency(lua_State *L) {
 static int l_nrf_player_new(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     nrf_demodulate_type type = luaL_checkinteger(L, 2);
-    nrf_player *player = nrf_player_new(device, type);
+    int freq_offset = luaL_checkinteger(L, 3);
+    nrf_player *player = nrf_player_new(device, type, freq_offset);
     l_to_table(L, "nrf_player", player);
     return 1;
+}
+
+static int l_nrf_player_set_freq_offset(lua_State *L) {
+    nrf_player* player = l_to_nrf_player(L, 1);
+    int freq_offset = luaL_checkinteger(L, 2);
+    nrf_player_set_freq_offset(player, freq_offset);
+    return 0;
 }
 
 static int l_nrf_player_free(lua_State *L) {
@@ -480,6 +488,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
+    l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);

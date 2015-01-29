@@ -171,7 +171,8 @@ typedef struct {
     int shutting_down;
 } nrf_player;
 
-nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type);
+nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type, int freq_offset);
+void nrf_player_set_freq_offset(nrf_player *player, int freq_offset);
 void nrf_player_free(nrf_player *player);
 
 #endif // NRF_H

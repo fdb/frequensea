@@ -691,7 +691,6 @@ static void _nrf_buffer_queue_free(_nrf_buffer_queue *q) {
 // Audio Player
 
 static const int AUDIO_SAMPLE_RATE = 48000;
-static const int FREQ_OFFSET = 50000;
 static const ALenum AL_BUFFER_FORMAT = AL_FORMAT_MONO16;
 
 static void _nrf_al_check_error(const char *file, int line) {
@@ -783,10 +782,10 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     free(pcm_samples);
 }
 
-nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type) {
+nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type, int freq_offset) {
     nrf_player *player = calloc(1, sizeof(nrf_player));
     player->device = device;
-    player->decoder = nrf_decoder_new(demodulate_type, device->sample_rate, AUDIO_SAMPLE_RATE, FREQ_OFFSET);
+    player->decoder = nrf_decoder_new(demodulate_type, device->sample_rate, AUDIO_SAMPLE_RATE, freq_offset);
 
      // Initialize the audio context
     player->audio_device = alcOpenDevice(NULL);
@@ -813,6 +812,10 @@ nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_ty
     nrf_device_set_decode_handler(device, _nrf_player_decode, player);
 
     return player;
+}
+
+void nrf_player_set_freq_offset(nrf_player *player, int freq_offset) {
+    player->decoder->freq_shifter->freq_offset = freq_offset;
 }
 
 void nrf_player_free(nrf_player *player) {
