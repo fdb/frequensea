@@ -161,3 +161,22 @@ function keys_frequency_handler(key, mods)
         print("Frequency: " .. freq)
     end
 end
+
+function keys_frequency_offset_handler(key, mods)
+    if (mods == 1) then -- Shift key
+        d = 100000
+    elseif (mods == 4) then -- Alt key
+        d = 100
+    else
+        d = 10000
+    end
+    if key == KEY_LEFT_BRACKET then
+        freq_offset = freq_offset + d
+        print("Frequency: " .. freq .. " offset: " .. freq_offset)
+        nrf_player_set_freq_offset(player, freq_offset)
+    elseif key == KEY_RIGHT_BRACKET then
+        freq_offset = freq_offset - d
+        print("Frequency: " .. freq .. " offset: " .. freq_offset)
+        nrf_player_set_freq_offset(player, freq_offset)
+    end
+end
