@@ -847,7 +847,7 @@ nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_ty
     _NRF_AL_CHECK_ERROR();
 
     // Create an audio buffer queue.
-    player->audio_buffer_queue = _nrf_buffer_queue_new(10);
+    player->audio_buffer_queue = _nrf_buffer_queue_new(1000);
 
     // Register device callback
     nrf_device_set_decode_handler(device, _nrf_player_decode, player);
