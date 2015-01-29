@@ -378,6 +378,7 @@ typedef struct {
     pthread_t thread;
     int width;
     int height;
+    double freq;
     uint8_t *buffer;
     char *fname;
 } screenshot_info;
@@ -388,8 +389,16 @@ static void _take_screenshot(screenshot_info *info) {
         time_t t;
         time(&t);
         struct tm* tm_info = localtime(&t);
+        char s_time[20];
+        strftime(s_time, 20, "%Y-%m-%d_%H.%M.%S", tm_info);
         char time_fname[100];
-        strftime(time_fname, 100, "screenshot-%Y-%m-%d_%H.%M.%S.png", tm_info);
+        if (info->freq > 0) {
+            snprintf(time_fname, 100, "screenshot-%s-%.4f.png", s_time, info->freq);
+        } else {
+            snprintf(time_fname, 100, "screenshot-%s.png", s_time);
+        }
+
+
         real_fname = time_fname;
     } else {
         real_fname = info->fname;
@@ -413,6 +422,15 @@ static void take_screenshot(nwm_window *window, const char *fname) {
     int buffer_size = info->width * info->height * buffer_channels;
     info->buffer = calloc(buffer_size, sizeof(uint8_t));
     glReadPixels(0, 0, info->width, info->height, GL_RGB, GL_UNSIGNED_BYTE, info->buffer);
+
+    // If there is a current frequency, retrieve it.
+    lua_State *L = nwm_window_get_user_data(window);
+    if (L) {
+        lua_getglobal(L, "freq");
+        if (lua_isnumber(L, -1)) {
+            info->freq = lua_tonumber(L, -1);
+        }
+    }
 
     // Create a new thread to save the screenshot.
     pthread_create(&info->thread, NULL, (void *(*)(void *))_take_screenshot, info);
