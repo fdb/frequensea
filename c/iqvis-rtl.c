@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <rtl-sdr.h>
 

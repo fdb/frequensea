@@ -23,7 +23,7 @@ iqvis: iqvis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o iqvis iqvis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
 iqvis-rtl: iqvis-rtl.c
-	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags libpng librtlsdr glfw3` -o iqvis-rtl iqvis-rtl.c -L/usr/local/lib `pkg-config --libs --static libpng librtlsdr glfw3`
+	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags libpng librtlsdr glfw3 glew` -o iqvis-rtl iqvis-rtl.c -L/usr/local/lib `pkg-config --libs --static libpng librtlsdr glfw3 glew`
 
 demod-fm: demod-fm.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o demod-fm demod-fm.c
