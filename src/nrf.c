@@ -498,6 +498,35 @@ void nrf_freq_shifter_free(nrf_freq_shifter *shifter) {
     free(shifter);
 }
 
+// RAW Demodulator
+
+nrf_raw_demodulator *nrf_raw_demodulator_new(int in_sample_rate, int out_sample_rate) {
+    nrf_raw_demodulator *d = calloc(1, sizeof(nrf_raw_demodulator));
+    d->in_sample_rate = in_sample_rate;
+    d->out_sample_rate = out_sample_rate;
+    d->downsampler_audio = nrf_downsampler_new(in_sample_rate, out_sample_rate, out_sample_rate / 2, 41);
+    return d;
+}
+
+void nrf_raw_demodulator_process(nrf_raw_demodulator *demodulator, double *samples_i, double *samples_q, int length) {
+    nrf_downsampler_process(demodulator->downsampler_audio, samples_i, length);
+
+    // Copy audio samples to demodulator
+    int audio_samples_length = demodulator->downsampler_audio->out_length;
+    if (audio_samples_length != demodulator->audio_samples_length) {
+        free(demodulator->audio_samples);
+        demodulator->audio_samples = calloc(audio_samples_length, sizeof(double));
+        demodulator->audio_samples_length = audio_samples_length;
+    }
+    memcpy(demodulator->audio_samples, demodulator->downsampler_audio->out_samples, audio_samples_length * sizeof(double));
+}
+
+void nrf_raw_demodulator_free(nrf_raw_demodulator *demodulator) {
+    nrf_downsampler_free(demodulator->downsampler_audio);
+    free(demodulator->audio_samples);
+    free(demodulator);
+}
+
 // FM Demodulator
 
 nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_rate) {
@@ -606,7 +635,9 @@ nrf_decoder *nrf_decoder_new(nrf_demodulate_type demodulate_type, int in_sample_
     decoder->in_sample_rate = in_sample_rate;
     decoder->out_sample_rate = out_sample_rate;
     decoder->demodulate_type = demodulate_type;
-    if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
+    if (decoder->demodulate_type == NRF_DEMODULATE_RAW) {
+        decoder->demodulator = nrf_raw_demodulator_new(decoder->in_sample_rate, decoder->out_sample_rate);
+    } else if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
         decoder->demodulator = nrf_fm_demodulator_new(decoder->in_sample_rate, decoder->out_sample_rate);
     }
     decoder->freq_shifter = nrf_freq_shifter_new(freq_offset, in_sample_rate);
@@ -637,7 +668,13 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
     nrf_freq_shifter_process(decoder->freq_shifter, samples_i, samples_q, length);
 
     // Demodulate
-    if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
+    if (decoder->demodulate_type == NRF_DEMODULATE_RAW) {
+        nrf_raw_demodulator *demodulator = (nrf_raw_demodulator*) decoder->demodulator;
+        nrf_raw_demodulator_process(demodulator, samples_i, samples_q, length);
+        // FIXME: memcpy?
+        decoder->audio_samples = demodulator->audio_samples;
+        decoder->audio_samples_length = demodulator->audio_samples_length;
+    } else if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
         nrf_fm_demodulator *demodulator = (nrf_fm_demodulator*) decoder->demodulator;
         nrf_fm_demodulator_process(demodulator, samples_i, samples_q, length);
         // FIXME: memcpy?
@@ -647,7 +684,11 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
 }
 
 void nrf_decoder_free(nrf_decoder *decoder) {
-    // FIXME: Free demodulator
+    if (decoder->demodulate_type == NRF_DEMODULATE_RAW) {
+        nrf_raw_demodulator_free(decoder->demodulator);
+    } else if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
+        nrf_fm_demodulator_free(decoder->demodulator);
+    }
     nrf_freq_shifter_free(decoder->freq_shifter);
     free(decoder);
 }

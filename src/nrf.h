@@ -106,7 +106,21 @@ nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate);
 void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 
-// Demodulator
+// RAW Demodulator
+
+typedef struct {
+    int in_sample_rate;
+    int out_sample_rate;
+    nrf_downsampler *downsampler_audio;
+    double *audio_samples;
+    int audio_samples_length;
+} nrf_raw_demodulator;
+
+nrf_raw_demodulator *nrf_raw_demodulator_new(int in_sample_rate, int out_sample_rate);
+void nrf_raw_demodulator_process(nrf_raw_demodulator *demodulator, double *samples_i, double *samples_q, int length);
+void nrf_raw_demodulator_free(nrf_raw_demodulator *demodulator);
+
+// FM Demodulator
 
 typedef struct {
     int in_sample_rate;
@@ -127,6 +141,9 @@ typedef struct {
 nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_rate);
 void nrf_fm_demodulator_process(nrf_fm_demodulator *demodulator, double *samples_i, double *samples_q, int length);
 void nrf_fm_demodulator_free(nrf_fm_demodulator *demodulator);
+
+
+
 
 // Decoder
 
