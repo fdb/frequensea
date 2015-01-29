@@ -132,8 +132,6 @@ static void teardown_rtl() {
 
 static void check_shader_error(GLuint shader) {
     int length = 0;
-    int charsWritten  = 0;
-    char *infoLog;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 
