@@ -33,3 +33,6 @@ demod-fm-streaming: demod-fm-streaming.c
 
 play: play.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l sndfile -framework OpenAL -o play play.c
+
+piqvis: piqvis.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I/usr/local/include `pkg-config --cflags librtlsdr glfw3 glew` -o piqvis piqvis.c -L/usr/local/lib `pkg-config --libs --static librtlsdr glfw3 glew`
