@@ -30,10 +30,10 @@ void main() {
 ]]
 
 function setup()
-    freq = 200
+    freq = 640.12
     freq_offset = 50000
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    player = nrf_player_new(device, NRF_DEMODULATE_RAW, freq_offset)
+    player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
