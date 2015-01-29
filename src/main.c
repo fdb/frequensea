@@ -520,6 +520,10 @@ int main(int argc, char **argv) {
             use_vr = 1;
         } else if (strcmp(argv[i], "--capture") == 0) {
             capture = 1;
+        } else if (strcmp(argv[i], "--width") == 0) {
+            window_width = atoi(argv[i + 1]);
+        } else if (strcmp(argv[i], "--height") == 0) {
+            window_height = atoi(argv[i + 1]);
         } else if (str_ends_with(argv[i], ".lua")) {
             fname = argv[i];
         }
