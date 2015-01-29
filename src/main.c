@@ -138,7 +138,7 @@ static int l_ngl_camera_free(lua_State *L) {
 }
 
 static int l_ngl_shader_new(lua_State *L) {
-    GLenum draw_mode = luaL_checkint(L, 1);
+    GLenum draw_mode = luaL_checkinteger(L, 1);
     const char *vertex_shader = lua_tostring(L, 2);
     const char *fragment_shader = lua_tostring(L, 3);
 
@@ -148,7 +148,7 @@ static int l_ngl_shader_new(lua_State *L) {
 }
 
 static int l_ngl_shader_new_from_file(lua_State *L) {
-    GLenum draw_mode = luaL_checkint(L, 1);
+    GLenum draw_mode = luaL_checkinteger(L, 1);
     const char *vertex_fname = lua_tostring(L, 2);
     const char *fragment_fname = lua_tostring(L, 3);
 
@@ -173,9 +173,9 @@ static int l_ngl_texture_new(lua_State *L) {
 
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
-    int format = luaL_checkint(L, 2);
-    int width = luaL_checkint(L, 3);
-    int height = luaL_checkint(L, 4);
+    int format = luaL_checkinteger(L, 2);
+    int width = luaL_checkinteger(L, 3);
+    int height = luaL_checkinteger(L, 4);
     float *data = NULL;
     if (!lua_isnoneornil(L, 5)) {
         luaL_checkany(L, 5);
@@ -192,8 +192,8 @@ static int l_ngl_texture_free(lua_State *L) {
 }
 
 static int l_ngl_model_new(lua_State *L) {
-    int component_count = luaL_checkint(L, 1);
-    int point_count = luaL_checkint(L, 2);
+    int component_count = luaL_checkinteger(L, 1);
+    int point_count = luaL_checkinteger(L, 2);
     float *positions = NULL;
     if (!lua_isnoneornil(L, 3)) {
         luaL_checkany(L, 3);
@@ -215,8 +215,8 @@ static int l_ngl_model_new(lua_State *L) {
 }
 
 static int l_ngl_model_new_grid_points(lua_State *L) {
-    int row_count = luaL_checkint(L, 1);
-    int column_count = luaL_checkint(L, 2);
+    int row_count = luaL_checkinteger(L, 1);
+    int column_count = luaL_checkinteger(L, 2);
     float row_height = luaL_checknumber(L, 3);
     float column_width = luaL_checknumber(L, 4);
     ngl_model *model = ngl_model_new_grid_points(row_count, column_count, row_height, column_width);
@@ -225,8 +225,8 @@ static int l_ngl_model_new_grid_points(lua_State *L) {
 }
 
 static int l_ngl_model_new_grid_triangles(lua_State *L) {
-    int row_count = luaL_checkint(L, 1);
-    int column_count = luaL_checkint(L, 2);
+    int row_count = luaL_checkinteger(L, 1);
+    int column_count = luaL_checkinteger(L, 2);
     float row_height = luaL_checknumber(L, 3);
     float column_width = luaL_checknumber(L, 4);
     ngl_model *model = ngl_model_new_grid_triangles(row_count, column_count, row_height, column_width);
@@ -235,13 +235,13 @@ static int l_ngl_model_new_grid_triangles(lua_State *L) {
 }
 
 static int l_ngl_model_new_with_height_map(lua_State *L) {
-    int row_count = luaL_checkint(L, 1);
-    int column_count = luaL_checkint(L, 2);
+    int row_count = luaL_checkinteger(L, 1);
+    int column_count = luaL_checkinteger(L, 2);
     float row_height = luaL_checknumber(L, 3);
     float column_width = luaL_checknumber(L, 4);
     float height_multiplier = luaL_checknumber(L, 5);
-    int buffer_stride = luaL_checkint(L, 6);
-    int buffer_offset = luaL_checkint(L, 7);
+    int buffer_stride = luaL_checkinteger(L, 6);
+    int buffer_offset = luaL_checkinteger(L, 7);
     luaL_checkany(L, 8);
     float *positions = (float *) lua_touserdata(L, 8);
     ngl_model *model = ngl_model_new_with_height_map(row_count, column_count, row_height, column_width, height_multiplier, buffer_stride, buffer_offset, positions);
@@ -324,7 +324,7 @@ static int l_nrf_device_set_frequency(lua_State *L) {
 
 static int l_nrf_player_new(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_demodulate_type type = luaL_checkint(L, 2);
+    nrf_demodulate_type type = luaL_checkinteger(L, 2);
     nrf_player *player = nrf_player_new(device, type);
     l_to_table(L, "nrf_player", player);
     return 1;
