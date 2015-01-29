@@ -7,7 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define GLFW_INCLUDE_ES1
+#define GLFW_INCLUDE_ES2
 #include <GLFW/glfw3.h>
 #include <rtl-sdr.h>
 
