@@ -72,6 +72,10 @@ static nrf_device* l_to_nrf_device(lua_State *L, int index) {
     return (nrf_device*) l_from_table(L, "nrf_device", index);
 }
 
+static nrf_player* l_to_nrf_player(lua_State *L, int index) {
+    return (nrf_player*) l_from_table(L, "nrf_player", index);
+}
+
 static void l_register_function(lua_State *L, const char *name, lua_CFunction fn) {
     lua_pushcfunction(L, fn);
     lua_setglobal(L, name);
@@ -318,6 +322,20 @@ static int l_nrf_device_set_frequency(lua_State *L) {
     return 1;
 }
 
+static int l_nrf_player_new(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nrf_demodulate_type type = luaL_checkint(L, 2);
+    nrf_player *player = nrf_player_new(device, type);
+    l_to_table(L, "nrf_player", player);
+    return 1;
+}
+
+static int l_nrf_player_free(lua_State *L) {
+    nrf_player* player = l_to_nrf_player(L, 1);
+    nrf_player_free(player);
+    return 0;
+}
+
 // Main /////////////////////////////////////////////////////////////////////
 
 int use_vr = 0;
@@ -442,6 +460,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
+    l_register_type(L, "nrf_player", l_nrf_player_free);
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
@@ -460,8 +479,11 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
+    l_register_function(L, "nrf_player_new", l_nrf_player_new);
 
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
+    l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);
+    l_register_constant(L, "NRF_DEMODULATE_WBFM", NRF_DEMODULATE_WBFM);
     l_register_constant(L, "GL_RED", GL_RED);
     l_register_constant(L, "GL_RG", GL_RG);
     l_register_constant(L, "GL_RGB", GL_RGB);

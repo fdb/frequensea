@@ -23,10 +23,17 @@ typedef enum {
     NRF_DEVICE_HACKRF
 } nrf_device_type;
 
-typedef struct {
+typedef struct nrf_device nrf_device;
+
+typedef void (*nrf_device_decode_cb_fn)(nrf_device *device, void *ctx);
+
+struct nrf_device {
     nrf_device_type device_type;
     void *device;
     int sample_rate;
+
+    nrf_device_decode_cb_fn decode_cb_fn;
+    void *decode_cb_ctx;
 
     pthread_t receive_thread;
     int receiving;
@@ -47,10 +54,11 @@ typedef struct {
     fftw_complex *fft_in;
     fftw_complex *fft_out;
     fftw_plan fft_plan;
-} nrf_device;
+};
 
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step);
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
+void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_free(nrf_device *device);
 
 // Finite Impulse Response (FIR) Filter
@@ -101,12 +109,6 @@ void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 // Demodulator
 
 typedef struct {
-    int size;
-    int capacity;
-    ALuint *values;
-} _nrf_buffer_queue;
-
-typedef struct {
     int in_sample_rate;
     int out_sample_rate;
     double ampl_conv;
@@ -119,7 +121,7 @@ typedef struct {
     double *demodulated_samples;
     int demodulated_length;
     double *audio_samples;
-    int audio_length;
+    int audio_samples_length;
 } nrf_fm_demodulator;
 
 nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_rate);
@@ -142,6 +144,8 @@ typedef struct {
     double *samples_i;
     double *samples_q;
     int samples_length;
+    double *audio_samples;
+    int audio_samples_length;
 } nrf_decoder;
 
 nrf_decoder *nrf_decoder_new(nrf_demodulate_type demodulate_type, int in_sample_rate, int out_sample_rate, int freq_offset);
@@ -150,12 +154,19 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length);
 // Player
 
 typedef struct {
+    int size;
+    int capacity;
+    ALuint *values;
+} _nrf_buffer_queue;
+
+typedef struct {
     nrf_demodulate_type demodulate_type;
     nrf_device *device;
     nrf_decoder *decoder;
     ALCcontext *audio_context;
     ALCdevice *audio_device;
     ALuint audio_source;
+    _nrf_buffer_queue *audio_buffer_queue;
     int is_playing;
     int shutting_down;
 } nrf_player;

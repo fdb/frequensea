@@ -112,6 +112,10 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
 
     device->t += device->t_step;
 
+    if (device->decode_cb_fn != NULL) {
+        device->decode_cb_fn(device, device->decode_cb_ctx);
+    }
+
     return 0;
 }
 
@@ -315,6 +319,11 @@ double nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
     return freq_mhz;
 }
 
+void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx) {
+    device->decode_cb_fn = fn;
+    device->decode_cb_ctx = ctx;
+}
+
 // Stop receiving data
 void nrf_device_free(nrf_device *device) {
     if (device->device_type == NRF_DEVICE_RTLSDR) {
@@ -462,15 +471,15 @@ nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate) {
     shifter->freq_offset = freq_offset;
     shifter->sample_rate = sample_rate;
     shifter->cosine = 1;
-    shifter->sine = 1;
+    shifter->sine = 0;
     return shifter;
 }
 
 void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length) {
     double delta_cos = cos(TAU * shifter->freq_offset / (double) shifter->sample_rate);
     double delta_sin = sin(TAU * shifter->freq_offset / (double) shifter->sample_rate);
-    int cosine = shifter->cosine;
-    int sine = shifter->sine;
+    double cosine = shifter->cosine;
+    double sine = shifter->sine;
     for (int i = 0; i < length; i++) {
         double vi = samples_i[i];
         double vq = samples_q[i];
@@ -562,19 +571,19 @@ void nrf_fm_demodulator_process(nrf_fm_demodulator *demodulator, double *samples
     nrf_downsampler_process(demodulator->downsampler_audio, demodulated_samples, demodulated_length);
 
    // Copy audio samples to demodulator
-    int audio_length = demodulator->downsampler_audio->out_length;
-    if (audio_length != demodulator->audio_length) {
+    int audio_samples_length = demodulator->downsampler_audio->out_length;
+    if (audio_samples_length != demodulator->audio_samples_length) {
         free(demodulator->audio_samples);
-        demodulator->audio_samples = calloc(audio_length, sizeof(double));
-        demodulator->audio_length = audio_length;
+        demodulator->audio_samples = calloc(audio_samples_length, sizeof(double));
+        demodulator->audio_samples_length = audio_samples_length;
     }
-    memcpy(demodulator->audio_samples, demodulator->downsampler_audio->out_samples, audio_length * sizeof(double));
+    memcpy(demodulator->audio_samples, demodulator->downsampler_audio->out_samples, audio_samples_length * sizeof(double));
     double *audio_samples = demodulator->audio_samples;
 
     // De-emphasize samples
     double alpha = 1.0 / (1.0 + demodulator->out_sample_rate * 50.0 / 1e6);
     double val = demodulator->deemphasis_val;
-    for (int i = 0; i < audio_length; i++) {
+    for (int i = 0; i < audio_samples_length; i++) {
         val = val + alpha * (audio_samples[i] - val);
         audio_samples[i] = val;
     }
@@ -594,12 +603,12 @@ void nrf_fm_demodulator_free(nrf_fm_demodulator *demodulator) {
 
 nrf_decoder *nrf_decoder_new(nrf_demodulate_type demodulate_type, int in_sample_rate, int out_sample_rate, int freq_offset) {
     nrf_decoder *decoder = calloc(1, sizeof(nrf_decoder));
+    decoder->in_sample_rate = in_sample_rate;
+    decoder->out_sample_rate = out_sample_rate;
     decoder->demodulate_type = demodulate_type;
     if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
         decoder->demodulator = nrf_fm_demodulator_new(decoder->in_sample_rate, decoder->out_sample_rate);
     }
-    decoder->in_sample_rate = in_sample_rate;
-    decoder->out_sample_rate = out_sample_rate;
     decoder->freq_shifter = nrf_freq_shifter_new(freq_offset, in_sample_rate);
     return decoder;
 }
@@ -631,18 +640,59 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
     if (decoder->demodulate_type == NRF_DEMODULATE_WBFM) {
         nrf_fm_demodulator *demodulator = (nrf_fm_demodulator*) decoder->demodulator;
         nrf_fm_demodulator_process(demodulator, samples_i, samples_q, length);
+        // FIXME: memcpy?
+        decoder->audio_samples = demodulator->audio_samples;
+        decoder->audio_samples_length = demodulator->audio_samples_length;
     }
 }
 
 void nrf_decoder_free(nrf_decoder *decoder) {
+    // FIXME: Free demodulator
     nrf_freq_shifter_free(decoder->freq_shifter);
     free(decoder);
+}
+
+// Buffer queue
+
+static _nrf_buffer_queue *_nrf_buffer_queue_new(int capacity) {
+    _nrf_buffer_queue *q = calloc(1, sizeof(_nrf_buffer_queue));
+    q->size = 0;
+    q->capacity = capacity;
+    q->values = calloc(capacity, sizeof(ALuint));
+    return q;
+}
+
+static void _nrf_buffer_queue_push(_nrf_buffer_queue *q, ALuint v) {
+    if (q->size + 1 > q->capacity) {
+        fprintf(stderr, "Queue is too small (capacity: %d)\n", q->capacity);
+    }
+    q->values[q->size] = v;
+    q->size++;
+}
+
+static ALuint _nrf_buffer_queue_pop(_nrf_buffer_queue *q) {
+    if (q->size == 0) {
+        fprintf(stderr, "No more items to pop.\n");
+    }
+    int v = q->values[0];
+    // Shift all items.
+    for (int i = 1; i < q->size; i++) {
+        q->values[i-1] = q->values[i];
+    }
+    q->size--;
+    return v;
+}
+
+static void _nrf_buffer_queue_free(_nrf_buffer_queue *q) {
+    free(q->values);
+    free(q);
 }
 
 // Audio Player
 
 static const int AUDIO_SAMPLE_RATE = 48000;
 static const int FREQ_OFFSET = 50000;
+static const ALenum AL_BUFFER_FORMAT = AL_FORMAT_MONO16;
 
 static void _nrf_al_check_error(const char *file, int line) {
     ALenum err = alGetError();
@@ -677,6 +727,54 @@ static void _nrf_al_check_error(const char *file, int line) {
 
 #define _NRF_AL_CHECK_ERROR() _nrf_al_check_error(__FILE__, __LINE__)
 
+void _nrf_player_decode(nrf_device *device, void *ctx) {
+    nrf_player *player = (nrf_player *) ctx;
+    nrf_decoder_process(player->decoder, device->b_buffer, NRF_SAMPLES_SIZE);
+
+    // Convert to signed 16-bit integers.
+    double *audio_samples = player->decoder->audio_samples;
+    int audio_samples_length = player->decoder->audio_samples_length;
+    int16_t *pcm_samples = calloc(audio_samples_length, sizeof(int16_t));
+    for (int i = 0; i < audio_samples_length; i++) {
+        pcm_samples[i] = audio_samples[i] * 32000;
+    }
+
+    // Check if there are processed buffers we need to unqueue
+    int processed_buffers;
+    alGetSourceiv(player->audio_source, AL_BUFFERS_PROCESSED, &processed_buffers);
+    _NRF_AL_CHECK_ERROR();
+    assert (processed_buffers <= player->audio_buffer_queue->size);
+    while (processed_buffers > 0) {
+        ALuint buffer_id = _nrf_buffer_queue_pop(player->audio_buffer_queue);
+        alSourceUnqueueBuffers(player->audio_source, 1, &buffer_id);
+        _NRF_AL_CHECK_ERROR();
+        alDeleteBuffers(1, &buffer_id);
+        processed_buffers--;
+    }
+
+    // Initialize an audio buffer
+    ALuint buffer_id;
+    alGenBuffers(1, &buffer_id);
+    _NRF_AL_CHECK_ERROR();
+    _nrf_buffer_queue_push(player->audio_buffer_queue, buffer_id);
+
+    // Set the data for the buffer
+    alBufferData(buffer_id, AL_BUFFER_FORMAT, pcm_samples, audio_samples_length * sizeof(int16_t), AUDIO_SAMPLE_RATE);
+    _NRF_AL_CHECK_ERROR();
+
+    alSourceQueueBuffers(player->audio_source, 1, &buffer_id);
+    _NRF_AL_CHECK_ERROR();
+
+    if (!player->is_playing && player->audio_buffer_queue->size > 2) {
+        alSourcePlay(player->audio_source);
+        _NRF_AL_CHECK_ERROR();
+        player->is_playing = 1;
+    }
+
+    // The data is now stored in OpenAL, delete our PCM sample buffer.
+    free(pcm_samples);
+}
+
 nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_type) {
     nrf_player *player = calloc(1, sizeof(nrf_player));
     player->device = device;
@@ -700,17 +798,25 @@ nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_ty
     alSourcei(player->audio_source, AL_LOOPING, AL_FALSE);
     _NRF_AL_CHECK_ERROR();
 
+    // Create an audio buffer queue.
+    player->audio_buffer_queue = _nrf_buffer_queue_new(10);
+
+    // Register device callback
+    nrf_device_set_decode_handler(device, _nrf_player_decode, player);
+
     return player;
 }
 
 void nrf_player_free(nrf_player *player) {
     player->shutting_down = 1;
+    nrf_device_set_decode_handler(player->device, NULL, NULL);
     alcMakeContextCurrent(NULL);
     alcDestroyContext(player->audio_context);
     alcCloseDevice(player->audio_device);
     player->shutting_down = 1;
 
     // Note we don't own the NRF device, so we're not going to free it.
-    free(player->decoder);
+    nrf_decoder_free(player->decoder);
+    _nrf_buffer_queue_free(player->audio_buffer_queue);
     free(player);
 }
