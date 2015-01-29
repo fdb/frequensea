@@ -9,7 +9,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z-0.5) * 100);
+    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z - 0.5) * 100);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
 }
 ]]
@@ -33,7 +33,6 @@ function setup()
 end
 
 function draw()
-    time = nwm_get_time()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     model = ngl_model_new(3, NRF_SAMPLES_SIZE, device.samples)

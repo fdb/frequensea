@@ -9,7 +9,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z - 0.5) * 10.0);
+    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z - 0.5) * 100);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
 }
 ]]
@@ -19,21 +19,20 @@ FRAGMENT_SHADER = [[
 in vec3 color;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    fragColor = vec4(color, 0.95);
+    fragColor = vec4(color, 0.1);
 }
 ]]
 
+camera_x = 0
+camera_y = 0
+camera_z = 10
 function setup()
-    freq = 200
+    freq = 203.5
     device = nrf_device_new(freq, "../rfdata/rf-100.900-2.raw")
     shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()
-    time = nwm_get_time()
-    camera_x = math.sin(time * 0.5) * 2.0
-    camera_y = 1.0
-    camera_z = math.cos(time * 0.5) * 2.0
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     model = ngl_model_new(3, NRF_SAMPLES_SIZE, device.samples)
@@ -41,5 +40,6 @@ function draw()
 end
 
 function on_key(key, mods)
+    keys_camera_handler(key, mods)
     keys_frequency_handler(key, mods)
 end
