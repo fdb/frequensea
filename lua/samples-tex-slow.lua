@@ -43,7 +43,7 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RED, 512, 512, device.samples)
+    ngl_texture_update(texture, 512, 512, 1, device.samples)
     ngl_draw_model(camera, model, shader)
     freq_time = freq_time + 1
     if freq_time >= time_to_switch then

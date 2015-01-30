@@ -60,7 +60,7 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RGB, 1024, 512, device.fft)
+    ngl_texture_update(texture, 1024, 512, 3, device.fft)
     ngl_draw_model(camera, model, shader)
 end
 

@@ -177,15 +177,15 @@ static int l_ngl_texture_new(lua_State *L) {
 
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
-    int format = luaL_checkinteger(L, 2);
-    int width = luaL_checkinteger(L, 3);
-    int height = luaL_checkinteger(L, 4);
+    int width = luaL_checkinteger(L, 2);
+    int height = luaL_checkinteger(L, 3);
+    int channels = luaL_checkinteger(L, 4);
     float *data = NULL;
     if (!lua_isnoneornil(L, 5)) {
         luaL_checkany(L, 5);
         data = (float *) lua_touserdata(L, 5);
     }
-    ngl_texture_update(texture, format, width, height, data);
+    ngl_texture_update(texture, width, height, channels, data);
     return 0;
 }
 
@@ -570,10 +570,6 @@ static lua_State *l_init() {
     l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
     l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);
     l_register_constant(L, "NRF_DEMODULATE_WBFM", NRF_DEMODULATE_WBFM);
-    l_register_constant(L, "GL_RED", GL_RED);
-    l_register_constant(L, "GL_RG", GL_RG);
-    l_register_constant(L, "GL_RGB", GL_RGB);
-    l_register_constant(L, "GL_RGBA", GL_RGBA);
     l_register_constant(L, "GL_POINTS", GL_POINTS);
     l_register_constant(L, "GL_LINE_STRIP", GL_LINE_STRIP);
     l_register_constant(L, "GL_LINE_LOOP", GL_LINE_LOOP);
