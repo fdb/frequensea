@@ -349,7 +349,7 @@ static int l_nrf_device_step(lua_State *L) {
     return 0;
 }
 
-static int l_nrf_get_iq_buffer(lua_State *L) {
+static int l_nrf_device_get_iq_buffer(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     nrf_buffer* buffer = nrf_device_get_iq_buffer(device);
     l_to_table(L, "nrf_buffer", buffer);
@@ -563,7 +563,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
     l_register_function(L, "nrf_device_step", l_nrf_device_step);
-    l_register_function(L, "nrf_get_iq_buffer", l_nrf_get_iq_buffer);
+    l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 
