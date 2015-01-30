@@ -40,7 +40,8 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
-    model = ngl_model_new_with_height_map(512, 512, 0.02, 0.02, 0.2, 3, 0, device.fft);
+    buffer = nrf_device_get_fft_buffer(device)
+    model = ngl_model_new_with_height_map(buffer.width, buffer.height, 0.02, 0.02, 0.2, buffer.channels, 0, buffer.data);
     ngl_model_translate(model, 0, -0.5, 0)
     ngl_draw_model(camera, model, shader)
 end

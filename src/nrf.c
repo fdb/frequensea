@@ -365,9 +365,23 @@ void nrf_device_step(nrf_device *device) {
     }
 }
 
+nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
+    pthread_mutex_lock(&device->data_mutex);
+    nrf_buffer *buffer = nrf_buffer_new(512, 256, 3, device->samples);
+    pthread_mutex_unlock(&device->data_mutex);
+    return buffer;
+}
+
 nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
     nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
+    pthread_mutex_unlock(&device->data_mutex);
+    return buffer;
+}
+
+nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
+    pthread_mutex_lock(&device->data_mutex);
+    nrf_buffer *buffer = nrf_buffer_new(1024, 512, 3, (float *) device->fft);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }

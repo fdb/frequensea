@@ -13,7 +13,7 @@ uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
     float offset = -0.2;
-    float power = 0.3;
+    float power = 0.1;
     float t1 = offset + texture(uTexture, vt).r * power;
     float t2 = offset + texture(uTexture, vt + vec2(0.01, 0)).r * power;
     float t3 = offset + texture(uTexture, vt + vec2(0, 0.01)).r * power;
@@ -60,7 +60,8 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, 512, 256, 2, device.samples)
+    buffer = nrf_device_get_samples_buffer(device)
+    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
     ngl_draw_model(camera, model, shader)
 end
 

@@ -60,7 +60,8 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, 1024, 512, 3, device.fft)
+    buffer = nrf_device_get_fft_buffer(device)
+    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
     ngl_draw_model(camera, model, shader)
 end
 

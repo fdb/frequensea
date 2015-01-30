@@ -76,7 +76,9 @@ double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_set_paused(nrf_device *device, int paused);
 void nrf_device_step(nrf_device *device);
+nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device);
 nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device);
+nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 
 // Finite Impulse Response (FIR) Filter
