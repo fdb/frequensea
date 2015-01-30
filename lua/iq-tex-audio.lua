@@ -42,7 +42,8 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RED, 256, 256, device.iq)
+    buffer = nrf_device_get_iq_buffer(device);
+    ngl_texture_update(texture, GL_RED, buffer.width, buffer.height, buffer.data);
     ngl_draw_model(camera, model, shader)
 end
 

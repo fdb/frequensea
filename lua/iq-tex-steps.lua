@@ -32,7 +32,7 @@ void main() {
 
 function setup()
     freq = 612.004
-    device = nrf_device_new(freq, "../rfdata/rf-612.004-big.raw", 0.01)
+    device = nrf_device_new(freq, "../rfdata/rf-612.004-big.raw")
     nrf_device_set_paused(device, true)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -42,7 +42,8 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RED, 256, 256, device.iq)
+    buffer = nrf_device_get_iq_buffer(device);
+    ngl_texture_update(texture, GL_RED, buffer.width, buffer.height, buffer.data);
     ngl_draw_model(camera, model, shader)
 end
 

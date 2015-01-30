@@ -55,7 +55,7 @@ camera_z = 1
 
 function setup()
     freq = 201.2
-    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw",0.01)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(256, 256, 0.005, 0.005)
@@ -65,7 +65,8 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
-    ngl_texture_update(texture, GL_RED, 256, 256, device.iq)
+    buffer = nrf_device_get_iq_buffer(device);
+    ngl_texture_update(texture, GL_RED, buffer.width, buffer.height, buffer.data);
     ngl_draw_model(camera, model, shader)
 end
 
