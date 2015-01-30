@@ -94,10 +94,6 @@ Tune the SDR device to the given frequency (in MHz) and start receiving data. We
 
 The interpolate_step will decimate the data and smoothly interpolate between two steps. An interpolate step of 0.1 will decimate the data by 10. The default is 1, meaning no interpolation / decimation is performed.
 
-
-## nrf_device_free(device)
-Stop receiving data.
-
 ### nrf_device_set_frequency(device, freq_mhz)
 Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_device_new`.
 
