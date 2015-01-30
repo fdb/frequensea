@@ -26,7 +26,7 @@ nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *dat
     return buffer;
 }
 
-void nrf_buffer_free(nrf_buffer *buffer){
+void nrf_buffer_free(nrf_buffer *buffer) {
     free(buffer->data);
     free(buffer);
 }
