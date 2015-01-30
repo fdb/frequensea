@@ -15,6 +15,24 @@
 
 const double TAU = M_PI * 2;
 
+nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *data) {
+    nrf_buffer *buffer = calloc(1, sizeof(nrf_buffer));
+    buffer->width = width;
+    buffer->height = height;
+    buffer->channels = channels;
+    buffer->size_bytes = width * height * channels * sizeof(float);
+    buffer->data = calloc(buffer->size_bytes, sizeof(float));
+    memcpy(buffer->data, data, buffer->size_bytes);
+    return buffer;
+}
+
+void nrf_buffer_free(nrf_buffer *buffer){
+    free(buffer->data);
+    free(buffer);
+}
+
+// Device
+
 void _nrf_rtlsdr_check_status(nrf_device *device, int status, const char *message, const char *file, int line) {
     if (status != 0) {
         fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\n", message, status, file, line);
@@ -59,6 +77,8 @@ double _nrf_clamp_frequency(nrf_device *device, double freq_mhz) {
 static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
     assert(length == NRF_BUFFER_LENGTH);
 
+    pthread_mutex_lock(&device->data_mutex);
+
     if (device->t >= 1.0) {
         memcpy(device->a_buffer, device->b_buffer, NRF_BUFFER_LENGTH);
         memcpy(device->b_buffer, buffer, NRF_BUFFER_LENGTH);
@@ -100,6 +120,7 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
         p[ii][1] = v_q / 256.0;
         ii++;
     }
+
     fftw_execute(device->fft_plan);
     // Move the previous lines down
     memcpy((char *)&device->fft + FFT_SIZE * sizeof(vec3), &device->fft, FFT_SIZE * (FFT_HISTORY_SIZE - 1) * sizeof(vec3));
@@ -116,6 +137,7 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
         device->decode_cb_fn(device, device->decode_cb_ctx);
     }
 
+    pthread_mutex_unlock(&device->data_mutex);
     return 0;
 }
 
@@ -286,6 +308,8 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpo
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
 
+    pthread_mutex_init(&device->data_mutex, NULL);
+
     device->a_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
     device->b_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
     device->t = -1;
@@ -339,6 +363,13 @@ void nrf_device_step(nrf_device *device) {
     if (device->dummy_block_index >= device->dummy_block_length) {
         device->dummy_block_index = 0;
     }
+}
+
+nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
+    pthread_mutex_lock(&device->data_mutex);
+    nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
+    pthread_mutex_unlock(&device->data_mutex);
+    return buffer;
 }
 
 // Stop receiving data

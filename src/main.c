@@ -68,6 +68,10 @@ static ngl_texture* l_to_ngl_texture(lua_State *L, int index) {
     return (ngl_texture*) l_from_table(L, "ngl_texture", index);
 }
 
+static nrf_buffer* l_to_nrf_buffer(lua_State *L, int index) {
+    return (nrf_buffer*) l_from_table(L, "nrf_buffer", index);
+}
+
 static nrf_device* l_to_nrf_device(lua_State *L, int index) {
     return (nrf_device*) l_from_table(L, "nrf_device", index);
 }
@@ -281,6 +285,12 @@ static int l_ngl_draw_model(lua_State *L) {
 
 // Lua NRF wrappers /////////////////////////////////////////////////////////
 
+static int l_nrf_buffer_free(lua_State *L) {
+    nrf_buffer *buffer = l_to_nrf_buffer(L, 1);
+    nrf_buffer_free(buffer);
+    return 0;
+}
+
 static int l_nrf_device_new(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
     const char *file_name = lua_tostring(L, 2);
@@ -337,6 +347,34 @@ static int l_nrf_device_step(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     nrf_device_step(device);
     return 0;
+}
+
+static int l_nrf_get_iq_buffer(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nrf_buffer* buffer = nrf_device_get_iq_buffer(device);
+    l_to_table(L, "nrf_buffer", buffer);
+
+    lua_pushliteral(L, "width");
+    lua_pushinteger(L, buffer->width);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "height");
+    lua_pushinteger(L, buffer->height);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "channels");
+    lua_pushinteger(L, buffer->channels);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "size_bytes");
+    lua_pushinteger(L, buffer->size_bytes);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "data");
+    lua_pushlightuserdata(L, buffer->data);
+    lua_settable(L, -3);
+
+    return 1;
 }
 
 static int l_nrf_player_new(lua_State *L) {
@@ -502,6 +540,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_model", l_ngl_model_free);
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
+    l_register_type(L, "nrf_buffer", l_nrf_buffer_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
@@ -524,6 +563,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
     l_register_function(L, "nrf_device_step", l_nrf_device_step);
+    l_register_function(L, "nrf_get_iq_buffer", l_nrf_get_iq_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

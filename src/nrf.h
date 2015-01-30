@@ -15,6 +15,19 @@
 #define FFT_SIZE 1024
 #define FFT_HISTORY_SIZE 512
 
+// Buffer
+
+typedef struct {
+    int width;
+    int height;
+    int channels;
+    int size_bytes;
+    float *data;
+} nrf_buffer;
+
+nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *data);
+void nrf_buffer_free(nrf_buffer *buffer);
+
 // Device
 
 typedef enum {
@@ -36,6 +49,7 @@ struct nrf_device {
     void *decode_cb_ctx;
 
     pthread_t receive_thread;
+    pthread_mutex_t data_mutex;
     int receiving;
     int paused;
 
@@ -62,6 +76,7 @@ double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_set_paused(nrf_device *device, int paused);
 void nrf_device_step(nrf_device *device);
+nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 
 // Finite Impulse Response (FIR) Filter
