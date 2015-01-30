@@ -37,6 +37,7 @@ struct nrf_device {
 
     pthread_t receive_thread;
     int receiving;
+    int paused;
 
     uint8_t *receive_buffer;
     int dummy_block_length;
@@ -59,6 +60,8 @@ struct nrf_device {
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step);
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
+void nrf_device_set_paused(nrf_device *device, int paused);
+void nrf_device_step(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 
 // Finite Impulse Response (FIR) Filter

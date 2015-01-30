@@ -322,6 +322,23 @@ static int l_nrf_device_set_frequency(lua_State *L) {
     return 1;
 }
 
+static int l_nrf_device_set_paused(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    if (lua_isboolean(L, 2)) {
+        int paused = lua_toboolean(L, 2);
+        nrf_device_set_paused(device, paused);
+    } else {
+        fprintf(stderr, "nrf_device_set_paused expects boolean as second argument.\n");
+    }
+    return 0;
+}
+
+static int l_nrf_device_step(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nrf_device_step(device);
+    return 0;
+}
+
 static int l_nrf_player_new(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     nrf_demodulate_type type = luaL_checkinteger(L, 2);
@@ -505,6 +522,8 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
+    l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
+    l_register_function(L, "nrf_device_step", l_nrf_device_step);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

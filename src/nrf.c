@@ -148,14 +148,20 @@ static void _nrf_sleep_milliseconds(int millis) {
     nanosleep(&t1 , &t2);
 }
 
-static void *_nrf_dummy_receive_loop(nrf_device *device) {
-    while (device->receiving) {
-        unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
-        _nrf_process_sample_block(device, buffer, NRF_BUFFER_LENGTH);
+static void _nrf_advance_block(nrf_device *device) {
+    if (!device->paused) {
         device->dummy_block_index++;
         if (device->dummy_block_index >= device->dummy_block_length) {
             device->dummy_block_index = 0;
         }
+    }
+}
+
+static void *_nrf_dummy_receive_loop(nrf_device *device) {
+    while (device->receiving) {
+        unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
+        _nrf_process_sample_block(device, buffer, NRF_BUFFER_LENGTH);
+        _nrf_advance_block(device);
         _nrf_sleep_milliseconds(1000 / 60);
     }
     return NULL;
@@ -322,6 +328,17 @@ double nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx) {
     device->decode_cb_fn = fn;
     device->decode_cb_ctx = ctx;
+}
+
+void nrf_device_set_paused(nrf_device *device, int paused) {
+    device->paused = paused;
+}
+
+void nrf_device_step(nrf_device *device) {
+    device->dummy_block_index++;
+    if (device->dummy_block_index >= device->dummy_block_length) {
+        device->dummy_block_index = 0;
+    }
 }
 
 // Stop receiving data

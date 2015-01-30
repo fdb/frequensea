@@ -97,5 +97,12 @@ The interpolate_step will decimate the data and smoothly interpolate between two
 ### nrf_device_set_frequency(device, freq_mhz)
 Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_device_new`.
 
+### nrf_device_set_paused(device, paused)
+If `paused` is 1, don't receive new blocks; instead just keep working on the current block. This only works for dummy devices.
+
+### nrf_device_step(device)
+Advance one block. This is only works if the device is paused using `nrf_device_set_paused(device, true)`
+
+
 ## NRF_SAMPLES_SIZE
 A constant with the number of samples the SDR device returns.
