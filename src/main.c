@@ -705,6 +705,7 @@ int main(int argc, char **argv) {
             }
         }
         nwm_poll_events();
+        lua_gc(L, LUA_GCCOLLECT, 0);
         frame++;
     }
 
