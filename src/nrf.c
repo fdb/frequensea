@@ -381,7 +381,7 @@ nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
 
 nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(1024, 512, 3, (float *) device->fft);
+    nrf_buffer *buffer = nrf_buffer_new(FFT_SIZE, FFT_HISTORY_SIZE, 3, (float *) device->fft);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
