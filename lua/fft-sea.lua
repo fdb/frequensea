@@ -12,28 +12,35 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.005;
-    float t1 = texture(uTexture, vt).r;
-    float t2 = texture(uTexture, vt + vec2(0.002, 0)).r;
-    float t3 = texture(uTexture, vt + vec2(0, 0.002)).r;
-    if (t1 > 0.99) {
+    float d = 0.01;
+    float cell_size = 0.0005;
+    float r1 = texture(uTexture, vt).r;
+    float g1 = texture(uTexture, vt).g;
+    float r2 = texture(uTexture, vt + vec2(cell_size, 0)).r;
+    float g2 = texture(uTexture, vt + vec2(cell_size, 0)).g;
+    float r3 = texture(uTexture, vt + vec2(0, cell_size)).r;
+    float g3 = texture(uTexture, vt + vec2(0, cell_size)).g;
+    float t1 = sqrt(r1 * r1 + g1 * g1);
+    float t2 = sqrt(r2 * r2 + g2 * g2);
+    float t3 = sqrt(r3 * r3 + g3 * g3);
+    if (r1 > 1) {
         t1 = 0.0;
     }
-    if (t2 > 0.99) {
+    if (r2 > 1) {
         t2 = 0.0;
     }
-    if (t3 > 0.99) {
+    if (r3 > 1) {
         t3 = 0.0;
     }
     t1 = abs(t1);
-    t2 += abs(t2);
-    t3 += abs(t3);
+    t2 = abs(t2);
+    t3 = abs(t3);
     t1 *= d;
     t2 *= d;
     t3 *= d;
     vec3 v1 = vec3(vp.x, t1, vp.z);
-    vec3 v2 = vec3(vp.x + 0.002, t2, vp.z);
-    vec3 v3 = vec3(vp.x, t3, vp.z + 0.002);
+    vec3 v2 = vec3(vp.x + cell_size, t2, vp.z);
+    vec3 v3 = vec3(vp.x, t3, vp.z + cell_size);
 
     vec3 u = v2 - v1;
     vec3 v = v3 - v1;
@@ -42,13 +49,12 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    color = vec4(1.0, 1.0, 1.0, 0.95) * dot(normalize(v1), normalize(n)) * 0.5;
+    color = vec4(1.0, 1.0, 1.0, 0.95) * dot(normalize(v1), normalize(n)) * 0.9;
     color += vec4(0.2, 0.2, 0.1, 1.0);
 
-    float l = 1.0 - ((vp.x * vp.x + vp.z * vp.z) * 2.0);
-    color *= vec4(l, l, l, l);
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
+    gl_PointSize = 5;
 }
 ]]
 
@@ -70,7 +76,7 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0005)
-    ngl_model_translate(model, -0.01, -0.001, 0)
+    ngl_model_translate(model, -0.01, -0.02, 0)
 end
 
 function draw()
