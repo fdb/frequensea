@@ -116,8 +116,8 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
         device->iq[iq_index]++;
 
         fftw_complex *p = device->fft_in;
-        p[ii][0] = v_i / 256.0;
-        p[ii][1] = v_q / 256.0;
+        p[ii][0] = powf(-1, ii) * v_i / 256.0;
+        p[ii][1] = powf(-1, ii) * v_q / 256.0;
         ii++;
     }
 
