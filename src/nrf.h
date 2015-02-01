@@ -12,8 +12,8 @@
 
 #define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
-#define FFT_SIZE 1024
-#define FFT_HISTORY_SIZE 1024
+#define FFT_SIZE 512
+#define FFT_HISTORY_SIZE 512
 
 // Buffer
 
