@@ -13,9 +13,24 @@ uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
     float d = 0.005;
-    float t1 = texture(uTexture, vt).r * d;
-    float t2 = texture(uTexture, vt + vec2(0.002, 0)).r * d;
-    float t3 = texture(uTexture, vt + vec2(0, 0.002)).r * d;
+    float t1 = texture(uTexture, vt).r;
+    float t2 = texture(uTexture, vt + vec2(0.002, 0)).r;
+    float t3 = texture(uTexture, vt + vec2(0, 0.002)).r;
+    if (t1 > 0.99) {
+        t1 = 0.0;
+    }
+    if (t2 > 0.99) {
+        t2 = 0.0;
+    }
+    if (t3 > 0.99) {
+        t3 = 0.0;
+    }
+    t1 = abs(t1);
+    t2 += abs(t2);
+    t3 += abs(t3);
+    t1 *= d;
+    t2 *= d;
+    t3 *= d;
     vec3 v1 = vec3(vp.x, t1, vp.z);
     vec3 v2 = vec3(vp.x + 0.002, t2, vp.z);
     vec3 v3 = vec3(vp.x, t3, vp.z + 0.002);
@@ -51,11 +66,11 @@ void main() {
 function setup()
     freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
-    camera = ngl_camera_new_look_at(0, 0.01, 0.2)
+    camera = ngl_camera_new_look_at(0, 0.01, 0.1)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 512, 0.002, 0.002)
-    ngl_model_translate(model, 0, -0.02, 0)
+    model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0005)
+    ngl_model_translate(model, -0.01, -0.001, 0)
 end
 
 function draw()
