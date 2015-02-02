@@ -17,7 +17,10 @@
 GLFWwindow* window;
 GLuint texture_id;
 GLuint program;
-GLfloat buffer[WIDTH * HEIGHT];
+GLuint position_vbo;
+GLuint uv_vbo;
+GLuint vao;
+GLfloat buffer[WIDTH * HEIGHT * 3];
 rtlsdr_dev_t *device;
 pthread_t receive_thread;
 double freq_mhz = 124.2;
@@ -41,7 +44,7 @@ void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, con
 
 void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) {
     if (paused) return;
-    memset(buffer, 0, sizeof(GLfloat) * WIDTH * HEIGHT);
+    memset(buffer, 0, WIDTH * HEIGHT * 3 * sizeof(GLfloat));
     for (int i = 0; i < buffer_length; i += 2) {
         int vi = in_buffer[i];
         int vq = in_buffer[i + 1];
@@ -50,7 +53,7 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
         float v = buffer[d];
         v += intensity;
         v = v < 0 ? 0 : v > 255 ? 255 : v;
-        buffer[d] = v;
+        buffer[d * 3] = v;
     }
 }
 
@@ -143,7 +146,38 @@ static void check_shader_error(GLuint shader) {
     }
 }
 
+
+static const GLfloat positions[] = {
+     1.0,  1.0, 0.0,
+    -1.0,  1.0, 0.0,
+     1.0, -1.0, 0.0,
+    -1.0, -1.0, 0.0
+};
+
+static const GLfloat uvs[] = {
+    1.0, 1.0,
+    1.0, 0.0, 
+    0.0, 1.0,
+    0.0, 0.0
+};
+
 static void setup() {
+
+    //glGenBuffers(1, &position_vbo);
+    //glBindBuffer(GL_ARRAY_BUFFER, position_vbo);
+    //glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), &positions, GL_STATIC_DRAW);
+
+
+    //glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, positions);
+    //glEnableVertexAttribArray(ATTRIB_VERTEX);
+    //glVertexAttribPointer(ATTRIB_TEXTUREPOSITON, 2, GL_FLOAT, 0, 0, uvs);
+    //glEnableVertexAttribArray(ATTRIB_TEXTUREPOSITON);
+
+    //glGenVertexArrays(1, &vao);
+    //glBindVertexArray(vao);
+    //glEnableVertexAttribArray(0);
+    //glBindBuffer(GL_ARRAY_BUFFER, position_vbo);
+
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -153,21 +187,25 @@ static void setup() {
         "#ifdef GL_ES\n"
         "precision mediump float;\n"
         "#endif\n"
-        "void main(void) {"
-        "  gl_TexCoord[0] = gl_MultiTexCoord0;"
-        "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-        "}";
+        "attribute vec3 vp;\n"
+        "attribute vec2 vt;\n"
+        "varying vec2 uv;\n"
+        "void main(void) {\n"
+        "  uv = vt;\n"
+        "  gl_Position = vec4(vp, 1);\n"
+        "}\n";
 
     const char *fragment_shader_source =
         "#ifdef GL_ES\n"
         "precision mediump float;\n"
         "#endif\n"
-        "uniform sampler2D texture;"
-        "void main(void) {"
-        "  vec4 c = texture2D(texture, gl_TexCoord[0].st);"
-        "  float v = c.r;"
-        "  gl_FragColor = vec4(v, v, v, 1);"
-        "}";
+        "uniform sampler2D texture;\n"
+        "varying vec2 uv;\n"
+        "void main(void) {\n"
+        "  vec4 c = texture2D(texture, uv);\n"
+        "  float v = c.r;\n"
+        "  gl_FragColor = vec4(v, v, v, 1);\n"
+        "}\n";
 
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -194,17 +232,11 @@ static void prepare() {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, WIDTH, 0, HEIGHT, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 static void update() {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RED, GL_FLOAT, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, buffer);
 }
-
 
 static void draw() {
     glEnable(GL_TEXTURE_2D);
@@ -212,17 +244,8 @@ static void draw() {
     glBlendFunc(GL_ONE, GL_SRC_COLOR);
 
     glUseProgram(program);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex2f(0, 0);
-    glTexCoord2f(1.0, 0.0);
-    glVertex2f(WIDTH, 0);
-    glTexCoord2f(1.0, 1.0);
-    glVertex2f(WIDTH, HEIGHT);
-    glTexCoord2f(0.0, 1.0);
-    glVertex2f(0, HEIGHT);
-    glEnd();
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
     glUseProgram(0);
 }
 
