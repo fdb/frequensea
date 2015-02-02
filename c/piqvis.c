@@ -134,6 +134,42 @@ static void teardown_rtl() {
     RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
+
+void ngl_check_gl_error(const char *file, int line) {
+    GLenum err = glGetError();
+    int has_error = 0;
+    while (err != GL_NO_ERROR) {
+        has_error = 1;
+        char *msg = NULL;
+        switch(err) {
+            case GL_INVALID_OPERATION:
+            msg = "GL_INVALID_OPERATION";
+            break;
+            case GL_INVALID_ENUM:
+            msg = "GL_INVALID_ENUM";
+            fprintf(stderr, "OpenGL error: GL_INVALID_ENUM\n");
+            break;
+            case GL_INVALID_VALUE:
+            msg = "GL_INVALID_VALUE";
+            fprintf(stderr, "OpenGL error: GL_INVALID_VALUE\n");
+            break;
+            case GL_OUT_OF_MEMORY:
+            msg = "GL_OUT_OF_MEMORY";
+            fprintf(stderr, "OpenGL error: GL_OUT_OF_MEMORY\n");
+            break;
+            default:
+            msg = "UNKNOWN_ERROR";
+        }
+        fprintf(stderr, "OpenGL error: %s - %s:%d\n", msg, file, line);
+        err = glGetError();
+    }
+    if (has_error) {
+        exit(EXIT_FAILURE);
+    }
+}
+
+#define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
+
 static void check_shader_error(GLuint shader) {
     int length = 0;
 
@@ -148,51 +184,45 @@ static void check_shader_error(GLuint shader) {
 
 
 static const GLfloat positions[] = {
-     1.0,  1.0, 0.0,
-    -1.0,  1.0, 0.0,
-     1.0, -1.0, 0.0,
-    -1.0, -1.0, 0.0
+    -1.0, -1.0,
+     1.0, -1.0,
+    -1.0,  1.0,
+     1.0,  1.0
 };
 
 static const GLfloat uvs[] = {
     1.0, 1.0,
-    1.0, 0.0, 
+    1.0, 0.0,
     0.0, 1.0,
     0.0, 0.0
 };
 
+const int ATTRIB_VERTEX = 0;
+const int ATTRIB_TEXTUREPOSITION = 1;
+
 static void setup() {
-
-    //glGenBuffers(1, &position_vbo);
-    //glBindBuffer(GL_ARRAY_BUFFER, position_vbo);
-    //glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), &positions, GL_STATIC_DRAW);
-
-
-    //glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, 0, 0, positions);
-    //glEnableVertexAttribArray(ATTRIB_VERTEX);
-    //glVertexAttribPointer(ATTRIB_TEXTUREPOSITON, 2, GL_FLOAT, 0, 0, uvs);
-    //glEnableVertexAttribArray(ATTRIB_TEXTUREPOSITON);
-
-    //glGenVertexArrays(1, &vao);
-    //glBindVertexArray(vao);
-    //glEnableVertexAttribArray(0);
-    //glBindBuffer(GL_ARRAY_BUFFER, position_vbo);
+    glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, positions);
+    glEnableVertexAttribArray(ATTRIB_VERTEX);
+    glVertexAttribPointer(ATTRIB_TEXTUREPOSITION, 2, GL_FLOAT, 0, 0, uvs);
+    glEnableVertexAttribArray(ATTRIB_TEXTUREPOSITION);
+    NGL_CHECK_ERROR();
 
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    NGL_CHECK_ERROR();
 
     const char *vertex_shader_source =
         "#ifdef GL_ES\n"
         "precision mediump float;\n"
         "#endif\n"
-        "attribute vec3 vp;\n"
+        "attribute vec2 vp;\n"
         "attribute vec2 vt;\n"
         "varying vec2 uv;\n"
         "void main(void) {\n"
         "  uv = vt;\n"
-        "  gl_Position = vec4(vp, 1);\n"
+        "  gl_Position = vec4(vp.x, vp.y, 0, 1);\n"
         "}\n";
 
     const char *fragment_shader_source =
@@ -221,10 +251,12 @@ static void setup() {
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
+    NGL_CHECK_ERROR();
 
     glActiveTexture(0);
     GLuint u_texture = glGetUniformLocation(program, "texture");
     glUniform1i(u_texture, texture_id);
+    NGL_CHECK_ERROR();
 }
 
 static void prepare() {
@@ -232,20 +264,22 @@ static void prepare() {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
+    NGL_CHECK_ERROR();
 }
 
 static void update() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, buffer);
+    NGL_CHECK_ERROR();
 }
 
 static void draw() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_SRC_COLOR);
+    NGL_CHECK_ERROR();
 
     glUseProgram(program);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
     glUseProgram(0);
 }
 
