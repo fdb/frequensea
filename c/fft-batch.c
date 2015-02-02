@@ -13,14 +13,14 @@
 
 const int FFT_SIZE = 2048;
 const int FFT_HISTORY_SIZE = 200;
-const int HACKRF_SAMPLES_SIZE = 131072;
-const int HACKRF_FREQUENCY_START = 200.0e6;
-const int HACKRF_FREQUENCY_END = 210.0e6;
-const int HACKRF_FREQUENCY_STEP = 1e6;
-const int HACKRF_SAMPLE_RATE = 10e6;
-const int HACKRF_SAMPLE_BLOCKS_TO_SKIP = 10;
+const int SAMPLES_SIZE = 131072;
+const int FREQUENCY_START = 200.0e6;
+const int FREQUENCY_END = 210.0e6;
+const int FREQUENCY_STEP = 1e6;
+const int SAMPLE_RATE = 10e6;
+const int SAMPLE_BLOCKS_TO_SKIP = 10;
 
-int frequency = HACKRF_FREQUENCY_START;
+int frequency = FREQUENCY_START;
 
 fftw_complex *fft_in;
 fftw_complex *fft_out;
@@ -29,7 +29,7 @@ int history_rows = 0;
 fftw_plan fft_plan;
 hackrf_device *device;
 double freq_mhz = 88;
-int skip = HACKRF_SAMPLE_BLOCKS_TO_SKIP;
+int skip = SAMPLE_BLOCKS_TO_SKIP;
 
 // HackRF /////////////////////////////////////////////////////////////////////
 
@@ -53,7 +53,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
     }
     if (history_rows >= FFT_HISTORY_SIZE) return 0;
     int ii = 0;
-    for (int i = 0; i < HACKRF_SAMPLES_SIZE; i += 2) {
+    for (int i = 0; i < SAMPLES_SIZE; i += 2) {
         fft_in[ii][0] = powf(-1, ii) * transfer->buffer[i] / 255.0;
         fft_in[ii][1] = powf(-1, ii) * transfer->buffer[i + 1] / 255.0;
         ii++;
@@ -99,7 +99,7 @@ static void setup_hackrf() {
     status = hackrf_set_freq(device, frequency);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(device, HACKRF_SAMPLE_RATE);
+    status = hackrf_set_sample_rate(device, SAMPLE_RATE);
     HACKRF_CHECK_STATUS(status, "hackrf_set_sample_rate");
 
     status = hackrf_set_amp_enable(device, 0);
@@ -131,8 +131,8 @@ static void teardown_hackrf() {
 // FFTW /////////////////////////////////////////////////////////////////////
 
 static void setup_fftw() {
-    fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * HACKRF_SAMPLES_SIZE);
-    fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * HACKRF_SAMPLES_SIZE);
+    fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * SAMPLES_SIZE);
+    fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * SAMPLES_SIZE);
     fft_history = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * FFT_SIZE * FFT_HISTORY_SIZE);
     fft_plan = fftw_plan_dft_1d(FFT_SIZE, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 }
@@ -150,20 +150,20 @@ int main(int argc, char **argv) {
     setup_fftw();
     setup_hackrf();
 
-    while (frequency <= HACKRF_FREQUENCY_END) {
+    while (frequency <= FREQUENCY_END) {
         while (history_rows < FFT_HISTORY_SIZE) {
             sleep(1);
         }
 
-        frequency = frequency + HACKRF_FREQUENCY_STEP;
-        if (frequency > HACKRF_FREQUENCY_END) {
+        frequency = frequency + FREQUENCY_STEP;
+        if (frequency > FREQUENCY_END) {
             exit(0);
         }
 
         int status = hackrf_set_freq(device, frequency);
         HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-        skip = HACKRF_SAMPLE_BLOCKS_TO_SKIP;
+        skip = SAMPLE_BLOCKS_TO_SKIP;
         history_rows = 0;
         printf("Frequency: %.4f\n", frequency / 1.0e6);
     }
