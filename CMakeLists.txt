@@ -8,6 +8,7 @@ add_subdirectory(externals/lua)
 include_directories(src)
 include_directories(externals/ovr/include)
 include_directories(externals/lua/src)
+include_directories(externals/stb)
 
 find_library(LIBRARY_FFTW fftw3)
 find_library(LIBRARY_HACKRF hackrf)

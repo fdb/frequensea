@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "nfile.h"
 #include "obj.h"
 
@@ -445,6 +448,132 @@ ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
 
 void ngl_camera_free(ngl_camera* camera) {
     free(camera);
+}
+
+// Skybox /////////////////////////////////////////////////////////////////////
+
+void _ngl_skybox_load_side(GLuint texture_id, GLenum side_target, const char *file_name) {
+    glBindTexture (GL_TEXTURE_CUBE_MAP, texture_id);
+    int width, height, n;
+    int force_channels = 4;
+    unsigned char *image_data = stbi_load(file_name, &width, &height, &n, force_channels);
+    if (!image_data) {
+        fprintf (stderr, "ERROR: could not load %s\n", file_name);
+        exit(1);
+    }
+    // Non-power-of-2 dimensions check
+    if ((width & (width - 1)) != 0 || (height & (height - 1)) != 0) {
+        fprintf(stderr, "WARNING: image %s is not power-of-2 dimensions\n", file_name);
+    }
+
+    // copy image data into 'target' side of cube map
+    glTexImage2D(side_target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+
+    free(image_data);
+}
+
+ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top, const char *bottom, const char *left, const char *right) {
+    ngl_skybox *skybox = calloc(1, sizeof(ngl_skybox));
+
+    float points[] = {
+      -10.0f,  10.0f, -10.0f,
+      -10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+      -10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f
+    };
+    glGenBuffers(1, &skybox->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, skybox->vbo);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof (float), &points, GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &skybox->vao);
+    glBindVertexArray(skybox->vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, skybox->vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &skybox->texture);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, front);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, back);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, top);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, bottom);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, left);
+    _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X, right);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    skybox->shader = ngl_shader_new_from_file(GL_TRIANGLES, "../shaders/skybox.vert", "../shaders/skybox.frag");
+
+    return skybox;
+}
+
+void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera) {
+    glDepthMask(GL_FALSE);
+    NGL_CHECK_ERROR();
+    glUseProgram(skybox->shader->program);
+    NGL_CHECK_ERROR();
+    glUniformMatrix4fv(skybox->shader->view_matrix_uniform, 1, GL_FALSE, (GLfloat *)&camera->view.m);
+    NGL_CHECK_ERROR();
+    glUniformMatrix4fv(skybox->shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&camera->projection.m);
+    NGL_CHECK_ERROR();
+    glActiveTexture(GL_TEXTURE0);
+    NGL_CHECK_ERROR();
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->texture);
+    NGL_CHECK_ERROR();
+    glBindVertexArray(skybox->vao);
+    NGL_CHECK_ERROR();
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    NGL_CHECK_ERROR();
+    glDepthMask(GL_TRUE);
+    NGL_CHECK_ERROR();
+}
+
+void ngl_skybox_free(ngl_skybox *skybox) {
+    glDeleteBuffers(1, &skybox->vbo);
+    glDeleteVertexArrays(1, &skybox->vao);
+    glDeleteTextures(1, &skybox->texture);
+    ngl_shader_free(skybox->shader);
+    free(skybox);
 }
 
 // Model drawing /////////////////////////////////////////////////////////////

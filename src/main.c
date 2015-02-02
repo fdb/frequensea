@@ -56,6 +56,10 @@ static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
     return (ngl_camera*) l_from_table(L, "ngl_camera", index);
 }
 
+static ngl_skybox* l_to_ngl_skybox(lua_State *L, int index) {
+    return (ngl_skybox*) l_from_table(L, "ngl_skybox", index);
+}
+
 static ngl_model* l_to_ngl_model(lua_State *L, int index) {
     return (ngl_model*) l_from_table(L, "ngl_model", index);
 }
@@ -272,6 +276,31 @@ static int l_ngl_model_translate(lua_State *L) {
 static int l_ngl_model_free(lua_State *L) {
     ngl_model *model = l_to_ngl_model(L, 1);
     ngl_model_free(model);
+    return 0;
+}
+
+static int l_ngl_skybox_new(lua_State *L) {
+    const char *front = lua_tostring(L, 1);
+    const char *back = lua_tostring(L, 2);
+    const char *top = lua_tostring(L, 3);
+    const char *bottom = lua_tostring(L, 4);
+    const char *left = lua_tostring(L, 5);
+    const char *right = lua_tostring(L, 6);
+    ngl_skybox *skybox = ngl_skybox_new(front, back, top, bottom, left, right);
+    l_to_table(L, "ngl_skybox", skybox);
+    return 1;
+}
+
+static int l_ngl_skybox_draw(lua_State *L) {
+    ngl_skybox *skybox = l_to_ngl_skybox(L, 1);
+    ngl_camera *camera = l_to_ngl_camera(L, 2);
+    ngl_skybox_draw(skybox, camera);
+    return 0;
+}
+
+static int l_ngl_skybox_free(lua_State *L) {
+    ngl_skybox *skybox = l_to_ngl_skybox(L, 1);
+    ngl_skybox_free(skybox);
     return 0;
 }
 
@@ -556,6 +585,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_model", l_ngl_model_free);
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
+    l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
     l_register_type(L, "nrf_buffer", l_nrf_buffer_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
@@ -573,6 +603,8 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_model_new_with_height_map", l_ngl_model_new_with_height_map);
     l_register_function(L, "ngl_model_load_obj", l_ngl_model_load_obj);
     l_register_function(L, "ngl_model_translate", l_ngl_model_translate);
+    l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
+    l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_free", l_nrf_device_free);

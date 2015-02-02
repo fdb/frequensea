@@ -47,6 +47,13 @@ typedef struct {
     ngl_color background;
 } ngl_camera;
 
+typedef struct {
+    GLuint vbo;
+    GLuint vao;
+    GLuint texture;
+    ngl_shader *shader;
+} ngl_skybox;
+
 void ngl_check_gl_error(const char *file, int line);
 #define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
 ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha);
@@ -68,6 +75,9 @@ void ngl_model_translate(ngl_model *model, float tx, float ty, float tz);
 void ngl_model_free(ngl_model *model);
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z);
 void ngl_camera_free(ngl_camera *camera);
+ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top, const char *bottom, const char *left, const char *right);
+void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera);
+void ngl_skybox_free(ngl_skybox *skybox);
 void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);
 
 #endif // NGL_H
