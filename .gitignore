@@ -13,6 +13,7 @@
 /c/iqvis-rtl
 /c/play
 /rust/target
+/rpi-fdb/iqvis
 *.png
 /build
 *.dSYM
