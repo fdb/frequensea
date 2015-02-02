@@ -12,11 +12,11 @@
 #include "easypng.h"
 
 const int FFT_SIZE = 2048;
-const int FFT_HISTORY_SIZE = 200;
+const int FFT_HISTORY_SIZE = 512;
 const int SAMPLES_SIZE = 131072;
-const int FREQUENCY_START = 200.0e6;
-const int FREQUENCY_END = 210.0e6;
-const int FREQUENCY_STEP = 1e6;
+const int FREQUENCY_START = 900.0e6;
+const int FREQUENCY_END = 1000.0e6;
+const int FREQUENCY_STEP = 10e6;
 const int SAMPLE_RATE = 10e6;
 const int SAMPLE_BLOCKS_TO_SKIP = 10;
 

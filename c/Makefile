@@ -22,6 +22,9 @@ fft: fft.c
 fft-batch: fft-batch.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-batch fft-batch.c -lhackrf -lpng -lfftw3
 
+fft-stitch: fft-stitch.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-stitch fft-stitch.c -lpng
+
 iqvis: iqvis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o iqvis iqvis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
