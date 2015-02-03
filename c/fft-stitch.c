@@ -53,7 +53,9 @@ int main() {
         img_gray_copy(buffer, image_data, x, 0, 0, 0, FFT_SIZE, FFT_HISTORY_SIZE, total_width, FFT_SIZE);
         x += WIDTH_STEP;
     }
-    write_gray_png("fft-stitched.png", total_width, total_height, buffer);
+    char out_file_name[100];
+    snprintf(out_file_name, 100, "fft-stiched-%.4f-%.4f.png", FREQUENCY_START / 1.0e6, FREQUENCY_END / 1.0e6);
+    write_gray_png(out_file_name, total_width, total_height, buffer);
     exit(0);
 }
 
