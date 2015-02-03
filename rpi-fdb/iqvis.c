@@ -16,6 +16,9 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 
+#include <fcntl.h>
+#include <termios.h>
+
 
 #define WIDTH 256
 #define HEIGHT 256
@@ -70,7 +73,6 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
         uint8_t v = buffer_wr[d];
         v += intensity;
         v = v < 0 ? 0 : v > 255 ? 255 : v;
-        //if (i == 100) printf("i %d q %d d %d v %d\n", vi, vq, d, v);
         buffer_wr[d] = v;
     }
     pthread_mutex_unlock(&buffer_lock);
@@ -134,7 +136,7 @@ static void setup_rtl() {
 
 static void set_frequency() {
     freq_mhz = round(freq_mhz * 10.0) / 10.0;
-    printf("Seting freq to %f MHz.\n", freq_mhz);
+    printf("Setting freq to %f MHz.\r\n", freq_mhz);
     int status = rtlsdr_set_center_freq(device, freq_mhz * 1e6);
     RTL_CHECK_STATUS(device, status, "rtlsdr_set_center_freq");
 }
@@ -305,8 +307,8 @@ static void prepare() {
     int32_t success = graphics_get_display_size(0, &width, &height);
     assert(success >= 0);
 
-    glViewport(0, 0, height, height);
-    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+    glViewport((width-height)/2.0, 0, height, height);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     NGL_CHECK_ERROR();
 }
@@ -322,9 +324,10 @@ static void update() {
     //sleep(1);
     //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-   pthread_mutex_lock(&buffer_lock);
-   memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
-  pthread_mutex_unlock(&buffer_lock); 
+    if (!pthread_mutex_trylock(&buffer_lock)) {
+      memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
+      pthread_mutex_unlock(&buffer_lock); 
+    }
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
 }
@@ -467,16 +470,44 @@ int main(void) {
     setup_rtl();
     setup();
 
-   freq_mhz=202.5;
+   freq_mhz=94.2;
    set_frequency();
 
+    struct termios ios_old, ios_new;
+    tcgetattr(STDIN_FILENO, &ios_old);
+    tcgetattr(STDIN_FILENO, &ios_new);
+    cfmakeraw(&ios_new);
+    tcsetattr(STDIN_FILENO, 0, &ios_new);
+    fcntl(0, F_SETFL, O_NONBLOCK);
+
     while ( 1) {
-       prepare();
-      update();
+        switch (getchar()) {
+            case 'Q':
+            case 'q':
+            case 0x7f:      /* Ctrl+c */
+            case 0x03:      /* Ctrl+c */
+            case 0x1b:      /* ESC */
+                printf("\r\nexit\r\n");
+                            goto goal;
+            case '<':
+                            freq_mhz-=.1;
+                            set_frequency();
+                            break;
+            case '>':
+                            freq_mhz+=.1;
+                            set_frequency();
+                            break;
+        }
+        prepare();
+        update();
        draw();
        eglSwapBuffers(display, surface);
        //sleep(0);
     }
+goal:
       teardown_rtl();
+ 
+      tcsetattr(STDIN_FILENO, 0, &ios_old);
+
       exit(EXIT_SUCCESS);
 }
