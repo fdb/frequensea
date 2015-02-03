@@ -1,10 +1,17 @@
 // NDBX Radio Frequency functions, based on HackRF
 
+#if __STDC_VERSION__ >= 199901L
+#define _XOPEN_SOURCE 600
+#else
+#define _XOPEN_SOURCE 500
+#endif /* __STDC_VERSION__ */
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -167,10 +174,10 @@ static int _nrf_hackrf_receive_sample_block(hackrf_transfer *transfer) {
 #define MILLISECS 1000000
 
 static void _nrf_sleep_milliseconds(int millis) {
-    struct timespec t1, t2;
-    t1.tv_sec = 0;
-    t1.tv_nsec = millis * MILLISECS;
-    nanosleep(&t1 , &t2);
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = millis * MILLISECS;
+    nanosleep(&ts, NULL);
 }
 
 static void _nrf_advance_block(nrf_device *device) {
