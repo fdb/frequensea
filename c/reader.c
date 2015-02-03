@@ -4,8 +4,8 @@
 #include <unistd.h>
 
 const long NRF_SAMPLES_SIZE = 262144;
-const long BUFFER_SIZE = NRF_SAMPLES_SIZE * 1000;
-const int DESIRED_FREQ = 612.004e6;
+const long BUFFER_SIZE = NRF_SAMPLES_SIZE * 1;
+const int DESIRED_FREQ = 1278e6;
 const int CENTER_FREQ = DESIRED_FREQ + 0;
 const int SAMPLE_RATE = 10e6;
 uint8_t buffer[BUFFER_SIZE];
@@ -34,11 +34,13 @@ int receive_sample_block(hackrf_transfer *transfer) {
         }
     }
     if (buffer_pos >= BUFFER_SIZE) {
-        FILE *fp = fopen("out.raw", "wb");
+        char fname[100];
+        snprintf(fname, 100, "rf-%.3f-1.raw", DESIRED_FREQ / 1.0e6);
+        FILE *fp = fopen(fname, "wb");
         if (fp) {
             fwrite(buffer, BUFFER_SIZE, 1, fp);
             fclose(fp);
-            printf("Written file.\n");
+            printf("Written %s.\n", fname);
             exit(0);
         }
     }
