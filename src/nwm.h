@@ -1,7 +1,9 @@
 #ifndef NWM_H
 #define NWM_H
 
-#define GLFW_INCLUDE_GLCOREARB
+#ifdef __APPLE__
+#   define GLFW_INCLUDE_GLCOREARB
+#endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
