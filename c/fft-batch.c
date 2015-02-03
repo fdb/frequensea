@@ -28,7 +28,6 @@ fftw_complex *fft_history;
 int history_rows = 0;
 fftw_plan fft_plan;
 hackrf_device *device;
-double freq_mhz = 88;
 int skip = SAMPLE_BLOCKS_TO_SKIP;
 
 // HackRF /////////////////////////////////////////////////////////////////////
@@ -120,13 +119,6 @@ static void teardown_hackrf() {
     hackrf_close(device);
     hackrf_exit();
 }
-
-// static void set_frequency() {
-//     freq_mhz = round(freq_mhz * 10.0) / 10.0;
-//     printf("Seting freq to %f MHz.\n", freq_mhz);
-//     int status = hackrf_set_freq(device, freq_mhz * 1e6);
-//     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
-// }
 
 // FFTW /////////////////////////////////////////////////////////////////////
 
