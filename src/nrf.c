@@ -13,6 +13,9 @@
 
 #include "nrf.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 const double TAU = M_PI * 2;
 
 nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *data) {
