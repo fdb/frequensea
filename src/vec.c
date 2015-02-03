@@ -5,6 +5,9 @@
 
 #include "vec.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #define TAU 2.0 * M_PI
 #define ONE_DEG_IN_RAD (2.0 * M_PI) / 360.0 // 0.017444444
 #define ONE_RAD_IN_DEG 360.0 / (2.0 * M_PI) //57.2957795
