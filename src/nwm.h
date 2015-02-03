@@ -8,6 +8,10 @@
     #define GLFW_EXPOSE_NATIVE_COCOA
     #define GLFW_EXPOSE_NATIVE_NSGL
 #endif
+#ifdef __linux__
+    #define GLFW_EXPOSE_NATIVE_X11
+    #define GLFW_EXPOSE_NATIVE_GLX
+#endif
 
 #include <GLFW/glfw3native.h>
 
