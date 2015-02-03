@@ -11,16 +11,16 @@
 
 #include "easypng.h"
 
-const int FFT_SIZE = 4096;
-const int FFT_HISTORY_SIZE = 1024;
-const int SAMPLES_SIZE = 131072;
-const int FREQUENCY_START = 100e6;
-const int FREQUENCY_END = 110e6;
-const int FREQUENCY_STEP = 3e6;
-const int SAMPLE_RATE = 10e6;
-const int SAMPLE_BLOCKS_TO_SKIP = 10;
+const uint32_t FFT_SIZE = 4096;
+const uint32_t FFT_HISTORY_SIZE = 1024;
+const uint32_t SAMPLES_SIZE = 131072;
+const uint64_t FREQUENCY_START = 800e6;
+const uint64_t FREQUENCY_END = 1000e6;
+const uint32_t FREQUENCY_STEP = 3e6;
+const uint32_t SAMPLE_RATE = 10e6;
+const uint32_t SAMPLE_BLOCKS_TO_SKIP = 10;
 
-int frequency = FREQUENCY_START;
+uint64_t frequency = FREQUENCY_START;
 
 fftw_complex *fft_in;
 fftw_complex *fft_out;
@@ -65,8 +65,10 @@ int receive_sample_block(hackrf_transfer *transfer) {
     memcpy(fft_history, fft_out, FFT_SIZE * sizeof(fftw_complex));
 
     history_rows++;
-    printf("Rows: %d\n", history_rows);
+    printf("\r%.f%%", history_rows / (float)FFT_HISTORY_SIZE * 100);
+    fflush(stdout);
     if (history_rows >= FFT_HISTORY_SIZE) {
+        printf("\n");
         // Write image.
         uint8_t *buffer = calloc(FFT_SIZE * FFT_HISTORY_SIZE, sizeof(uint8_t));
         for (int y = 0; y < FFT_HISTORY_SIZE; y++) {
@@ -141,6 +143,7 @@ static void teardown_fftw() {
 int main(int argc, char **argv) {
     setup_fftw();
     setup_hackrf();
+    printf("Frequency: %.4f MHz\n", frequency / 1.0e6);
 
     while (frequency <= FREQUENCY_END) {
         while (history_rows < FFT_HISTORY_SIZE) {
@@ -157,7 +160,7 @@ int main(int argc, char **argv) {
 
         skip = SAMPLE_BLOCKS_TO_SKIP;
         history_rows = 0;
-        printf("Frequency: %.4f\n", frequency / 1.0e6);
+        printf("Frequency: %.4f MHz\n", frequency / 1.0e6);
     }
 
     teardown_hackrf();

@@ -25,6 +25,9 @@ fft-batch: fft-batch.c
 fft-stitch: fft-stitch.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-stitch fft-stitch.c -lpng
 
+iq-lines: iq-lines.c
+	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs --static libpng libhackrf glfw3` -o iq-lines iq-lines.c
+
 iqvis: iqvis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o iqvis iqvis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
@@ -42,3 +45,6 @@ play: play.c
 
 piqvis: piqvis.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I/usr/local/include `pkg-config --cflags librtlsdr glfw3 glew` -o piqvis piqvis.c -L/usr/local/lib `pkg-config --libs --static librtlsdr glfw3 glew`
+
+single-sample: single-sample.c
+	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o single-sample single-sample.c
