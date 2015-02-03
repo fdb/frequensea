@@ -11,11 +11,11 @@
 
 // Stitch FFT sweeps PNG
 
-const int FFT_SIZE = 2048;
-const int FFT_HISTORY_SIZE = 512;
-const int FREQUENCY_START = 900.0e6;
-const int FREQUENCY_END = 1000.0e6;
-const int FREQUENCY_STEP = 10e6;
+const int FFT_SIZE = 4096;
+const int FFT_HISTORY_SIZE = 1024;
+const int FREQUENCY_START = 100e6;
+const int FREQUENCY_END = 110e6;
+const int FREQUENCY_STEP = 3e6;
 const int SAMPLE_RATE = 10e6;
 const int WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
 
