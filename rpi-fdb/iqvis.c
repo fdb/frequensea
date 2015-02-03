@@ -33,8 +33,11 @@ GLuint position_vbo;
 GLuint uv_vbo;
 GLuint vao;
 uint8_t * buffer=0; 
+uint8_t * buffer_wr=0; 
 rtlsdr_dev_t *device;
 pthread_t receive_thread;
+pthread_mutex_t buffer_lock;
+
 double freq_mhz = 124.2;
 int paused = 0;
 int intensity = 3;
@@ -56,20 +59,21 @@ void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, con
 
 void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) {
     if (paused) return;
-    memset(buffer, 0x0, WIDTH * HEIGHT * 3 );
+    pthread_mutex_lock(&buffer_lock);
+    memset(buffer_wr, 0x0, WIDTH * HEIGHT * 3 );
     int i = 0;
     for (i = 0; i < buffer_length; i += 2) {
         int vi = in_buffer[i];
         int vq = in_buffer[i + 1];
 
         int d = ((vq * WIDTH) + vi) * 3;
-        uint8_t v = buffer[d];
+        uint8_t v = buffer_wr[d];
         v += intensity;
         v = v < 0 ? 0 : v > 255 ? 255 : v;
         //if (i == 100) printf("i %d q %d d %d v %d\n", vi, vq, d, v);
-        buffer[d] = v;
+        buffer_wr[d] = v;
     }
-    //sleep(1);
+    pthread_mutex_unlock(&buffer_lock);
 }
 
 // This function will block, so needs to be called on its own thread.
@@ -301,7 +305,7 @@ static void prepare() {
     int32_t success = graphics_get_display_size(0, &width, &height);
     assert(success >= 0);
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, height, height);
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     NGL_CHECK_ERROR();
@@ -318,22 +322,24 @@ static void update() {
     //sleep(1);
     //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
+   pthread_mutex_lock(&buffer_lock);
+   memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
+  pthread_mutex_unlock(&buffer_lock); 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
 }
 
 static void draw() {
-    //glEnable(GL_TEXTURE_2D);
-    //NGL_CHECK_ERROR();
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_SRC_COLOR);
-    //NGL_CHECK_ERROR();
+    NGL_CHECK_ERROR();
 
     glUseProgram(program);
     NGL_CHECK_ERROR();
+    //
     //glActiveTexture ( GL_TEXTURE0 );
     //glBindTexture ( GL_TEXTURE_2D, texture_id );
-    NGL_CHECK_ERROR();
+    //NGL_CHECK_ERROR();
     glUniform1i(u_texture,0);
     NGL_CHECK_ERROR();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -342,8 +348,8 @@ static void draw() {
     //glUseProgram(0);
     //NGL_CHECK_ERROR();
 
-    glFlush();
-    //glFinish();
+    //glFlush();
+    glFinish();
     //NGL_CHECK_ERROR();
 }
 
@@ -454,6 +460,7 @@ void nwm_init() {
 
 int main(void) {
     buffer =  malloc(WIDTH * HEIGHT * 3);
+    buffer_wr =  malloc(WIDTH * HEIGHT * 3);
     bcm_host_init();
     nwm_init();
 
