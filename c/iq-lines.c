@@ -32,6 +32,13 @@ GLuint texture_id;
 GLuint program;
 
 int line_intensity = 4;
+float line_percentage = 1.0;
+
+// Utility ////////////////////////////////////////////////////////////////////
+
+float clampf(float v, float min, float max) {
+    return v < min ? min : v > max ? max : v;
+}
 
 // HackRF /////////////////////////////////////////////////////////////////////
 
@@ -147,7 +154,8 @@ static void update_image_buffer() {
     memset(image_buffer, 0, WIDTH * HEIGHT * sizeof(uint8_t));
     int x1 = 0;
     int y1 = 0;
-    for (int i = 0; i < SAMPLE_BUFFER_SIZE; i += 2) {
+    int max = SAMPLE_BUFFER_SIZE * line_percentage;
+    for (int i = 0; i < max; i += 2) {
         int x2 = (sample_buffer[i] + 128) % 256;
         int y2 = (sample_buffer[i + 1] + 128) % 256;
         if (i > 0) {
@@ -269,32 +277,41 @@ static void error_callback(int error, const char* description) {
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    double d;
-    if (mods == 1) { // Shift key
-        d = 10;
-    } else if (mods == 4) { // Alt key
-        d = 0.01;
-    } else {
-        d = 0.1;
-    }
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        freq_mhz += d;
-        set_frequency();
-    } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        freq_mhz -= d;
-        set_frequency();
-    } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        //paused = !paused;
-    } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-        export();
-    } else if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
-        line_intensity += 1;
-        printf("Intensity: %d\n", line_intensity);
-    } else if (key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
-        line_intensity -= 1;
-        printf("Intensity: %d\n", line_intensity);
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+
+        double d;
+        if (mods == 1) { // Shift key
+            d = 10;
+        } else if (mods == 4) { // Alt key
+            d = 0.01;
+        } else {
+            d = 0.1;
+        }
+        if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, GL_TRUE);
+        } else if (key == GLFW_KEY_RIGHT) {
+            freq_mhz += d;
+            set_frequency();
+        } else if (key == GLFW_KEY_LEFT) {
+            freq_mhz -= d;
+            set_frequency();
+        } else if (key == GLFW_KEY_SPACE) {
+            //paused = !paused;
+        } else if (key == GLFW_KEY_E) {
+            export();
+        } else if (key == GLFW_KEY_EQUAL) {
+            line_intensity += 1;
+            printf("Intensity: %d\n", line_intensity);
+        } else if (key == GLFW_KEY_MINUS) {
+            line_intensity -= 1;
+            printf("Intensity: %d\n", line_intensity);
+        } else if (key == GLFW_KEY_COMMA) {
+            line_percentage = clampf(line_percentage - (d / 100), 0, 1);
+            printf("Line percentage: %.2f%%\n", line_percentage * 100);
+        } else if (key == GLFW_KEY_PERIOD) {
+            line_percentage = clampf(line_percentage + (d / 100), 0, 1);
+            printf("Line percentage: %.2f%%\n", line_percentage * 100);
+        }
     }
 }
 
