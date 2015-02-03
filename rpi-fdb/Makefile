@@ -1,6 +1,6 @@
 # CFLAGS+=-std=c99
 CFLAGS+=-Wall
-CFLAGS+=-Werror
+#CFLAGS+=-Werror
 CFLAGS+=-g
 
 INCLUDES+=-I/opt/vc/include
@@ -16,7 +16,9 @@ LIBS+=-lbcm_host
 LIBS+=-lvcos
 LIBS+=-lvchiq_arm
 LIBS+=-lpthread
+LIBS+=-lrtlsdr
 
 
 iqvis: iqvis.c
 	gcc $(CFLAGS) $(INCLUDES) $(LIBS) -o iqvis iqvis.c
+
