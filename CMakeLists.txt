@@ -15,6 +15,7 @@ find_library(LIBRARY_HACKRF hackrf)
 find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
+find_library(LIBRARY_GLEW glew)
 set(CORE_LIBS ${LIBRARY_FFTW} ${LIBRARY_GLFW} ${LIBRARY_HACKRF} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
 
 if (APPLE)
