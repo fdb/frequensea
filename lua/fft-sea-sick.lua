@@ -68,16 +68,12 @@ end
 
 function draw()
 
-   -- camera_x = math.sin(nwm_get_time() * 0.3) * 50
     camera_y = 0.01+ .020 *math.abs(math.sin(nwm_get_time() * 0.03))
---    camera_z = math.cos(nwm_get_time() * 0.3) * 50
-
-   camera = ngl_camera_new_look_at(0, camera_y, 0.2)
-   -- ngl_clear(0.2, 0.2, 0.2, 1)
-    -- ngl_draw_model(camera, model, shader)
+    camera = ngl_camera_new_look_at(0, camera_y, 0.2)
 
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, GL_RGB, 1024, 512, device.fft)
+    buffer = nrf_device_get_fft_buffer(device)
+    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
     ngl_draw_model(camera, model, shader)
 end
 
