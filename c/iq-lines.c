@@ -283,7 +283,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if (mods == 1) { // Shift key
             d = 10;
         } else if (mods == 4) { // Alt key
-            d = 0.01;
+            d = 0.001;
         } else {
             d = 0.1;
         }
