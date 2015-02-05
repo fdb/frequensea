@@ -12,13 +12,32 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.005;
-    float t1 = texture(uTexture, vt).r * d;
-    float t2 = texture(uTexture, vt + vec2(0.002, 0)).r * d;
-    float t3 = texture(uTexture, vt + vec2(0, 0.002)).r * d;
+    float d = 0.01;
+    float cell_size = 0.003;
+    float t1 = texture(uTexture, vt).r;
+    float t2 = texture(uTexture, vt + vec2(cell_size, 0)).r;
+    float t3 = texture(uTexture, vt + vec2(0, cell_size)).r;
+
+    if (t1 > 1) {
+        t1 = 0.0;
+    }
+    if (t2 > 1) {
+        t2 = 0.0;
+    }
+    if (t3 > 1) {
+       t3 = 0.0;
+    }
+
+    t1 = abs(t1);
+    t2 = abs(t2);
+    t3 = abs(t3);
+    t1 *= d;
+    t2 *= d;
+    t3 *= d;
+
     vec3 v1 = vec3(vp.x, t1, vp.z);
-    vec3 v2 = vec3(vp.x + 0.002, t2, vp.z);
-    vec3 v3 = vec3(vp.x, t3, vp.z + 0.002);
+    vec3 v2 = vec3(vp.x + cell_size, t2, vp.z);
+    vec3 v3 = vec3(vp.x, t3, vp.z + cell_size);
 
     vec3 u = v2 - v1;
     vec3 v = v3 - v1;
@@ -38,10 +57,11 @@ void main() {
     float seasickfactor = 2.25;
     v1.x += sharkfactor*noise1(l*2.0) * sin(uTime/2.0);
     v1.y += .05*noise1(l+uTime/seasickfactor);
-    color.r *= 8.0*noise1(l*(200.0*sin(uTime))*10.0);
+    //color.r *= 8.0*noise1(l*(200.0*sin(uTime))*10.0);
     //color.g *= 10.0*noise1(ll*20.0);
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
+    gl_PointSize = 5;
 }
 ]]
 
@@ -57,13 +77,13 @@ void main() {
 
 
 function setup()
-    freq = 100.9
+    freq = 2437
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
     camera = ngl_camera_new_look_at(0, 0.01, 0.2)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 512, 0.002, 0.002)
-    ngl_model_translate(model, 0, -0.02, 0)
+    model = ngl_model_new_grid_triangles(128, 128, 0.003, 0.003)
+    ngl_model_translate(model, 0, -0.03, 0)
 end
 
 function draw()
