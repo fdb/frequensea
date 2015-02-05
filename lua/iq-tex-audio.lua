@@ -30,8 +30,8 @@ void main() {
 ]]
 
 function setup()
-    freq = 640.12
-    freq_offset = 50000
+    freq = 101.0
+    freq_offset = 100000
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
