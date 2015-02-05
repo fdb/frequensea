@@ -5,8 +5,9 @@
 
 #ifdef __APPLE__
 #   define GLFW_INCLUDE_GLCOREARB
+#else
+    #include <GL/glew.h>
 #endif
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "vec.h"
