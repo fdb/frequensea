@@ -36,6 +36,7 @@ if (APPLE)
     find_library(FRAMEWORK_IO_KIT IOKit)
     find_library(LIBRARY_GLFW glfw3)
     find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
+    add_definitions(-DWITH_OVR)
     set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW} ${LIBRARY_OVR})
 endif (APPLE)
 
@@ -51,10 +52,14 @@ set(SOURCE_FILES
     src/nim.c
     src/noise.c
     src/nrf.c
-    src/nvr.c
     src/nwm.c
     src/obj.c
     src/vec.c)
+
+if (APPLE)
+    list(append SOURCE_FILES src/nvr.c)
+endif (APPLE)
+
 
 add_executable(frequensea ${SOURCE_FILES})
 target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLFW_STATIC_LIBRARIES} ${GLEW_LIBRARIES} ${OPENAL_LIBRARIES})
