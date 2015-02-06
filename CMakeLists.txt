@@ -18,7 +18,7 @@ find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
 find_library(LIBRARY_GLEW glew)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_GLFW} ${LIBRARY_HACKRF} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
+set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
@@ -31,10 +31,14 @@ if (APPLE)
     set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW})
 endif (APPLE)
 
-if (LINUX)
-    find_library(LIBRARY_GLFW glfw)
-    set(PLATFORM_LIBS ${LIBRARY_GLFW})
-endif (LINUX)
+if (UNIX)
+    find_library(LIBRARY_GLEW GLEW)
+    find_library(LIBRARY_GLU GLU)
+    find_library(LIBRARY_GL GL)
+    find_library(LIBRARY_GLFW glfw3)
+    find_library(FRAMEWORK_OPENAL OpenAL)
+    set(PLATFORM_LIBS ${LIBRARY_GLEW} ${LIBRARY_GLU} ${LIBRARY_GL} ${LIBRARY_GLFW} ${LIBRARY_OPENAL})
+endif (UNIX)
 
 set(SOURCE_FILES
     src/main.c
