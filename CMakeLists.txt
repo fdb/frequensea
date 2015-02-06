@@ -22,11 +22,10 @@ find_library(LIBRARY_MATH m)
 find_library(LIBRARY_PTHREAD pthread)
 find_library(LIBRARY_FFTW fftw3)
 find_library(LIBRARY_HACKRF hackrf)
-find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
 find_library(LIBRARY_GLEW glew)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_OVR} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
+set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
@@ -36,8 +35,14 @@ if (APPLE)
     find_library(FRAMEWORK_CORE_VIDEO CoreVideo)
     find_library(FRAMEWORK_IO_KIT IOKit)
     find_library(LIBRARY_GLFW glfw3)
-    set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW})
+    find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
+    set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW} ${LIBRARY_OVR})
 endif (APPLE)
+
+if (UNIX)
+    find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/linux)
+    set(PLATFORM_LIBS ${LIBRARY_OVR})
+endif (UNIX)
 
 set(SOURCE_FILES
     src/main.c
