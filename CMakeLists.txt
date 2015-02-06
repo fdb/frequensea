@@ -3,12 +3,20 @@ project(frequensea)
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW REQUIRED glfw3)
+pkg_search_module(GLEW REQUIRED glew)
+pkg_search_module(OPENAL REQUIRED openal)
+
 add_subdirectory(externals/lua)
 
 include_directories(src)
 include_directories(externals/ovr/include)
 include_directories(externals/lua/src)
 include_directories(externals/stb)
+include_directories(${GLFW_INCLUDE_DIRS})
+include_directories(${GLEW_INCLUDE_DIRS})
+include_directories(${OPENAL_INCLUDE_DIRS})
 
 find_library(LIBRARY_MATH m)
 find_library(LIBRARY_PTHREAD pthread)
@@ -31,15 +39,6 @@ if (APPLE)
     set(PLATFORM_LIBS ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT} ${LIBRARY_GLFW})
 endif (APPLE)
 
-if (UNIX)
-    find_library(LIBRARY_GLEW GLEW)
-    find_library(LIBRARY_GLU GLU)
-    find_library(LIBRARY_GL GL)
-    find_library(LIBRARY_GLFW glfw3)
-    find_library(FRAMEWORK_OPENAL OpenAL)
-    set(PLATFORM_LIBS ${LIBRARY_GLEW} ${LIBRARY_GLU} ${LIBRARY_GL} ${LIBRARY_GLFW} ${LIBRARY_OPENAL})
-endif (UNIX)
-
 set(SOURCE_FILES
     src/main.c
     src/nfile.c
@@ -53,4 +52,4 @@ set(SOURCE_FILES
     src/vec.c)
 
 add_executable(frequensea ${SOURCE_FILES})
-target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua)
+target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLFW_STATIC_LIBRARIES} ${GLEW_LIBRARIES} ${OPENAL_LIBRARIES})
