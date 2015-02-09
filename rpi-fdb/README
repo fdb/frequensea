@@ -1,0 +1,47 @@
+
+IQ visualisation on RPi 
+=======================
+
+
+== Installation:
+(Debian/Raspbian)
+
+# rtl-sdr dependencies 
+sudo apt-get install cmake
+sudo apt-get install libusb-1.0-0-dev
+
+# rtl-sdr library from source
+git clone git://git.osmocom.org/rtl-sdr.git
+cd rtl-sdr/
+
+# set udev and modprobe rules
+sudo cp rtl-sdr.rules /etc/udev/rules.d/
+sudo cat <<EOF > /etc/modprobe.d/rtlsdr-blacklist.conf
+blacklist dvb_usb_rtl28xxu
+EOF
+# compile rtl-sdr
+mkdir build
+cd build/
+cmake ..
+make
+sudo make install
+
+# make sure we got rid of default dvb kernel driver
+rmmod -f dvb_usb_rtl28xxu
+
+# frequensea
+
+git clone https://github.com/fdb/frequensea.git
+cd frequensea/rpi-fdb/
+make
+
+ls -al ./iqvis
+
+
+== Usage
+
+startup without parameters, usefull keys : '<' and '>' to scroll through spectrum
+
+./iqvis
+
+
