@@ -5,15 +5,20 @@
 
 #include <fftw3.h>
 #include <pthread.h>
+#ifdef __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
+#else
+#include <AL/al.h>
+#include <AL/alc.h>
+#endif // __APPLE__
 
 #include "vec.h"
 
 #define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
-#define FFT_SIZE 512
-#define FFT_HISTORY_SIZE 512
+#define FFT_SIZE 128
+#define FFT_HISTORY_SIZE 128
 
 // Buffer
 
