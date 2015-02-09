@@ -63,26 +63,26 @@ void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, con
 
 
 // Line drawing ///////////////////////////////////////////////////////////////
-int line_intensity = 4;
+
 float line_percentage = 1.0;
 
 
 void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
-    int offset = y * WIDTH + x;
+    int offset = 3* (y * WIDTH  + x);
     image_buffer[offset] = color;
 }
 
 void pixel_inc(uint8_t *image_buffer, int x, int y) {
     static int have_warned = 0;
-    int offset = y * WIDTH + x;
+    int offset = 3*(y * WIDTH + x);
     int v = image_buffer[offset];
-    if (v + line_intensity >= 255) {
+    if (v + intensity >= 255) {
         if (!have_warned) {
             fprintf(stderr, "WARN: pixel value out of range (%d, %d)\n", x, y);
             have_warned = 1;
         }
     } else {
-        v += line_intensity;
+        v += intensity;
         image_buffer[offset] = v;
     }
 }
@@ -113,15 +113,14 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
     pthread_mutex_lock(&buffer_lock);
     memset(buffer_wr, 0x0, WIDTH * HEIGHT * 3 );
     int i = 0;
-    for (i = 0; i < buffer_length; i += 2) {
-        int vi = in_buffer[i];
-        int vq = in_buffer[i + 1];
-
-        int d = ((vq * WIDTH) + vi) * 3;
-        uint8_t v = buffer_wr[d];
-        v += intensity;
-        v = v < 0 ? 0 : v > 255 ? 255 : v;
-        buffer_wr[d] = v;
+    int x1=0;
+    int y1=0;
+    for (i = 1000; i < 4000; i += 2) {
+	int x2=in_buffer[i] ;
+	int y2=in_buffer[i+1];
+	draw_line(buffer_wr, x1, y1, x2, y2, 0);
+	x1=x2;
+	y1=y2;
     }
     pthread_mutex_unlock(&buffer_lock);
 }
