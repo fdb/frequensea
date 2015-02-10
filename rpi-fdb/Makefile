@@ -21,4 +21,6 @@ LIBS+=-lrtlsdr
 
 iqvis: iqvis.c
 	gcc $(CFLAGS) $(INCLUDES) $(LIBS) -o iqvis iqvis.c
+iqvis_lines: iqvis_lines.c
+	gcc $(CFLAGS) $(INCLUDES) $(LIBS) -o iqvis_lines iqvis_lines.c
 

@@ -47,18 +47,17 @@ void main() {
     vec3 n = vec3(x, y, z);
 
     color = vec4(1.0, 1.0, 1.0, 0.95) * dot(normalize(v1), normalize(n)) * 0.5;
-    color += vec4(0.2, 0.2, 0.1, 1.0);
+    color += vec4(0.5, 0.25, 0.21, 1.0);
 
     float l = 1.0 - ((vp.x * vp.x + vp.z * vp.z) * 2.0);
-    //float ll = 1.0 - ((vp.z * vp.z + vp.y * vp.y) * 2.0);
-    color *= vec4(l/5.0, l/2.0, l, l);
+    float ll = 1.0 - ((vp.z * vp.z + vp.y * vp.y) * 2.0);
 
     float sharkfactor = .25;
-    float seasickfactor = 2.25;
+    float seasickfactor = 1.25;
     v1.x += sharkfactor*noise1(l*2.0) * sin(uTime/2.0);
     v1.y += .05*noise1(l+uTime/seasickfactor);
-    //color.r *= 8.0*noise1(l*(200.0*sin(uTime))*10.0);
-    //color.g *= 10.0*noise1(ll*20.0);
+    color.g += .5*noise1(l*1.2);
+    color.r += 2.0*noise1(ll*1.2);
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
     gl_PointSize = 5;
@@ -82,7 +81,7 @@ function setup()
     camera = ngl_camera_new_look_at(0, 0.01, 0.2)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(128, 128, 0.003, 0.003)
+    model = ngl_model_new_grid_triangles(128, 128, 0.006, 0.006)
     ngl_model_translate(model, 0, -0.03, 0)
 end
 
