@@ -271,7 +271,9 @@ ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_
             points[i++] = top + y * row_height;
         }
     }
-    return ngl_model_new(2, i / 2, points, NULL, NULL);
+    ngl_model *model = ngl_model_new(2, i / 2, points, NULL, NULL);
+    free(points);
+    return model;
 }
 
 ngl_model* _ngl_model_new_grid_triangles_with_buffer(int row_count, int column_count, float row_height, float column_width, float height_multiplier, int buffer_stride, int buffer_offset, const float *buffer) {
@@ -371,7 +373,11 @@ ngl_model* _ngl_model_new_grid_triangles_with_buffer(int row_count, int column_c
             uv_index += 12;
         }
     }
-    return ngl_model_new(3, point_count, points, normals, uvs);
+    ngl_model* model = ngl_model_new(3, point_count, points, normals, uvs);
+    free(points);
+    free(normals);
+    free(uvs);
+    return model;
 }
 
 ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width) {
