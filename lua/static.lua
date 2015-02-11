@@ -7,11 +7,6 @@ attribute vec3 vn;
 varying vec3 color;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
-void main() {
-    color = vec3(1.0, 1.0, 1.0) * dot(normalize(vp), normalize(vn)) * 0.5;
-    color += vec3(0.2, 0.5, 0.8);
-    gl_Position = uProjectionMatrix * uViewMatrix * vec4(vp, 1.0);
-}
 #else
 #version 400
 layout (location = 0) in vec3 vp;
@@ -19,12 +14,12 @@ layout (location = 1) in vec3 vn;
 out vec3 color;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
+#endif
 void main() {
     color = vec3(1.0, 1.0, 1.0) * dot(normalize(vp), normalize(vn)) * 0.5;
     color += vec3(0.2, 0.5, 0.8);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(vp, 1.0);
 }
-#endif
 ]]
 
 FRAGMENT_SHADER = [[
@@ -32,7 +27,7 @@ FRAGMENT_SHADER = [[
 precision mediump float;
 varying vec3 color;
 void main() {
-    gl_FragColor = vec4(color.r,color.g,color.b, 0.95);
+    gl_FragColor = vec4(color.r,color.g,color.b, 0.5);
 }
 
 #else

@@ -189,7 +189,7 @@ void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
     NGL_CHECK_ERROR();
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     NGL_CHECK_ERROR();
 }
 
@@ -586,26 +586,31 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
 
     GLuint a_vp = glGetAttribLocation(shader->program, "vp");
-    GLuint a_vn = glGetAttribLocation(shader->program, "vn");
     glEnableVertexAttribArray(a_vp);
     glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
     glVertexAttribPointer(a_vp, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     NGL_CHECK_ERROR();
-
+/*
+if(model->normal_vbo) {
+    GLuint a_vn = glGetAttribLocation(shader->program, "vn");
     glEnableVertexAttribArray(a_vn);
     glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
     glVertexAttribPointer(a_vn, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     NGL_CHECK_ERROR();
-/*
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, model->uv_vbo);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    NGL_CHECK_ERROR();
+}
 */
+
+if(model->uv_vbo) {
+    GLuint a_vt = glGetAttribLocation(shader->program, "vt");
+    glEnableVertexAttribArray(a_vt);
+    glBindBuffer(GL_ARRAY_BUFFER, model->uv_vbo);
+    glVertexAttribPointer(a_vt, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    NGL_CHECK_ERROR();
+}
     glDrawArrays(shader->draw_mode, 0, model->point_count);
     NGL_CHECK_ERROR();
 
-
     glUseProgram(0);
     NGL_CHECK_ERROR();
+
 }

@@ -1,32 +1,47 @@
 -- Visualize FFT data as a texture
 
 VERTEX_SHADER = [[
+#ifdef GL_ES
+attribute vec3 vp;
+attribute vec3 vn;
+attribute vec2 vt;
+
+varying vec3 color;
+varying vec2 texCoord;
+
+#else 
 #version 400
 layout (location = 0) in vec3 vp;
 layout (location = 1) in vec3 vn;
 layout (location = 2) in vec2 vt;
 out vec3 color;
 out vec2 texCoord;
+#endif
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
     texCoord = vt;
-    gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
+    gl_Position = vec4(vp.x, vp.z, 0, 1.0);
 }
 ]]
 
 FRAGMENT_SHADER = [[
+#ifdef GL_ES
+precision mediump float;
+varying vec3 color;
+varying vec2 texCoord;
+
+#else
 #version 400
 in vec3 color;
 in vec2 texCoord;
+#endif
 uniform sampler2D uTexture;
-layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r;
-    float g = texture(uTexture, texCoord).g;
-    float v = sqrt(r * r + g * g) * 0.1;
-    fragColor = vec4(v, v, v, 0.95);
+    vec4 r = texture2D(uTexture, texCoord);
+    float v = sqrt(r.r * r.r + r.g * r.g) * 0.1;
+    gl_FragColor = vec4(v, v, v, 0.95);
 }
 ]]
 
