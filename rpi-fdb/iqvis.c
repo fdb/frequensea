@@ -112,7 +112,7 @@ static void setup_rtl() {
     status = rtlsdr_open(&device, 0);
     RTL_CHECK_STATUS(device, status, "rtlsdr_open");
 
-    status = rtlsdr_set_sample_rate(device, 2e6);
+    status = rtlsdr_set_sample_rate(device, 3200000);
     RTL_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
 
     // Set auto-gain mode
