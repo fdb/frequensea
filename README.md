@@ -38,6 +38,9 @@
     sudo make install
     sudo ldconfig
 
+    # Disable default kernel driver
+    sudo modprobe -r dvb_usb_rtl28xxu
+
 ## Building
 
     mkdir build
