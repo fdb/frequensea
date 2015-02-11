@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(frequensea)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99  -g ")
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
-pkg_search_module(GLEW REQUIRED glew)
 pkg_search_module(OPENAL REQUIRED openal)
 
 add_subdirectory(externals/lua)
 
 include_directories(src)
+include_directories(/opt/vc/include)
+include_directories(/opt/vc/include/interface/vcos/pthreads/)
+include_directories(/opt/vc/include/interface/vmcs_host/linux/)
 include_directories(externals/ovr/include)
 include_directories(externals/lua/src)
 include_directories(externals/stb)
 include_directories(${GLFW_INCLUDE_DIRS})
-include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${OPENAL_INCLUDE_DIRS})
 
 find_library(LIBRARY_MATH m)
@@ -24,8 +24,7 @@ find_library(LIBRARY_FFTW fftw3)
 find_library(LIBRARY_HACKRF hackrf)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
-find_library(LIBRARY_GLEW glew)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
+set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} -L/opt/vc/lib -lGLESv2 -lEGL -lm  -lrt  -lbcm_host -lvcos -lvchiq_arm -lpthread)
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
@@ -62,4 +61,4 @@ endif (APPLE)
 
 
 add_executable(frequensea ${SOURCE_FILES})
-target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLFW_STATIC_LIBRARIES} ${GLEW_LIBRARIES} ${OPENAL_LIBRARIES})
+target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLFW_STATIC_LIBRARIES}  ${OPENAL_LIBRARIES})

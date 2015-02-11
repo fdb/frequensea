@@ -6,9 +6,13 @@
 #ifdef __APPLE__
 #   define GLFW_INCLUDE_GLCOREARB
 #else
-    #include <GL/glew.h>
 #endif
-#include <GLFW/glfw3.h>
+
+#include "bcm_host.h"
+#include "GLES2/gl2.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+
 
 #include "vec.h"
 

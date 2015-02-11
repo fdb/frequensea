@@ -515,30 +515,8 @@ static void _take_screenshot(screenshot_info *info) {
 }
 
 static void take_screenshot(nwm_window *window, const char *fname) {
-    screenshot_info *info = calloc(1, sizeof(screenshot_info));
-    if (fname != NULL) {
-        info->fname = calloc(strlen(fname), sizeof(char));
-        strcpy(info->fname, fname);
-    }
-
-    // Capture the OpenGL framebuffer. Do this in the current thread.
-    glfwGetFramebufferSize(window, &info->width, &info->height);
-    int buffer_channels = 3;
-    int buffer_size = info->width * info->height * buffer_channels;
-    info->buffer = calloc(buffer_size, sizeof(uint8_t));
-    glReadPixels(0, 0, info->width, info->height, GL_RGB, GL_UNSIGNED_BYTE, info->buffer);
-
-    // If there is a current frequency, retrieve it.
-    lua_State *L = nwm_window_get_user_data(window);
-    if (L) {
-        lua_getglobal(L, "freq");
-        if (lua_isnumber(L, -1)) {
-            info->freq = lua_tonumber(L, -1);
-        }
-    }
-
-    // Create a new thread to save the screenshot.
-    pthread_create(&info->thread, NULL, (void *(*)(void *))_take_screenshot, info);
+        fprintf(stderr, "Screenshot not implemented.\n");
+        exit(1);
 }
 
 #ifdef WITH_OVR
@@ -551,22 +529,6 @@ static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
 #endif
 
 static void on_key(nwm_window* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        if (key == GLFW_KEY_ESCAPE) {
-            glfwSetWindowShouldClose(window, GL_TRUE);
-        } else if (key == GLFW_KEY_EQUAL) {
-            take_screenshot(window, NULL);
-        }
-        if (use_vr) {
-#ifdef WITH_OVR
-            static ovrHSWDisplayState hswDisplayState;
-            ovrHmd_GetHSWDisplayState(device->hmd, &hswDisplayState);
-            if (hswDisplayState.Displayed) {
-                ovrHmd_DismissHSWDisplay(device->hmd);
-                return;
-            }
-#endif
-        }
         lua_State *L = nwm_window_get_user_data(window);
         if (L) {
             lua_getglobal(L, "on_key");
@@ -582,7 +544,7 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
                 lua_pop(L, 1);
             }
         }
-    }
+    
 }
 
 // Initializes Lua
@@ -691,6 +653,7 @@ int main(int argc, char **argv) {
     nwm_init();
     nwm_window *window = NULL;
     if (use_vr) {
+
 #ifdef WITH_OVR
         device = nvr_device_init();
         window = nvr_device_window_init(device);
@@ -702,7 +665,7 @@ int main(int argc, char **argv) {
     } else {
         window = nwm_window_init(0, 0, window_width, window_height);
     }
-    assert(window);
+    //assert(window);
     nwm_window_set_user_data(window, L);
     nwm_window_set_key_callback(window, on_key);
 

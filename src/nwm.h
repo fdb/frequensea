@@ -4,9 +4,10 @@
 #ifdef __APPLE__
 #   define GLFW_INCLUDE_GLCOREARB
 #else
-    #include <GL/glew.h>
 #endif
-#include <GLFW/glfw3.h>
+
+
+
 
 #ifdef __APPLE__
     #define GLFW_EXPOSE_NATIVE_COCOA
@@ -17,9 +18,8 @@
     #define GLFW_EXPOSE_NATIVE_GLX
 #endif
 
-#include <GLFW/glfw3native.h>
 
-typedef GLFWwindow nwm_window;
+typedef int nwm_window;
 
 typedef void (*nwm_key_cb_fn)(nwm_window *window, int key, int scancode, int action, int mods);
 

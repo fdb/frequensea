@@ -63,6 +63,7 @@ ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha) {
 void ngl_clear(float red, float green, float blue, float alpha) {
     glClearColor(red, green, blue, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    NGL_CHECK_ERROR();
 }
 
 // Shaders ///////////////////////////////////////////////////////////////////
@@ -171,9 +172,11 @@ ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name) {
 void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int channels, const float *data) {
     GLint format;
     if (channels == 1) {
-        format = GL_RED;
+        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
+        exit(1);
     } else if (channels == 2) {
-        format = GL_RG;
+        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
+        exit(1);
     } else if (channels == 3) {
         format = GL_RGB;
     } else if (channels == 4) {
@@ -230,8 +233,6 @@ ngl_model* ngl_model_new(int component_count, int point_count, float* positions,
         model->uv_vbo = -1;
     }
 
-    glGenVertexArrays(1, &model->vao);
-    glBindVertexArray(model->vao);
 
     if (positions != NULL) {
         glEnableVertexAttribArray(0);
@@ -405,17 +406,6 @@ ngl_model* ngl_model_load_obj(const char* fname) {
     glBufferData(GL_ARRAY_BUFFER, model->point_count * 3 * sizeof(GLfloat), normals, GL_DYNAMIC_DRAW);
     NGL_CHECK_ERROR();
 
-    // Vertex array object
-    // FIXME glUseProgram?
-    glGenVertexArrays(1, &model->vao);
-    glBindVertexArray(model->vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    NGL_CHECK_ERROR();
 
     return model;
 }
@@ -429,7 +419,7 @@ void ngl_model_free(ngl_model *model) {
     glDeleteBuffers(1, &model->position_vbo);
     glDeleteBuffers(1, &model->normal_vbo);
     glDeleteBuffers(1, &model->uv_vbo);
-    glDeleteVertexArrays(1, &model->vao);
+    //glDeleteVertexArrays(1, &model->vao);
     free(model);
 }
 
@@ -522,8 +512,8 @@ ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top,
     glBindBuffer(GL_ARRAY_BUFFER, skybox->vbo);
     glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof (float), &points, GL_STATIC_DRAW);
 
-    glGenVertexArrays(1, &skybox->vao);
-    glBindVertexArray(skybox->vao);
+    //glGenVertexArrays(1, &skybox->vao);
+    //glBindVertexArray(skybox->vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, skybox->vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -538,7 +528,6 @@ ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top,
     _ngl_skybox_load_side(skybox->texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X, right);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -560,7 +549,7 @@ void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera) {
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->texture);
     NGL_CHECK_ERROR();
-    glBindVertexArray(skybox->vao);
+    //glBindVertexArray(skybox->vao);
     NGL_CHECK_ERROR();
     glDrawArrays(GL_TRIANGLES, 0, 36);
     NGL_CHECK_ERROR();
@@ -570,7 +559,7 @@ void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera) {
 
 void ngl_skybox_free(ngl_skybox *skybox) {
     glDeleteBuffers(1, &skybox->vbo);
-    glDeleteVertexArrays(1, &skybox->vao);
+    //glDeleteVertexArrays(1, &skybox->vao);
     glDeleteTextures(1, &skybox->texture);
     ngl_shader_free(skybox->shader);
     free(skybox);
@@ -596,13 +585,27 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     glUniformMatrix4fv(shader->projection_matrix_uniform, 1, GL_FALSE, (GLfloat *)&projection.m);
     NGL_CHECK_ERROR();
 
-    glBindVertexArray(model->vao);
+    GLuint a_vp = glGetAttribLocation(shader->program, "vp");
+    GLuint a_vn = glGetAttribLocation(shader->program, "vn");
+    glEnableVertexAttribArray(a_vp);
+    glBindBuffer(GL_ARRAY_BUFFER, model->position_vbo);
+    glVertexAttribPointer(a_vp, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     NGL_CHECK_ERROR();
+
+    glEnableVertexAttribArray(a_vn);
+    glBindBuffer(GL_ARRAY_BUFFER, model->normal_vbo);
+    glVertexAttribPointer(a_vn, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    NGL_CHECK_ERROR();
+/*
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, model->uv_vbo);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    NGL_CHECK_ERROR();
+*/
     glDrawArrays(shader->draw_mode, 0, model->point_count);
     NGL_CHECK_ERROR();
 
-    glBindVertexArray(0);
-    NGL_CHECK_ERROR();
+
     glUseProgram(0);
     NGL_CHECK_ERROR();
 }
