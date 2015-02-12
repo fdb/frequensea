@@ -37,7 +37,7 @@ void main() {
 
 function setup()
     freq = 433
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+    device = nrf_device_new_with_config({freq_mhz=freq, data_file="../rfdata/rf-200.500-big.raw", fft_size=1024, fft_history_size=1024})
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
