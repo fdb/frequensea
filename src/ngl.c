@@ -166,6 +166,16 @@ ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name) {
     return texture;
 }
 
+ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader, const char *uniform_name) {
+    int width, height, channels;
+    uint8_t *image_data = stbi_load(file_name, &width, &height, &channels, 4);
+    ngl_texture *texture = ngl_texture_new(shader, uniform_name);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    NGL_CHECK_ERROR();
+    free(image_data);
+    return texture;
+}
+
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
 void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int channels, const float *data) {

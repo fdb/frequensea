@@ -57,6 +57,9 @@ This function returns a model object that can be used in `ngl_draw_model`.
 ## ngl_texture_new(shader, uniform_name)
 Create an empty texture object. The name refers to the texture uniform name in the shader. Returns a texture object.
 
+ngl_texture_new_from_file(file_name, shader, uniform_name)
+Create a texture object from an image file. The name refers to the texture uniform name in the shader. Returns a texture object.
+
 ## ngl_texture_update(texture, width, height, channels data)
 Set the texture data. `texture` is the texture object returned by `ngl_texture_new.` `channels` is the number of color channels (1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a). `width` and `height` refer to texture size. Ideally, these are powers of two (e.g. 256, 512, 1024). `data` is a buffer containing floating-point values. We assume data has `width * height * channels` floats. If the data is too small, the program will crash.
 

@@ -179,6 +179,15 @@ static int l_ngl_texture_new(lua_State *L) {
     return 1;
 }
 
+static int l_ngl_texture_new_from_file(lua_State *L) {
+    const char *file_name = lua_tostring(L, 1);
+    ngl_shader *shader = l_to_ngl_shader(L, 2);
+    const char *uniform_name = lua_tostring(L, 3);
+    ngl_texture *texture = ngl_texture_new_from_file(file_name, shader, uniform_name);
+    l_to_table(L, "ngl_texture", texture);
+    return 1;
+}
+
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
     int width = luaL_checkinteger(L, 2);
@@ -596,6 +605,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
     l_register_function(L, "ngl_texture_new", l_ngl_texture_new);
+    l_register_function(L, "ngl_texture_new_from_file", l_ngl_texture_new_from_file);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_new", l_ngl_model_new);
     l_register_function(L, "ngl_model_new_grid_points", l_ngl_model_new_grid_points);
