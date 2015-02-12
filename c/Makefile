@@ -38,10 +38,10 @@ iqvis-rtl: iqvis-rtl.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I/usr/local/include `pkg-config --cflags libpng librtlsdr glfw3 glew` -o iqvis-rtl iqvis-rtl.c -L/usr/local/lib `pkg-config --libs --static libpng librtlsdr glfw3 glew`
 
 demod-fm: demod-fm.c
-	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o demod-fm demod-fm.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -framework OpenAL -o demod-fm demod-fm.c
 
 demod-fm-streaming: demod-fm-streaming.c
-	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -l sndfile -framework OpenAL -o demod-fm-streaming demod-fm-streaming.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -framework OpenAL -o demod-fm-streaming demod-fm-streaming.c
 
 play: play.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l sndfile -framework OpenAL -o play play.c

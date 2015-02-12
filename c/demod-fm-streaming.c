@@ -11,7 +11,6 @@
 #include <OpenAL/alc.h>
 
 #include <libhackrf/hackrf.h>
-#include <sndfile.h>
 
 const double TAU = M_PI * 2;
 const int IN_SAMPLE_RATE = 10e6;
