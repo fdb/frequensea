@@ -215,9 +215,9 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rat
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
     sample_rate = sample_rate != 0 ? sample_rate : RTLSDR_DEFAULT_SAMPLE_RATE;
-    status = rtlsdr_set_sample_rate(dev, RTLSDR_DEFAULT_SAMPLE_RATE);
+    status = rtlsdr_set_sample_rate(dev, sample_rate);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
-    device->sample_rate = RTLSDR_DEFAULT_SAMPLE_RATE;
+    device->sample_rate = sample_rate;
 
     // Set auto-gain mode
     status = rtlsdr_set_tuner_gain_mode(dev, 0);
@@ -318,6 +318,7 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // instead.
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step) {
     nrf_device_config config;
+    memset(&config, 0, sizeof(nrf_device_config));
     config.freq_mhz = freq_mhz;
     config.data_file = data_file;
     config.interpolate_step = interpolate_step;
@@ -325,7 +326,7 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpo
 }
 
 nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
-    double freq_mhz = config.freq_mhz != 0 ? config.freq_mhz : 100;
+    double freq_mhz = config.freq_mhz > 0.1 ? config.freq_mhz : 100;
     const char *data_file = config.data_file != 0 ? config.data_file : NULL;
     float interpolate_step = config.interpolate_step;
     int sample_rate = config.sample_rate;

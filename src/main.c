@@ -356,6 +356,42 @@ static int l_nrf_device_new(lua_State *L) {
     return 1;
 }
 
+static double l_table_integer(lua_State *L, int table_index, const char *key, int _default) {
+    lua_getfield(L, table_index, key);
+    int is_num;
+    int v = lua_tointegerx(L, -1, &is_num);
+    return is_num ? v : _default;
+}
+
+static double l_table_double(lua_State *L, int table_index, const char *key, double _default) {
+    lua_getfield(L, table_index, key);
+    int is_num;
+    double v = lua_tonumberx(L, -1, &is_num);
+    return is_num ? v : _default;
+}
+
+static const char *l_table_string(lua_State *L, int table_index, const char *key, const char *_default) {
+    lua_getfield(L, table_index, key);
+    if (lua_isstring(L, -1)) {
+        return lua_tostring(L, -1);
+    } else {
+        return _default;
+    }
+}
+
+static int l_nrf_device_new_with_config(lua_State *L) {
+    nrf_device_config config;
+    if (lua_istable(L, 1)) {
+        config.freq_mhz = l_table_double(L, 1, "freq_mhz", 0);
+        config.data_file = l_table_string(L, 1, "data_file", NULL);
+        config.interpolate_step = l_table_double(L, 1, "interpolate_step", 1);
+        config.sample_rate = l_table_integer(L, 1, "sample_rate", 0);
+    }
+    nrf_device *device = nrf_device_new_with_config(config);
+    l_to_table(L, "nrf_device", device);
+    return 1;
+}
+
 static int l_nrf_device_free(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     nrf_device_free(device);
@@ -617,6 +653,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
+    l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
     l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
