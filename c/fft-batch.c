@@ -52,6 +52,7 @@ static void hackrf_check_status(int status, const char *message, const char *fil
 #define HACKRF_CHECK_STATUS(status, message) hackrf_check_status(status, message, __FILE__, __LINE__)
 
 int receive_sample_block(hackrf_transfer *transfer) {
+    int local_frequency = frequency;
     if (skip > 0) {
         skip--;
         return 0;
@@ -92,7 +93,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
             }
         }
         char file_name[100];
-        snprintf(file_name, 100, "fft-%.4f.png", frequency / 1.0e6);
+        snprintf(file_name, 100, "fft-%.4f.png", local_frequency / 1.0e6);
         write_gray_png(file_name, FFT_SIZE, FFT_HISTORY_SIZE, buffer);
         free(buffer);
     }
