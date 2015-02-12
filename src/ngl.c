@@ -169,6 +169,10 @@ ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name) {
 ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader, const char *uniform_name) {
     int width, height, channels;
     uint8_t *image_data = stbi_load(file_name, &width, &height, &channels, 4);
+    if (!image_data) {
+        fprintf (stderr, "ERROR: could not load texture %s\n", file_name);
+        exit(1);
+    }
     ngl_texture *texture = ngl_texture_new(shader, uniform_name);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
     NGL_CHECK_ERROR();
