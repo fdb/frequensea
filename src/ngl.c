@@ -189,6 +189,15 @@ void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
     NGL_CHECK_ERROR();
+
+    // rewrite buffer to unsigned byte (OpenGLES can't handle GL_RGB GL_FLOAT buffer..)
+    //
+    for(int i=0; i<(channels * width * height); i++){
+       float e_f = *( (float *) data + i);
+       uint8_t e_i = 16.0*e_f;
+       *( (uint8_t *) data + i) = e_i;
+    }
+
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     NGL_CHECK_ERROR();
 }
