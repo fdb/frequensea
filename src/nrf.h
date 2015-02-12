@@ -35,6 +35,13 @@ void nrf_buffer_free(nrf_buffer *buffer);
 
 // Device
 
+typedef struct {
+    double freq_mhz;
+    const char* data_file;
+    float interpolate_step;
+    int sample_rate;
+} nrf_device_config;
+
 typedef enum {
     NRF_DEVICE_DUMMY = 0,
     NRF_DEVICE_RTLSDR,
@@ -77,6 +84,7 @@ struct nrf_device {
 };
 
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step);
+nrf_device *nrf_device_new_with_config(nrf_device_config config);
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_set_paused(nrf_device *device, int paused);

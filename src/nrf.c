@@ -201,7 +201,7 @@ static void *_nrf_dummy_receive_loop(nrf_device *device) {
 
 static const int RTLSDR_DEFAULT_SAMPLE_RATE = 2e6;
 
-static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
+static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
 
     status = rtlsdr_open((rtlsdr_dev_t**)&device->device, 0);
@@ -214,7 +214,8 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
-    status = rtlsdr_set_sample_rate(dev, 2e6);
+    sample_rate = sample_rate != 0 ? sample_rate : RTLSDR_DEFAULT_SAMPLE_RATE;
+    status = rtlsdr_set_sample_rate(dev, RTLSDR_DEFAULT_SAMPLE_RATE);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
     device->sample_rate = RTLSDR_DEFAULT_SAMPLE_RATE;
 
@@ -240,7 +241,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
 static const int HACKRF_DEFAULT_SAMPLE_RATE = 5e6;
 
-static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
+static int _nrf_hackrf_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
 
     status = hackrf_init();
@@ -259,9 +260,10 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     status = hackrf_set_freq(dev, freq_mhz * 1e6);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(dev, HACKRF_DEFAULT_SAMPLE_RATE);
+    sample_rate = sample_rate != 0 ? sample_rate : HACKRF_DEFAULT_SAMPLE_RATE;
+    status = hackrf_set_sample_rate(dev, sample_rate);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_sample_rate");
-    device->sample_rate = HACKRF_DEFAULT_SAMPLE_RATE;
+    device->sample_rate = sample_rate;
 
     status = hackrf_set_amp_enable(dev, 0);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_amp_enable");
@@ -315,6 +317,19 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step) {
+    nrf_device_config config;
+    config.freq_mhz = freq_mhz;
+    config.data_file = data_file;
+    config.interpolate_step = interpolate_step;
+    return nrf_device_new_with_config(config);
+}
+
+nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
+    double freq_mhz = config.freq_mhz != 0 ? config.freq_mhz : 100;
+    const char *data_file = config.data_file != 0 ? config.data_file : NULL;
+    float interpolate_step = config.interpolate_step;
+    int sample_rate = config.sample_rate;
+
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
 
@@ -332,9 +347,9 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpo
     memset(device->fft, 0, sizeof(vec3) * FFT_SIZE * FFT_HISTORY_SIZE);
 
     // Try to find a suitable hardware device, fall back to data file.
-    status = _nrf_rtlsdr_start(device, freq_mhz);
+    status = _nrf_rtlsdr_start(device, freq_mhz, sample_rate);
     if (status != 0) {
-        status = _nrf_hackrf_start(device, freq_mhz);
+        status = _nrf_hackrf_start(device, freq_mhz, sample_rate);
         if (status != 0) {
             status = _nrf_dummy_start(device, data_file);
             if (status != 0) {
@@ -345,6 +360,8 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpo
 
     return device;
 }
+
+
 
 // Change the frequency to the given frequency, in MHz.
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
