@@ -11,12 +11,12 @@
 
 // Stitch FFT sweeps PNG
 
-const uint32_t FFT_SIZE = 4096;
-const uint32_t FFT_HISTORY_SIZE = 1024;
-const uint64_t FREQUENCY_START = 800e6;
-const uint64_t FREQUENCY_END = 1000e6;
-const uint32_t FREQUENCY_STEP = 3e6;
-const uint32_t SAMPLE_RATE = 10e6;
+const uint32_t FFT_SIZE = 1024;
+const uint32_t FFT_HISTORY_SIZE = 200;
+const uint64_t FREQUENCY_START = 90e6;
+const uint64_t FREQUENCY_END = 100e6;
+const uint32_t FREQUENCY_STEP = 2e6;
+const uint32_t SAMPLE_RATE = 5e6;
 const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
 
 void img_gray_copy(uint8_t *dst, uint8_t *src, uint32_t dst_x, uint32_t dst_y, uint32_t src_x, uint32_t src_y, uint32_t width, uint32_t height, uint32_t dst_stride, uint32_t src_stride) {
