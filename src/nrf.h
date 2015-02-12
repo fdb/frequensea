@@ -17,8 +17,8 @@
 
 #define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
-#define FFT_SIZE 128
-#define FFT_HISTORY_SIZE 128
+#define DEFAULT_FFT_SIZE 128
+#define DEFAULT_FFT_HISTORY_SIZE 128
 
 // Buffer
 
@@ -40,6 +40,8 @@ typedef struct {
     const char* data_file;
     float interpolate_step;
     int sample_rate;
+    int fft_size;
+    int fft_history_size;
 } nrf_device_config;
 
 typedef enum {
@@ -77,7 +79,9 @@ struct nrf_device {
     float samples[NRF_SAMPLES_SIZE * 3];
     float iq[256 * 256];
 
-    vec3 fft[FFT_SIZE * FFT_HISTORY_SIZE];
+    int fft_size;
+    int fft_history_size;
+    vec3 *fft;
     fftw_complex *fft_in;
     fftw_complex *fft_out;
     fftw_plan fft_plan;

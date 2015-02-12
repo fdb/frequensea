@@ -133,10 +133,10 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
 
     fftw_execute(device->fft_plan);
     // Move the previous lines down
-    memcpy((char *)&device->fft + FFT_SIZE * sizeof(vec3), &device->fft, FFT_SIZE * (FFT_HISTORY_SIZE - 1) * sizeof(vec3));
+    memcpy(device->fft + device->fft_size, device->fft, device->fft_size * (device->fft_history_size - 1) * sizeof(vec3));
     // Set the first line
-    for (int i = 0; i < FFT_SIZE; i++) {
-        float buffer_pos = i / (float) FFT_SIZE;
+    for (int i = 0; i < device->fft_size; i++) {
+        float buffer_pos = i / (float) device->fft_size;
         fftw_complex *out = device->fft_out;
         device->fft[i] = vec3_init(out[i][0], out[i][1], buffer_pos);
     }
@@ -330,6 +330,8 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
     const char *data_file = config.data_file != 0 ? config.data_file : NULL;
     float interpolate_step = config.interpolate_step;
     int sample_rate = config.sample_rate;
+    int fft_size = config.fft_size != 0 ? config.fft_size : DEFAULT_FFT_SIZE;
+    int fft_history_size = config.fft_history_size != 0 ? config.fft_history_size : DEFAULT_FFT_HISTORY_SIZE;
 
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
@@ -342,10 +344,13 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
     device->t_step = interpolate_step;
 
     memset(device->samples, 0, NRF_SAMPLES_SIZE * 3 * sizeof(float));
+
+    device->fft_size = fft_size;
+    device->fft_history_size = fft_history_size;
     device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
     device->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
-    device->fft_plan = fftw_plan_dft_1d(FFT_SIZE, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
-    memset(device->fft, 0, sizeof(vec3) * FFT_SIZE * FFT_HISTORY_SIZE);
+    device->fft_plan = fftw_plan_dft_1d(fft_size, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
+    device->fft = calloc(fft_size * fft_history_size, sizeof(vec3));
 
     // Try to find a suitable hardware device, fall back to data file.
     status = _nrf_rtlsdr_start(device, freq_mhz, sample_rate);
@@ -409,7 +414,7 @@ nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
 
 nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(FFT_SIZE, FFT_HISTORY_SIZE, 3, (float *) device->fft);
+    nrf_buffer *buffer = nrf_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }

@@ -381,11 +381,14 @@ static const char *l_table_string(lua_State *L, int table_index, const char *key
 
 static int l_nrf_device_new_with_config(lua_State *L) {
     nrf_device_config config;
+    memset(&config, 0, sizeof(nrf_device_config));
     if (lua_istable(L, 1)) {
         config.freq_mhz = l_table_double(L, 1, "freq_mhz", 0);
         config.data_file = l_table_string(L, 1, "data_file", NULL);
         config.interpolate_step = l_table_double(L, 1, "interpolate_step", 1);
         config.sample_rate = l_table_integer(L, 1, "sample_rate", 0);
+        config.fft_size = l_table_integer(L, 1, "fft_size", 0);
+        config.fft_history_size = l_table_integer(L, 1, "fft_history_size", 0);
     }
     nrf_device *device = nrf_device_new_with_config(config);
     l_to_table(L, "nrf_device", device);
