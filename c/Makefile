@@ -4,6 +4,9 @@ reader: reader.c
 sender: sender.c
 	gcc -I /usr/local/include -L /usr/local/lib -l hackrf -o sender sender.c
 
+tv-sender: tv-sender.c
+	gcc -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -o tv-sender tv-sender.c
+
 vis: vis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o vis vis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
