@@ -11,6 +11,9 @@
 #include <fcntl.h>
 #include <termios.h>
 
+#include <sys/time.h>
+#include <time.h>
+
 #include "nwm.h"
 
 EGL_DISPMANX_WINDOW_T window;
@@ -25,8 +28,23 @@ static void _nwm_on_error(int error, const char* message) {
     exit(EXIT_FAILURE);
 }
 
+static struct termios ios_old, ios_new;
+
 void nwm_init() {
     bcm_host_init();
+
+    // keyb input
+    //
+    tcgetattr(STDIN_FILENO, &ios_old);
+    tcgetattr(STDIN_FILENO, &ios_new);
+    cfmakeraw(&ios_new);
+    tcsetattr(STDIN_FILENO, 0, &ios_new);
+    fcntl(0, F_SETFL, O_NONBLOCK);
+
+
+}
+
+nwm_window *nwm_window_init(int x, int y, int width, int height) {
 
     EGLBoolean result;
 
@@ -99,28 +117,32 @@ void nwm_init() {
     result = eglMakeCurrent(display, surface, surface, context);
     assert(result != EGL_FALSE);
     printf("ok\n");
-}
 
-nwm_window *nwm_window_init(int x, int y, int width, int height) {
-    nwm_window* window;
-    return (nwm_window*) window;
+    return (nwm_window*) &window;
 }
 
 void nwm_window_destroy(nwm_window* window) {
+  // nothing to do on bcm
 }
 
 int nwm_window_should_close(nwm_window* window) {
     return 0;
 }
 
+static nwm_key_cb_fn on_key_callback;
+
 void nwm_window_set_key_callback(nwm_window *window, nwm_key_cb_fn callback) {
+  on_key_callback = callback;
 }
 
+static void * user_data;
+
 void nwm_window_set_user_data(nwm_window *window, void *data) {
+   user_data = data;
 }
 
 void *nwm_window_get_user_data(nwm_window *window) {
-    return window;
+    return user_data;
 }
 
 void nwm_window_swap_buffers(nwm_window* window) {
@@ -128,10 +150,26 @@ void nwm_window_swap_buffers(nwm_window* window) {
 }
 
 void nwm_poll_events() {
+
+  // check for keyboard input
+  int k = 0; 
+  while (( k = getchar() ) != -1) {
+    (*on_key_callback)((nwm_window*)&window,k,0,0,0) ;
+  }
 }
 
 void nwm_terminate() {
+      // reset stdin termios (keyb input)
+      //
+      tcsetattr(STDIN_FILENO, 0, &ios_old);
 }
 
 double nwm_get_time() {
+ struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  double time_resolution  = 1e-6;
+  uint64_t raw_time = (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
+  
+  return  ( (double) raw_time * time_resolution);
 }

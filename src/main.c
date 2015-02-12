@@ -544,7 +544,6 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
                 lua_pop(L, 1);
             }
         }
-    
 }
 
 // Initializes Lua
