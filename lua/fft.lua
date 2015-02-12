@@ -25,14 +25,18 @@ layout (location = 0) out vec4 fragColor;
 void main() {
     float r = texture(uTexture, texCoord).r;
     float g = texture(uTexture, texCoord).g;
-    float v = sqrt(r * r + g * g) * 0.1;
+    float pwr = r * r + g * g;
+    float pwr_dbfs = 10.0 * log2(pwr + 1.0e-20) / log2(2.7182818284);
+
+    //float v = sqrt(r * r + g * g) * 0.1;
+    float v = pwr_dbfs * 0.02;
     fragColor = vec4(v, v, v, 0.95);
 }
 ]]
 
 
 function setup()
-    freq = 97
+    freq = 433
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
