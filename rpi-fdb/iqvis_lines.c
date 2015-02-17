@@ -484,23 +484,23 @@ int main(void) {
             case 0x03:      /* Ctrl+c */
             case 0x1b:      /* ESC */
                 printf("\r\nexit\r\n");
-                            goto end;
-            case '<':
-                            freq_mhz-=.1;
-                            set_frequency();
-                            break;
-            case '>':
-                            freq_mhz+=.1;
-                            set_frequency();
-                            break;
-        case '-':
-            intensity--;
-            printf("Intensity: %d\n", intensity);
-            break;
-        case '=':
-            intensity++;
-            printf("Intensity: %d\n", intensity);
-            break;
+                goto end;
+            case '[':
+                freq_mhz-=.1;
+                set_frequency();
+                break;
+            case ']':
+                freq_mhz+=.1;
+                set_frequency();
+                break;
+            case '-':
+                intensity--;
+                printf("Intensity: %d\n", intensity);
+                break;
+            case '=':
+                intensity++;
+                printf("Intensity: %d\n", intensity);
+                break;
        }
        prepare();
        update();
