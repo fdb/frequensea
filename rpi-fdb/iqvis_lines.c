@@ -71,7 +71,7 @@ void pixel_inc(uint8_t *image_buffer, int x, int y) {
     int v = image_buffer[offset];
     if (v + line_intensity >= 255) {
         if (!have_warned) {
-            fprintf(stderr, "WARN: pixel value out of range (%d, %d)\n", x, y);
+            fprintf(stderr, "WARN: pixel value out of range (%d, %d)\r\n", x, y);
             have_warned = 1;
         }
     } else {
@@ -101,7 +101,7 @@ void draw_line(uint8_t *image_buffer, int x1, int y1, int x2, int y2, int color)
 
 void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, const char *file, int line) {
     if (status != 0) {
-        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\n", message, status, file, line);
+        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\r\n", message, status, file, line);
         if (device != NULL) {
             rtlsdr_close(device);
         }
@@ -137,7 +137,7 @@ void *_receive_loop(rtlsdr_dev_t *device) {
         RTL_CHECK_STATUS(device, status, "rtlsdr_read_sync");
 
         if (n_read < rtl_buffer_length) {
-            fprintf(stderr, "Short read, samples lost, exiting!\n");
+            fprintf(stderr, "Short read, samples lost, exiting!\r\n");
             exit(EXIT_FAILURE);
         }
 
@@ -153,12 +153,12 @@ static void setup_rtl() {
 
     int device_count = rtlsdr_get_device_count();
     if (device_count == 0) {
-        fprintf(stderr, "RTL-SDR: No devices found.\n");
+        fprintf(stderr, "RTL-SDR: No devices found.\r\n");
         exit(EXIT_FAILURE);
     }
 
     const char *device_name = rtlsdr_get_device_name(0);
-    printf("Device %s\n", device_name);
+    printf("Device %s\r\n", device_name);
 
     status = rtlsdr_open(&device, 0);
     RTL_CHECK_STATUS(device, status, "rtlsdr_open");
@@ -179,9 +179,9 @@ static void setup_rtl() {
     status = rtlsdr_reset_buffer(device);
     RTL_CHECK_STATUS(device, status, "rtlsdr_reset_buffer");
 
-    printf("Start\n");
+    printf("Start\r\n");
     pthread_create(&receive_thread, NULL, (void *(*)(void *))_receive_loop, device);
-    printf("Running\n");
+    printf("Running\r\n");
 
 }
 
@@ -197,12 +197,12 @@ static void teardown_rtl() {
 
     rtl_should_quit = 1;
 
-    printf("pthread_join\n");
+    printf("pthread_join\r\n");
     pthread_join(receive_thread, NULL);
 
-    printf("rtlsdr_close\n");
+    printf("rtlsdr_close\r\n");
     status = rtlsdr_close(device);
-    //printf("Closed\n");
+    //printf("Closed\r\n");
     RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
@@ -220,20 +220,20 @@ void ngl_check_gl_error(const char *file, int line) {
             break;
             case GL_INVALID_ENUM:
             msg = "GL_INVALID_ENUM";
-            fprintf(stderr, "OpenGL error: GL_INVALID_ENUM\n");
+            fprintf(stderr, "OpenGL error: GL_INVALID_ENUM\r\n");
             break;
             case GL_INVALID_VALUE:
             msg = "GL_INVALID_VALUE";
-            fprintf(stderr, "OpenGL error: GL_INVALID_VALUE\n");
+            fprintf(stderr, "OpenGL error: GL_INVALID_VALUE\r\n");
             break;
             case GL_OUT_OF_MEMORY:
             msg = "GL_OUT_OF_MEMORY";
-            fprintf(stderr, "OpenGL error: GL_OUT_OF_MEMORY\n");
+            fprintf(stderr, "OpenGL error: GL_OUT_OF_MEMORY\r\n");
             break;
             default:
             msg = "UNKNOWN_ERROR";
         }
-        fprintf(stderr, "OpenGL error: %s - %s:%d\n", msg, file, line);
+        fprintf(stderr, "OpenGL error: %s - %s:%d\r\n", msg, file, line);
         err = glGetError();
     }
     if (has_error) {
@@ -251,7 +251,7 @@ static void check_shader_error(GLuint shader) {
     if (length > 0) {
         char message[length];
         glGetShaderInfoLog(shader, length, NULL, message);
-        printf("%s\n", message);
+        printf("%s\r\n", message);
     }
 }
 
@@ -293,28 +293,28 @@ static void setup() {
     //NGL_CHECK_ERROR();
 
     const char *vertex_shader_source =
-        "#ifdef GL_ES\n"
-        "precision mediump float;\n"
-        "#endif\n"
-        "attribute vec2 vp;\n"
-        "attribute vec2 vt;\n"
-        "varying vec2 uv;\n"
-        "void main(void) {\n"
-        "  uv = vt;\n"
-        "  gl_Position = vec4(vp.x, vp.y, 0, 1);\n"
-        "}\n";
+        "#ifdef GL_ES\r\n"
+        "precision mediump float;\r\n"
+        "#endif\r\n"
+        "attribute vec2 vp;\r\n"
+        "attribute vec2 vt;\r\n"
+        "varying vec2 uv;\r\n"
+        "void main(void) {\r\n"
+        "  uv = vt;\r\n"
+        "  gl_Position = vec4(vp.x, vp.y, 0, 1);\r\n"
+        "}\r\n";
 
     const char *fragment_shader_source =
-        "#ifdef GL_ES\n"
-        "precision mediump float;\n"
-        "#endif\n"
-        "uniform sampler2D texture;\n"
-        "varying vec2 uv;\n"
-        "void main(void) {\n"
-        "  vec4 c = texture2D(texture, uv);\n"
-        "  float v = c.r;\n"
-        "  gl_FragColor = vec4(v, v, v, 1);\n"
-        "}\n";
+        "#ifdef GL_ES\r\n"
+        "precision mediump float;\r\n"
+        "#endif\r\n"
+        "uniform sampler2D texture;\r\n"
+        "varying vec2 uv;\r\n"
+        "void main(void) {\r\n"
+        "  vec4 c = texture2D(texture, uv);\r\n"
+        "  float v = c.r;\r\n"
+        "  gl_FragColor = vec4(v, v, v, 1);\r\n"
+        "}\r\n";
 
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -429,7 +429,7 @@ void nwm_init() {
     // Create an EGL window surface.
     int32_t success = graphics_get_display_size(0, &screen_width, &screen_height);
     assert(success >= 0);
-    printf("%d %d\n", screen_width, screen_height);
+    printf("%d %d\r\n", screen_width, screen_height);
 
     VC_RECT_T dst_rect;
     dst_rect.x = 0;
@@ -500,19 +500,19 @@ int main(void) {
                 break;
             case '-':
                 line_intensity--;
-                printf("Intensity: %d\n", line_intensity);
+                printf("Intensity: %d\r\n", line_intensity);
                 break;
             case '=':
                 line_intensity++;
-                printf("Intensity: %d\n", line_intensity);
+                printf("Intensity: %d\r\n", line_intensity);
                 break;
             case ',':
                 line_percentage = clampf(line_percentage - 0.01, 0, 1);
-                printf("Line percentage: %.2f%%\n", line_percentage * 100);
+                printf("Line percentage: %.2f%%\r\n", line_percentage * 100);
                 break;
             case '.':
                 line_percentage = clampf(line_percentage + 0.01, 0, 1);
-                printf("Line percentage: %.2f%%\n", line_percentage * 100);
+                printf("Line percentage: %.2f%%\r\n", line_percentage * 100);
                 break;
 
        }
