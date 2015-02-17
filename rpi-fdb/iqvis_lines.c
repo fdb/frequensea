@@ -23,6 +23,7 @@
 #define SIZE_MULTIPLIER 2
 #define WINDOW_WIDTH (IQ_RESOLUTION * SIZE_MULTIPLIER)
 #define WINDOW_HEIGHT (IQ_RESOLUTION * SIZE_MULTIPLIER)
+#define SAMPLE_BUFFER_SIZE 262144
 
 EGL_DISPMANX_WINDOW_T window;
 EGLDisplay display;
@@ -44,29 +45,20 @@ pthread_mutex_t buffer_lock;
 
 double freq_mhz = 143.2;
 int paused = 0;
-int intensity = 3;
 void *rtl_buffer;
 const uint32_t rtl_buffer_length = (16 * 16384);
 int rtl_should_quit = 0;
 
-void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, const char *file, int line) {
-    if (status != 0) {
-        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\n", message, status, file, line);
-        if (device != NULL) {
-            rtlsdr_close(device);
-        }
-        exit(EXIT_FAILURE);
-    }
+int line_intensity = 3;
+float line_percentage = 0.05;
+
+// Utility //////////////////////////////////////////////////////////////////
+
+float clampf(float v, float min, float max) {
+    return v < min ? min : v > max ? max : v;
 }
 
-
-
-
-
 // Line drawing ///////////////////////////////////////////////////////////////
-
-float line_percentage = 1.0;
-
 
 void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
     int offset = 3 * (y * WINDOW_WIDTH  + x);
@@ -77,13 +69,13 @@ void pixel_inc(uint8_t *image_buffer, int x, int y) {
     static int have_warned = 0;
     int offset = 3 *(y * WINDOW_WIDTH + x);
     int v = image_buffer[offset];
-    if (v + intensity >= 255) {
+    if (v + line_intensity >= 255) {
         if (!have_warned) {
             fprintf(stderr, "WARN: pixel value out of range (%d, %d)\n", x, y);
             have_warned = 1;
         }
     } else {
-        v += intensity;
+        v += line_intensity;
         image_buffer[offset] = v;
     }
 }
@@ -105,7 +97,17 @@ void draw_line(uint8_t *image_buffer, int x1, int y1, int x2, int y2, int color)
   }
 }
 
-////////////////////
+// RTL-SDR //////////////////////////////////////////////////////////////////
+
+void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, const char *file, int line) {
+    if (status != 0) {
+        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\n", message, status, file, line);
+        if (device != NULL) {
+            rtlsdr_close(device);
+        }
+        exit(EXIT_FAILURE);
+    }
+}
 
 #define RTL_CHECK_STATUS(device, status, message) rtl_check_status(device, status, message, __FILE__, __LINE__)
 
@@ -116,7 +118,8 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
     int i = 0;
     int x1 = 0;
     int y1 = 0;
-    for (i = 1000; i < 4000; i += 2) {
+    int max = SAMPLE_BUFFER_SIZE * line_percentage;
+    for (i = 0; i < max; i += 2) {
         int x2 = in_buffer[i] ;
         int y2 = in_buffer[i+1];
         draw_line(buffer_wr, x1 * SIZE_MULTIPLIER, y1 * SIZE_MULTIPLIER, x2 * SIZE_MULTIPLIER, y2 * SIZE_MULTIPLIER, 0);
@@ -203,6 +206,7 @@ static void teardown_rtl() {
     RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
+// OpenGL ///////////////////////////////////////////////////////////////////
 
 void ngl_check_gl_error(const char *file, int line) {
     GLenum err = glGetError();
@@ -458,6 +462,7 @@ void nwm_init() {
     assert(result != EGL_FALSE);
 }
 
+// Main /////////////////////////////////////////////////////////////////////
 
 int main(void) {
     buffer =  calloc(WINDOW_WIDTH * WINDOW_HEIGHT * 3, 1);
@@ -494,13 +499,22 @@ int main(void) {
                 set_frequency();
                 break;
             case '-':
-                intensity--;
-                printf("Intensity: %d\n", intensity);
+                line_intensity--;
+                printf("Intensity: %d\n", line_intensity);
                 break;
             case '=':
-                intensity++;
-                printf("Intensity: %d\n", intensity);
+                line_intensity++;
+                printf("Intensity: %d\n", line_intensity);
                 break;
+            case ',':
+                line_percentage = clampf(line_percentage - 0.01, 0, 1);
+                printf("Line percentage: %.2f%%\n", line_percentage * 100);
+                break;
+            case '.':
+                line_percentage = clampf(line_percentage + 0.01, 0, 1);
+                printf("Line percentage: %.2f%%\n", line_percentage * 100);
+                break;
+
        }
        prepare();
        update();
