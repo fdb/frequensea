@@ -2,6 +2,7 @@
 CFLAGS+=-Wall
 #CFLAGS+=-Werror
 CFLAGS+=-g
+CFLAGS+=-O3
 
 INCLUDES+=-I/opt/vc/include
 INCLUDES+=-I/opt/vc/include/interface/vcos/pthreads
