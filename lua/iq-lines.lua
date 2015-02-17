@@ -24,7 +24,8 @@ void main() {
 ]]
 
 function setup()
-    freq = 97
+    freq = 143.2
+    line_percentage = 0.04
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     camera = ngl_camera_new_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
     shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -33,10 +34,32 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_device_get_samples_buffer(device)
-    model = ngl_model_new(buffer.channels, buffer.width * buffer.height, buffer.data)
+    model = ngl_model_new(buffer.channels, math.floor(buffer.width * buffer.height * line_percentage), buffer.data)
     ngl_draw_model(camera, model, shader)
+end
+
+function clamp(v, min, max)
+    if v < min then
+        return min
+    elseif v > max then
+        return max
+    else
+        return v
+    end
 end
 
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
+    if (mods == 4) then -- Alt key
+        d = 0.001
+    else
+        d = 0.01
+    end
+    if key == KEY_COMMA then
+        line_percentage = clamp(line_percentage - d, 0, 1)
+        print("Line percentage: " .. line_percentage * 100 .. "%")
+    elseif key == KEY_PERIOD then
+        line_percentage = clamp(line_percentage + d, 0, 1)
+        print("Line percentage: " .. line_percentage * 100 .. "%")
+    end
 end
