@@ -66,16 +66,10 @@ void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
 }
 
 void pixel_inc(uint8_t *image_buffer, int x, int y) {
-    static int have_warned = 0;
-    int offset = 3 *(y * WINDOW_WIDTH + x);
+    int offset = 3 * (y * WINDOW_WIDTH + x);
     int v = image_buffer[offset];
-    if (v + line_intensity >= 255) {
-        if (!have_warned) {
-            fprintf(stderr, "WARN: pixel value out of range (%d, %d)\r\n", x, y);
-            have_warned = 1;
-        }
-    } else {
-        v += line_intensity;
+    v += line_intensity;
+    if (v <= 255) {
         image_buffer[offset] = v;
     }
 }
