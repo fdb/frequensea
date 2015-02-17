@@ -199,7 +199,7 @@ static void *_nrf_dummy_receive_loop(nrf_device *device) {
     return NULL;
 }
 
-static const int RTLSDR_DEFAULT_SAMPLE_RATE = 2e6;
+static const int RTLSDR_DEFAULT_SAMPLE_RATE = 3e6;
 
 static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
