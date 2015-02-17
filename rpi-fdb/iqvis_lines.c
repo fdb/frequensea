@@ -494,12 +494,12 @@ int main(void) {
                             set_frequency();
                             break;
         case '-':
-            intensity -= 0.01;
-            printf("Intensity: %.2f\n", intensity);
+            intensity--;
+            printf("Intensity: %d\n", intensity);
             break;
         case '=':
-            intensity += 0.01;
-            printf("Intensity: %.2f\n", intensity);
+            intensity++;
+            printf("Intensity: %d\n", intensity);
             break;
        }
        prepare();
