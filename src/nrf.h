@@ -17,6 +17,7 @@
 
 #define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
+#define NRF_IQ_RESOLUTION 256
 #define DEFAULT_FFT_SIZE 128
 #define DEFAULT_FFT_HISTORY_SIZE 128
 
@@ -95,6 +96,7 @@ void nrf_device_set_paused(nrf_device *device, int paused);
 void nrf_device_step(nrf_device *device);
 nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device);
 nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device);
+nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage);
 nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 

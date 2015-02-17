@@ -32,7 +32,9 @@ nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *dat
     buffer->channels = channels;
     buffer->size_bytes = width * height * channels * sizeof(float);
     buffer->data = calloc(buffer->size_bytes, sizeof(float));
-    memcpy(buffer->data, data, buffer->size_bytes);
+    if (data != NULL) {
+        memcpy(buffer->data, data, buffer->size_bytes);
+    }
     return buffer;
 }
 
@@ -71,6 +73,10 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 
 static int _nrf_lerp(float a, float b, float t) {
     return a * (1.0 - t) + b * t;
+}
+
+static float _nrf_clampf(float v, float min, float max) {
+    return v < min ? min : v > max ? max : v;
 }
 
 // Limit the frequency range to a possible value.
@@ -367,8 +373,6 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
     return device;
 }
 
-
-
 // Change the frequency to the given frequency, in MHz.
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz) {
     freq_mhz = _nrf_clamp_frequency(device, freq_mhz);
@@ -410,6 +414,48 @@ nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
+}
+
+static void pixel_inc(nrf_buffer *image_buffer, int x, int y) {
+    int offset = y * image_buffer->width + x;
+    image_buffer->data[offset]++;
+}
+
+static void draw_line(nrf_buffer *image_buffer, int x1, int y1, int x2, int y2, int color) {
+  int dx = abs(x2 - x1);
+  int sx = x1 < x2 ? 1 : -1;
+  int dy = abs(y2-y1);
+  int sy = y1 < y2 ? 1 : -1;
+  int err = (dx > dy ? dx : -dy) / 2;
+  int e2;
+
+  for(;;){
+    pixel_inc(image_buffer, x1, y1);
+    if (x1 == x2 && y1 == y2) break;
+    e2 = err;
+    if (e2 > -dx) { err -= dy; x1 += sx; }
+    if (e2 <  dy) { err += dx; y1 += sy; }
+  }
+}
+
+nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
+    line_percentage = _nrf_clampf(line_percentage, 0, 1);
+    pthread_mutex_lock(&device->data_mutex);
+    nrf_buffer *image_buffer = nrf_buffer_new(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
+    int x1 = 0;
+    int y1 = 0;
+    int max = NRF_SAMPLES_SIZE * 3 * line_percentage;
+    for (int i = 0; i < max; i += 3) {
+        int x2 = device->samples[i] * NRF_IQ_RESOLUTION * size_multiplier;
+        int y2 = device->samples[i + 1] * NRF_IQ_RESOLUTION * size_multiplier;
+        if (i > 0) {
+            draw_line(image_buffer, x1, y1, x2, y2, 0);
+        }
+        x1 = x2;
+        y1 = y2;
+    }
+    pthread_mutex_unlock(&device->data_mutex);
+    return image_buffer;
 }
 
 nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
