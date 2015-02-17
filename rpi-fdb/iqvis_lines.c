@@ -19,9 +19,10 @@
 #include <fcntl.h>
 #include <termios.h>
 
-
-#define WIDTH 256
-#define HEIGHT 256
+#define IQ_RESOLUTION 256
+#define SIZE_MULTIPLIER 2
+#define WINDOW_WIDTH (IQ_RESOLUTION * SIZE_MULTIPLIER)
+#define WINDOW_HEIGHT (IQ_RESOLUTION * SIZE_MULTIPLIER)
 
 EGL_DISPMANX_WINDOW_T window;
 EGLDisplay display;
@@ -68,13 +69,13 @@ float line_percentage = 1.0;
 
 
 void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
-    int offset = 3* (y * WIDTH  + x);
+    int offset = 3 * (y * WINDOW_WIDTH  + x);
     image_buffer[offset] = color;
 }
 
 void pixel_inc(uint8_t *image_buffer, int x, int y) {
     static int have_warned = 0;
-    int offset = 3*(y * WIDTH + x);
+    int offset = 3 *(y * WINDOW_WIDTH + x);
     int v = image_buffer[offset];
     if (v + intensity >= 255) {
         if (!have_warned) {
@@ -111,16 +112,16 @@ void draw_line(uint8_t *image_buffer, int x1, int y1, int x2, int y2, int color)
 void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) {
     if (paused) return;
     pthread_mutex_lock(&buffer_lock);
-    memset(buffer_wr, 0x0, WIDTH * HEIGHT * 3 );
+    memset(buffer_wr, 0x0, WINDOW_WIDTH * WINDOW_HEIGHT * 3);
     int i = 0;
-    int x1=0;
-    int y1=0;
+    int x1 = 0;
+    int y1 = 0;
     for (i = 1000; i < 4000; i += 2) {
-    int x2=in_buffer[i] ;
-    int y2=in_buffer[i+1];
-    draw_line(buffer_wr, x1, y1, x2, y2, 0);
-    x1=x2;
-    y1=y2;
+        int x2 = in_buffer[i] ;
+        int y2 = in_buffer[i+1];
+        draw_line(buffer_wr, x1 * SIZE_MULTIPLIER, y1 * SIZE_MULTIPLIER, x2 * SIZE_MULTIPLIER, y2 * SIZE_MULTIPLIER, 0);
+        x1 = x2;
+        y1 = y2;
     }
     pthread_mutex_unlock(&buffer_lock);
 }
@@ -282,7 +283,7 @@ static void setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
     NGL_CHECK_ERROR();
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
     //glBindTexture(GL_TEXTURE_2D, 0);
     //NGL_CHECK_ERROR();
@@ -362,10 +363,10 @@ static void update() {
     NGL_CHECK_ERROR();
 
     if (!pthread_mutex_trylock(&buffer_lock)) {
-      memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
+      memcpy(buffer, buffer_wr, WINDOW_WIDTH * WINDOW_HEIGHT * 3);
       pthread_mutex_unlock(&buffer_lock);
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
 }
 
@@ -459,8 +460,8 @@ void nwm_init() {
 
 
 int main(void) {
-    buffer =  malloc(WIDTH * HEIGHT * 3);
-    buffer_wr =  malloc(WIDTH * HEIGHT * 3);
+    buffer =  calloc(WINDOW_WIDTH * WINDOW_HEIGHT * 3, 1);
+    buffer_wr =  calloc(WINDOW_HEIGHT * WINDOW_HEIGHT * 3, 1);
     bcm_host_init();
     nwm_init();
 
