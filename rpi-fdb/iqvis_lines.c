@@ -35,8 +35,8 @@ GLuint program;
 GLuint position_vbo;
 GLuint uv_vbo;
 GLuint vao;
-uint8_t * buffer=0; 
-uint8_t * buffer_wr=0; 
+uint8_t * buffer=0;
+uint8_t * buffer_wr=0;
 rtlsdr_dev_t *device;
 pthread_t receive_thread;
 pthread_mutex_t buffer_lock;
@@ -116,11 +116,11 @@ void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) 
     int x1=0;
     int y1=0;
     for (i = 1000; i < 4000; i += 2) {
-	int x2=in_buffer[i] ;
-	int y2=in_buffer[i+1];
-	draw_line(buffer_wr, x1, y1, x2, y2, 0);
-	x1=x2;
-	y1=y2;
+    int x2=in_buffer[i] ;
+    int y2=in_buffer[i+1];
+    draw_line(buffer_wr, x1, y1, x2, y2, 0);
+    x1=x2;
+    y1=y2;
     }
     pthread_mutex_unlock(&buffer_lock);
 }
@@ -363,7 +363,7 @@ static void update() {
 
     if (!pthread_mutex_trylock(&buffer_lock)) {
       memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
-      pthread_mutex_unlock(&buffer_lock); 
+      pthread_mutex_unlock(&buffer_lock);
     }
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
@@ -467,7 +467,7 @@ int main(void) {
     setup_rtl();
     setup();
 
-    // set terminal nonblocking i/o 
+    // set terminal nonblocking i/o
     struct termios ios_old, ios_new;
     tcgetattr(STDIN_FILENO, &ios_old);
     tcgetattr(STDIN_FILENO, &ios_new);
@@ -492,14 +492,14 @@ int main(void) {
                             freq_mhz+=.1;
                             set_frequency();
                             break;
-	    case '-':
-			intensity -= 0.01;
-			printf("Intensity: %.2f\n", intensity);
-			break;
-	    case '=':
-			intensity += 0.01;
-			printf("Intensity: %.2f\n", intensity);
-			break;
+        case '-':
+            intensity -= 0.01;
+            printf("Intensity: %.2f\n", intensity);
+            break;
+        case '=':
+            intensity += 0.01;
+            printf("Intensity: %.2f\n", intensity);
+            break;
        }
        prepare();
        update();
@@ -508,7 +508,7 @@ int main(void) {
     }
 end:
       teardown_rtl();
- 
+
       // reset terminal i/o parameters
       tcsetattr(STDIN_FILENO, 0, &ios_old);
 
