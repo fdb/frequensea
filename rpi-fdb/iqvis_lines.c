@@ -42,7 +42,7 @@ rtlsdr_dev_t *device;
 pthread_t receive_thread;
 pthread_mutex_t buffer_lock;
 
-double freq_mhz = 124.2;
+double freq_mhz = 143.2;
 int paused = 0;
 int intensity = 3;
 void *rtl_buffer;
