@@ -41,6 +41,8 @@
     # Disable default kernel driver
     sudo modprobe -r dvb_usb_rtl28xxu
 
+Note that you might need to run as root to claim the graphics driver, especially if you don't use the default "pi" user.
+
 ## Building
 
     mkdir build
