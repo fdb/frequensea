@@ -176,20 +176,22 @@ int main() {
     }
 
     int banner_y = FFT_HISTORY_SIZE;
-    for (int i = 0; i < 5; i++) {
+    int banner_bottom = image_height;
+    for (int i = 0; i < 10; i++) {
         img_hline(buffer, image_width, 0, banner_y++, image_width, LINE_COLOR);
+        img_hline(buffer, image_width, 0, banner_bottom--, image_width, LINE_COLOR);
     }
 
     for (double x = 0; x < image_width; x += MINOR_TICK_SIZE) {
         img_vline(buffer, image_width, x, banner_y, banner_y + 50, LINE_COLOR);
-        img_vline(buffer, image_width, x, image_height - 50, image_height, LINE_COLOR);
+        img_vline(buffer, image_width, x, banner_bottom - 50, banner_bottom, LINE_COLOR);
     }
 
     int freq = FREQUENCY_START - (SAMPLE_RATE / 2) + (MAJOR_TICK_RATE / 2);
     double start_x = FFT_SIZE / (double) SAMPLE_RATE * (MAJOR_TICK_RATE / 2);
     for (double x = start_x; x < image_width; x += MAJOR_TICK_SIZE) {
         img_vline(buffer, image_width, x, banner_y, banner_y + 100, LINE_COLOR);
-        img_vline(buffer, image_width, x, image_height - 100, image_height, LINE_COLOR);
+        img_vline(buffer, image_width, x, banner_bottom - 100, banner_bottom, LINE_COLOR);
         if (freq >= 0 && freq < FREQUENCY_END + (SAMPLE_RATE / 2)) {
             char text[200];
             snprintf(text, 200, "%.2f", (freq / (double) 1e6));
