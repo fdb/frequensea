@@ -32,12 +32,20 @@ const uint16_t FONT_SIZE_PX = 48;
 const uint32_t MARKERS_Y = FFT_HISTORY_SIZE + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
 const uint32_t MARKERS_X = FFT_SIZE-SAMPLE_RATE / 2;
 
+// Utility //////////////////////////////////////////////////////////////////
+
+uint8_t max_u8(uint8_t a, uint8_t b) {
+    return a > b ? a : b;
+}
+
 // Image operations /////////////////////////////////////////////////////////
 
 void img_gray_copy(uint8_t *dst, uint8_t *src, uint32_t dst_x, uint32_t dst_y, uint32_t src_x, uint32_t src_y, uint32_t width, uint32_t height, uint32_t dst_stride, uint32_t src_stride) {
     for (uint32_t i = 0; i < height; i++) {
         for (uint32_t j = 0; j < width; j++) {
-            dst[(dst_y + i) * dst_stride + dst_x + j] = src[(src_y + i) * src_stride + src_x + j];
+            uint32_t dst_offset = (dst_y + i) * dst_stride + dst_x + j;
+            uint32_t src_offset = (src_y + i) * src_stride + src_x + j;
+            dst[dst_offset] = max_u8(dst[dst_offset], src[src_offset]);
         }
     }
 }
