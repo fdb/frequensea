@@ -26,8 +26,8 @@ const uint32_t MINOR_TICK_RATE = 0.1e6;
 const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MINOR_TICK_RATE;
 const uint32_t MAJOR_TICK_RATE = 1e6;
 const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MAJOR_TICK_RATE;
-const uint8_t LINE_COLOR = 200;
-const char* FONT_FILE = "../fonts/RobotoCondensed-Light.ttf";
+const uint8_t LINE_COLOR = 255;
+const char* FONT_FILE = "../fonts/RobotoCondensed-Regular.ttf";
 const uint16_t FONT_SIZE_PX = 48;
 const uint32_t MARKERS_Y = FFT_HISTORY_SIZE + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
 const uint32_t MARKERS_X = FFT_SIZE-SAMPLE_RATE / 2;
@@ -189,6 +189,7 @@ int main() {
         img_hline(buffer, image_width, 0, banner_y++, image_width, LINE_COLOR);
         img_hline(buffer, image_width, 0, banner_bottom--, image_width, LINE_COLOR);
     }
+    banner_bottom++;
 
     for (double x = 0; x < image_width; x += MINOR_TICK_SIZE) {
         img_vline(buffer, image_width, x, banner_y, banner_y + 50, LINE_COLOR);
