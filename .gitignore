@@ -20,6 +20,7 @@
 /c/single-sample
 /c/tv-sender
 /c/vis
+/c/render-text
 /rpi-fdb/iqvis
 /rpi-fdb/iqvis_lines
 /rust/target

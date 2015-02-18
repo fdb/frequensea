@@ -51,3 +51,6 @@ piqvis: piqvis.c
 
 single-sample: single-sample.c
 	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o single-sample single-sample.c
+
+render-text: render-text.c
+	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o render-text render-text.c
