@@ -25,24 +25,6 @@
 #endif
 const double TAU = M_PI * 2;
 
-nrf_buffer *nrf_buffer_new(int width, int height, int channels, const uint8_t *data) {
-    nrf_buffer *buffer = calloc(1, sizeof(nrf_buffer));
-    buffer->width = width;
-    buffer->height = height;
-    buffer->channels = channels;
-    buffer->size_bytes = width * height * channels * sizeof(uint8_t);
-    buffer->data = calloc(buffer->size_bytes, sizeof(uint8_t));
-    if (data != NULL) {
-        memcpy(buffer->data, data, buffer->size_bytes);
-    }
-    return buffer;
-}
-
-void nrf_buffer_free(nrf_buffer *buffer) {
-    free(buffer->data);
-    free(buffer);
-}
-
 // Device
 
 void _nrf_rtlsdr_check_status(nrf_device *device, int status, const char *message, const char *file, int line) {
@@ -90,7 +72,16 @@ static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int le
     assert(length == NRF_BUFFER_LENGTH);
 
     pthread_mutex_lock(&device->data_mutex);
-    memcpy(device->samples, buffer, length);
+    for (int i = 0; i < length; i += 2) {
+        uint8_t u8i = buffer[i];
+        uint8_t u8q = buffer[i + 1];
+        if (device->device_type == NRF_DEVICE_HACKRF || device->device_type == NRF_DEVICE_DUMMY) {
+            u8i = (u8i + 128) % 256;
+            u8q = (u8q + 128) % 256;
+        }
+        device->samples[i] = u8i;
+        device->samples[i + 1] = u8q;
+    }
     pthread_mutex_unlock(&device->data_mutex);
 
     // if (device->decode_cb_fn != NULL) {
@@ -327,34 +318,38 @@ void nrf_device_step(nrf_device *device) {
     }
 }
 
-nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
+nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(512, 256, 3, NULL);
-    int j = 0;
-    double t;
-    for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
-        t = i / (double) NRF_BUFFER_LENGTH;
-        buffer->data[j++] = device->samples[i];
-        buffer->data[j++] = device->samples[i + 1];
-        buffer->data[j++] = floor(t * 256);
-    }
+    nul_buffer *buffer = nul_buffer_new_u8(256, 256, 2, device->samples);
+    // int j = 0;
+    // double t;
+    // for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
+    //     t = i / (double) NRF_BUFFER_LENGTH;
+    //     buffer->data[j++] = device->samples[i];
+    //     buffer->data[j++] = device->samples[i + 1];
+    //     buffer->data[j++] = floor(t * 256);
+    // }
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
 
-// nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
+// nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
 //     pthread_mutex_lock(&device->data_mutex);
-//     nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
+//     nul_buffer *buffer = nul_buffer_new(256, 256, 1, device->iq);
 //     pthread_mutex_unlock(&device->data_mutex);
 //     return buffer;
 // }
 
-static void pixel_inc(nrf_buffer *image_buffer, int x, int y) {
+static void pixel_inc(nul_buffer *image_buffer, int x, int y) {
     int offset = y * image_buffer->width + x;
-    image_buffer->data[offset]++;
+    if (image_buffer->type == NUL_BUFFER_U8) {
+        image_buffer->data.u8[offset]++;
+    } else {
+        image_buffer->data.f64[offset]++;
+    }
 }
 
-static void draw_line(nrf_buffer *image_buffer, int x1, int y1, int x2, int y2, int color) {
+static void draw_line(nul_buffer *image_buffer, int x1, int y1, int x2, int y2, int color) {
   int dx = abs(x2 - x1);
   int sx = x1 < x2 ? 1 : -1;
   int dy = abs(y2-y1);
@@ -371,10 +366,10 @@ static void draw_line(nrf_buffer *image_buffer, int x1, int y1, int x2, int y2, 
   }
 }
 
-nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
+nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
     line_percentage = _nrf_clampf(line_percentage, 0, 1);
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *image_buffer = nrf_buffer_new(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
+    nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
     int x1 = 0;
     int y1 = 0;
     int max = NRF_SAMPLES_SIZE * 3 * line_percentage;
@@ -391,9 +386,9 @@ nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
     return image_buffer;
 }
 
-// nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
+// nul_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
 //     pthread_mutex_lock(&device->data_mutex);
-//     nrf_buffer *buffer = nrf_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
+//     nul_buffer *buffer = nul_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
 //     pthread_mutex_unlock(&device->data_mutex);
 //     return buffer;
 // }
@@ -431,13 +426,19 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     return fft;
 }
 
-void nrf_fft_process(nrf_fft *fft, nrf_buffer *buffer) {
+void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     int length = NRF_BUFFER_LENGTH;
     int ii = 0;
     for (int i = 0; i < length; i += 2) {
         fftw_complex *p = fft->fft_in;
-        double di = buffer->data[i];
-        double dq = buffer->data[i];
+        double di, dq;
+        if (buffer->type == NUL_BUFFER_U8) {
+            di = buffer->data.u8[i] / 256.0;
+            dq = buffer->data.u8[i + 1] / 256.0;
+        } else {
+            di = buffer->data.f64[i];
+            dq = buffer->data.f64[i + 1];
+        }
         p[ii][0] = powf(-1, ii) * di / 256.0;
         p[ii][1] = powf(-1, ii) * dq / 256.0;
         ii++;
@@ -767,12 +768,10 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
     double *samples_i = decoder->samples_i;
     double *samples_q = decoder->samples_q;
     for (int i = 0; i < length; i++) {
-        unsigned int vi = buffer[i * 2];
-        unsigned int vq = buffer[i * 2 + 1];
-        samples_i[i] = vi / 128.0 - 0.995;
-        samples_q[i] = vq / 128.0 - 0.995;
-        //samples_i[i] = (vi - 128.0) / 128.0;
-        //samples_q[i] = (vq - 128.0) / 128.0;
+        double vi = buffer[i * 2]  / 128.0 - 0.995;
+        double vq = buffer[i * 2 + 1]  / 128.0 - 0.995;
+        samples_i[i] = vi;
+        samples_q[i] = vq;
     }
 
     // Shift frequency
@@ -806,15 +805,15 @@ void nrf_decoder_free(nrf_decoder *decoder) {
 
 // Buffer queue
 
-static _nrf_buffer_queue *_nrf_buffer_queue_new(int capacity) {
-    _nrf_buffer_queue *q = calloc(1, sizeof(_nrf_buffer_queue));
+static _nul_buffer_queue *_nul_buffer_queue_new(int capacity) {
+    _nul_buffer_queue *q = calloc(1, sizeof(_nul_buffer_queue));
     q->size = 0;
     q->capacity = capacity;
     q->values = calloc(capacity, sizeof(ALuint));
     return q;
 }
 
-static void _nrf_buffer_queue_push(_nrf_buffer_queue *q, ALuint v) {
+static void _nul_buffer_queue_push(_nul_buffer_queue *q, ALuint v) {
     if (q->size + 1 > q->capacity) {
         fprintf(stderr, "Queue is too small (capacity: %d)\n", q->capacity);
     }
@@ -822,7 +821,7 @@ static void _nrf_buffer_queue_push(_nrf_buffer_queue *q, ALuint v) {
     q->size++;
 }
 
-static ALuint _nrf_buffer_queue_pop(_nrf_buffer_queue *q) {
+static ALuint _nul_buffer_queue_pop(_nul_buffer_queue *q) {
     if (q->size == 0) {
         fprintf(stderr, "No more items to pop.\n");
     }
@@ -835,7 +834,7 @@ static ALuint _nrf_buffer_queue_pop(_nrf_buffer_queue *q) {
     return v;
 }
 
-static void _nrf_buffer_queue_free(_nrf_buffer_queue *q) {
+static void _nul_buffer_queue_free(_nul_buffer_queue *q) {
     free(q->values);
     free(q);
 }
@@ -904,7 +903,7 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     _NRF_AL_CHECK_ERROR();
     assert (processed_buffers <= player->audio_buffer_queue->size);
     while (processed_buffers > 0) {
-        ALuint buffer_id = _nrf_buffer_queue_pop(player->audio_buffer_queue);
+        ALuint buffer_id = _nul_buffer_queue_pop(player->audio_buffer_queue);
         alSourceUnqueueBuffers(player->audio_source, 1, &buffer_id);
         _NRF_AL_CHECK_ERROR();
         alDeleteBuffers(1, &buffer_id);
@@ -915,7 +914,7 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     ALuint buffer_id;
     alGenBuffers(1, &buffer_id);
     _NRF_AL_CHECK_ERROR();
-    _nrf_buffer_queue_push(player->audio_buffer_queue, buffer_id);
+    _nul_buffer_queue_push(player->audio_buffer_queue, buffer_id);
 
     // Set the data for the buffer
     alBufferData(buffer_id, AL_BUFFER_FORMAT, pcm_samples, audio_samples_length * sizeof(int16_t), AUDIO_SAMPLE_RATE);
@@ -958,7 +957,7 @@ nrf_player *nrf_player_new(nrf_device *device, nrf_demodulate_type demodulate_ty
     _NRF_AL_CHECK_ERROR();
 
     // Create an audio buffer queue.
-    player->audio_buffer_queue = _nrf_buffer_queue_new(1000);
+    player->audio_buffer_queue = _nul_buffer_queue_new(1000);
 
     // Register device callback
     nrf_device_set_decode_handler(device, _nrf_player_decode, player);
@@ -980,6 +979,6 @@ void nrf_player_free(nrf_player *player) {
 
     // Note we don't own the NRF device, so we're not going to free it.
     nrf_decoder_free(player->decoder);
-    _nrf_buffer_queue_free(player->audio_buffer_queue);
+    _nul_buffer_queue_free(player->audio_buffer_queue);
     free(player);
 }

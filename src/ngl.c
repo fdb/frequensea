@@ -182,25 +182,36 @@ ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader
 
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
-void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int channels, const float *data) {
+void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer) {
     GLint format;
-    if (channels == 1) {
+    if (buffer->channels == 1) {
         format = GL_RED;
-    } else if (channels == 2) {
+    } else if (buffer->channels == 2) {
         format = GL_RG;
-    } else if (channels == 3) {
+    } else if (buffer->channels == 3) {
         format = GL_RGB;
-    } else if (channels == 4) {
+    } else if (buffer->channels == 4) {
         format = GL_RGBA;
     } else {
-        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
+        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", buffer->channels);
         exit(1);
     }
+
     glActiveTexture(GL_TEXTURE0);
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
     NGL_CHECK_ERROR();
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+    if (buffer->type == NUL_BUFFER_U8) {
+        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
+    } else {
+        const int length = buffer->width * buffer->height * buffer->channels;
+        float tex[length];
+        for (int i = 0; i < length; i++) {
+            tex[i] = buffer->data.f64[i];
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_FLOAT, &tex);
+    }
     NGL_CHECK_ERROR();
 }
 

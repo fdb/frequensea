@@ -14,6 +14,7 @@
 #endif // __APPLE__
 
 #include "vec.h"
+#include "nul.h"
 
 #define NRF_BUFFER_LENGTH (16 * 16384)
 #define NRF_SAMPLES_SIZE 131072
@@ -45,19 +46,6 @@ struct nrf_block {
 void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn);
 void nrf_block_connect(nrf_block* input, nrf_block* output);
 void nrf_block_process(nrf_block* block, void* input_data);
-
-// Buffer
-
-typedef struct {
-    int width;
-    int height;
-    int channels;
-    int size_bytes;
-    uint8_t *data;
-} nrf_buffer;
-
-nrf_buffer *nrf_buffer_new(int width, int height, int channels, const uint8_t *data);
-void nrf_buffer_free(nrf_buffer *buffer);
 
 // Device
 
@@ -103,10 +91,10 @@ double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_set_paused(nrf_device *device, int paused);
 void nrf_device_step(nrf_device *device);
-nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device);
-nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device);
-nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage);
-nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_samples_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_iq_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage);
+nul_buffer *nrf_device_get_fft_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 
 // FFT Analysis
@@ -121,7 +109,7 @@ typedef struct {
 } nrf_fft;
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size);
-void nrf_fft_process(nrf_fft *fft, nrf_buffer *buffer);
+void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer);
 void nrf_fft_free(nrf_fft *fft);
 
 // Finite Impulse Response (FIR) Filter
@@ -234,7 +222,7 @@ typedef struct {
     int size;
     int capacity;
     ALuint *values;
-} _nrf_buffer_queue;
+} _nul_buffer_queue;
 
 typedef struct {
     nrf_demodulate_type demodulate_type;
@@ -243,7 +231,7 @@ typedef struct {
     ALCcontext *audio_context;
     ALCdevice *audio_device;
     ALuint audio_source;
-    _nrf_buffer_queue *audio_buffer_queue;
+    _nul_buffer_queue *audio_buffer_queue;
     int is_playing;
     int shutting_down;
 } nrf_player;

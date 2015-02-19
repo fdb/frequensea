@@ -43,6 +43,7 @@ set(SOURCE_FILES
     src/nim.c
     src/noise.c
     src/nrf.c
+    src/nul.c
     src/nvr.c
     src/nwm.c
     src/obj.c

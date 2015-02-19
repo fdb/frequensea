@@ -103,6 +103,20 @@ static int l_call_function(lua_State *L, const char *name) {
     }
 }
 
+// Lua NUL wrappers /////////////////////////////////////////////////////////
+
+// nul_buffer
+
+static nul_buffer* l_to_nul_buffer(lua_State *L, int index) {
+    return (nul_buffer*) l_from_table(L, "nul_buffer", index);
+}
+
+static int l_nul_buffer_free(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer_free(buffer);
+    return 0;
+}
+
 // Lua NWM wrappers /////////////////////////////////////////////////////////
 
 static int l_nwm_get_time(lua_State *L) {
@@ -199,15 +213,8 @@ static int l_ngl_texture_new_from_file(lua_State *L) {
 
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
-    int width = luaL_checkinteger(L, 2);
-    int height = luaL_checkinteger(L, 3);
-    int channels = luaL_checkinteger(L, 4);
-    float *data = NULL;
-    if (!lua_isnoneornil(L, 5)) {
-        luaL_checkany(L, 5);
-        data = (float *) lua_touserdata(L, 5);
-    }
-    ngl_texture_update(texture, width, height, channels, data);
+    nul_buffer *buffer = l_to_nul_buffer(L, 2);
+    ngl_texture_update(texture, buffer);
     return 0;
 }
 
@@ -344,18 +351,6 @@ static int l_ngl_draw_model(lua_State *L) {
 
 // Lua NRF wrappers /////////////////////////////////////////////////////////
 
-// nrf_buffer
-
-static nrf_buffer* l_to_nrf_buffer(lua_State *L, int index) {
-    return (nrf_buffer*) l_from_table(L, "nrf_buffer", index);
-}
-
-static int l_nrf_buffer_free(lua_State *L) {
-    nrf_buffer *buffer = l_to_nrf_buffer(L, 1);
-    nrf_buffer_free(buffer);
-    return 0;
-}
-
 // nrf_device
 
 static nrf_device* l_to_nrf_device(lua_State *L, int index) {
@@ -417,8 +412,8 @@ static int l_nrf_device_step(lua_State *L) {
     return 0;
 }
 
-static int _l_nrf_push_buffer(lua_State *L, nrf_buffer *buffer) {
-    l_to_table(L, "nrf_buffer", buffer);
+static int _l_nrf_push_buffer(lua_State *L, nul_buffer *buffer) {
+    l_to_table(L, "nul_buffer", buffer);
 
     lua_pushliteral(L, "width");
     lua_pushinteger(L, buffer->width);
@@ -436,22 +431,18 @@ static int _l_nrf_push_buffer(lua_State *L, nrf_buffer *buffer) {
     lua_pushinteger(L, buffer->size_bytes);
     lua_settable(L, -3);
 
-    lua_pushliteral(L, "data");
-    lua_pushlightuserdata(L, buffer->data);
-    lua_settable(L, -3);
-
     return 1;
 }
 
 static int l_nrf_device_get_samples_buffer(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_buffer* buffer = nrf_device_get_samples_buffer(device);
+    nul_buffer* buffer = nrf_device_get_samples_buffer(device);
     return _l_nrf_push_buffer(L, buffer);
 }
 
 // static int l_nrf_device_get_iq_buffer(lua_State *L) {
 //     nrf_device* device = l_to_nrf_device(L, 1);
-//     nrf_buffer* buffer = nrf_device_get_iq_buffer(device);
+//     nul_buffer* buffer = nrf_device_get_iq_buffer(device);
 //     return _l_nrf_push_buffer(L, buffer);
 // }
 
@@ -459,13 +450,13 @@ static int l_nrf_device_get_samples_buffer(lua_State *L) {
 //     nrf_device* device = l_to_nrf_device(L, 1);
 //     int size_multiplier = luaL_checkinteger(L, 2);
 //     float line_percentage = luaL_checknumber(L, 3);
-//     nrf_buffer* buffer = nrf_device_get_iq_lines(device, size_multiplier, line_percentage);
+//     nul_buffer* buffer = nrf_device_get_iq_lines(device, size_multiplier, line_percentage);
 //     return _l_nrf_push_buffer(L, buffer);
 // }
 
 // static int l_nrf_device_get_fft_buffer(lua_State *L) {
 //     nrf_device* device = l_to_nrf_device(L, 1);
-//     nrf_buffer* buffer = nrf_device_get_fft_buffer(device);
+//     nul_buffer* buffer = nrf_device_get_fft_buffer(device);
 //     return _l_nrf_push_buffer(L, buffer);
 // }
 
@@ -654,12 +645,12 @@ static lua_State *l_init() {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
+    l_register_type(L, "nul_buffer", l_nul_buffer_free);
     l_register_type(L, "ngl_camera", l_ngl_camera_free);
     l_register_type(L, "ngl_model", l_ngl_model_free);
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
-    l_register_type(L, "nrf_buffer", l_nrf_buffer_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
