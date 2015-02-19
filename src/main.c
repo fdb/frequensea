@@ -459,11 +459,11 @@ static int l_nrf_device_get_samples_buffer(lua_State *L) {
     return _l_nrf_push_buffer(L, buffer);
 }
 
-// static int l_nrf_device_get_iq_buffer(lua_State *L) {
-//     nrf_device* device = l_to_nrf_device(L, 1);
-//     nul_buffer* buffer = nrf_device_get_iq_buffer(device);
-//     return _l_nrf_push_buffer(L, buffer);
-// }
+static int l_nrf_device_get_iq_buffer(lua_State *L) {
+    nrf_device* device = l_to_nrf_device(L, 1);
+    nul_buffer* buffer = nrf_device_get_iq_buffer(device);
+    return _l_nrf_push_buffer(L, buffer);
+}
 
 // static int l_nrf_device_get_iq_lines(lua_State *L) {
 //     nrf_device* device = l_to_nrf_device(L, 1);
@@ -705,7 +705,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
     l_register_function(L, "nrf_device_step", l_nrf_device_step);
     l_register_function(L, "nrf_device_get_samples_buffer", l_nrf_device_get_samples_buffer);
-    // l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
+    l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     // l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
     // l_register_function(L, "nrf_device_get_fft_buffer", l_nrf_device_get_fft_buffer);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);

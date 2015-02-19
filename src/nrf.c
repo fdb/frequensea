@@ -357,12 +357,18 @@ nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     return buffer;
 }
 
-// nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
-//     pthread_mutex_lock(&device->data_mutex);
-//     nul_buffer *buffer = nul_buffer_new(256, 256, 1, device->iq);
-//     pthread_mutex_unlock(&device->data_mutex);
-//     return buffer;
-// }
+nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
+    pthread_mutex_lock(&device->data_mutex);
+    nul_buffer *buffer = nul_buffer_new_u8(256, 256, 1, NULL);
+    for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
+        int u8i = device->samples[i];
+        int u8q = device->samples[i + 1];
+        int offset = u8i * 256 + u8q;
+        buffer->data.u8[offset]++;
+    }
+    pthread_mutex_unlock(&device->data_mutex);
+    return buffer;
+}
 
 static void pixel_inc(nul_buffer *image_buffer, int x, int y) {
     int offset = y * image_buffer->width + x;
