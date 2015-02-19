@@ -52,6 +52,29 @@ static void* l_from_table(lua_State *L, const char *type, int index) {
     }
 }
 
+static double l_table_integer(lua_State *L, int table_index, const char *key, int _default) {
+    lua_getfield(L, table_index, key);
+    int is_num;
+    int v = lua_tointegerx(L, -1, &is_num);
+    return is_num ? v : _default;
+}
+
+static double l_table_double(lua_State *L, int table_index, const char *key, double _default) {
+    lua_getfield(L, table_index, key);
+    int is_num;
+    double v = lua_tonumberx(L, -1, &is_num);
+    return is_num ? v : _default;
+}
+
+static const char *l_table_string(lua_State *L, int table_index, const char *key, const char *_default) {
+    lua_getfield(L, table_index, key);
+    if (lua_isstring(L, -1)) {
+        return lua_tostring(L, -1);
+    } else {
+        return _default;
+    }
+}
+
 static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
     return (ngl_camera*) l_from_table(L, "ngl_camera", index);
 }
@@ -354,29 +377,6 @@ static int l_nrf_device_new(lua_State *L) {
     lua_settable(L, -3);
 
     return 1;
-}
-
-static double l_table_integer(lua_State *L, int table_index, const char *key, int _default) {
-    lua_getfield(L, table_index, key);
-    int is_num;
-    int v = lua_tointegerx(L, -1, &is_num);
-    return is_num ? v : _default;
-}
-
-static double l_table_double(lua_State *L, int table_index, const char *key, double _default) {
-    lua_getfield(L, table_index, key);
-    int is_num;
-    double v = lua_tonumberx(L, -1, &is_num);
-    return is_num ? v : _default;
-}
-
-static const char *l_table_string(lua_State *L, int table_index, const char *key, const char *_default) {
-    lua_getfield(L, table_index, key);
-    if (lua_isstring(L, -1)) {
-        return lua_tostring(L, -1);
-    } else {
-        return _default;
-    }
 }
 
 static int l_nrf_device_new_with_config(lua_State *L) {
