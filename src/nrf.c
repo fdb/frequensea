@@ -321,14 +321,6 @@ void nrf_device_step(nrf_device *device) {
 nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
     nul_buffer *buffer = nul_buffer_new_u8(256, 256, 2, device->samples);
-    // int j = 0;
-    // double t;
-    // for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
-    //     t = i / (double) NRF_BUFFER_LENGTH;
-    //     buffer->data[j++] = device->samples[i];
-    //     buffer->data[j++] = device->samples[i + 1];
-    //     buffer->data[j++] = floor(t * 256);
-    // }
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
