@@ -30,7 +30,7 @@ void main() {
 ]]
 
 function setup()
-    freq = 101.0
+    freq = 97.6
     freq_offset = 100000
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
