@@ -674,11 +674,10 @@ nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_ra
     nrf_fm_demodulator *d = calloc(1, sizeof(nrf_fm_demodulator));
     const int inter_rate = 336000;
     const int  max_f = 75000;
-    const double filter = max_f * 0.8;
+    const double filter_freq = max_f * 0.8;
     d->in_sample_rate = in_sample_rate;
     d->out_sample_rate = out_sample_rate;
     d->ampl_conv = out_sample_rate / (TAU * max_f);
-    int filter_freq = filter * 0.8;
     d->downsampler_i = nrf_downsampler_new(in_sample_rate, inter_rate, filter_freq, 51);
     d->downsampler_q = nrf_downsampler_new(in_sample_rate, inter_rate, filter_freq, 51);
     d->downsampler_audio = nrf_downsampler_new(inter_rate, out_sample_rate, 10000, 41);
