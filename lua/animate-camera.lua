@@ -1,10 +1,16 @@
 -- Animate the camera around a static scene
 
 VERTEX_SHADER = [[
+#ifdef GL_ES
+attribute vec3 vp;
+attribute vec3 vn;
+varying vec3 color;
+#else
 #version 400
 layout (location = 0) in vec3 vp;
 layout (location = 1) in vec3 vn;
 out vec3 color;
+#endif
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
@@ -15,12 +21,22 @@ void main() {
 ]]
 
 FRAGMENT_SHADER = [[
+#ifdef GL_ES
+precision mediump float;
+varying vec3 color;
+void main() {
+    gl_FragColor = vec4(color.r,color.g,color.b, 0.95);
+}
+
+#else
+
 #version 400
 in vec3 color;
 layout (location = 0) out vec4 fragColor;
 void main() {
     fragColor = vec4(color, 0.95);
 }
+#endif
 ]]
 
 function setup()

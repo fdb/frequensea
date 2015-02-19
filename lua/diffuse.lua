@@ -1,10 +1,16 @@
 -- Display a static scene with a diffuse shader.
 
 VERTEX_SHADER = [[
+#ifdef GL_ES
+attribute vec3 vp;
+attribute vec3 vn;
+varying vec3 color = vec3(.41,.3,.2);
+#else
 #version 400
 layout (location = 0) in vec3 vp;
 layout (location = 1) in vec3 vn;
 out vec3 color = vec3(.41,.3,.2);
+#endif
 uniform mat4 uViewMatrix, uProjectionMatrix, NormalMatrix;
 uniform vec4 LightPosition;
 uniform vec3 Kd = vec3(2,5,10);
@@ -23,11 +29,16 @@ void main() {
 ]]
 
 FRAGMENT_SHADER = [[
+#ifdef GL_ES
+precision mediump float;
+varying vec3 color;
+#else
 #version 400
 in vec3 color;
 layout (location = 0) out vec4 fragColor;
+#endif
 void main() {
-    fragColor = vec4(color, 0.95);
+    gl_FragColor = vec4(color, 0.95);
 }
 ]]
 
