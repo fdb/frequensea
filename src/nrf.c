@@ -25,13 +25,13 @@
 #endif
 const double TAU = M_PI * 2;
 
-nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *data) {
+nrf_buffer *nrf_buffer_new(int width, int height, int channels, const uint8_t *data) {
     nrf_buffer *buffer = calloc(1, sizeof(nrf_buffer));
     buffer->width = width;
     buffer->height = height;
     buffer->channels = channels;
-    buffer->size_bytes = width * height * channels * sizeof(float);
-    buffer->data = calloc(buffer->size_bytes, sizeof(float));
+    buffer->size_bytes = width * height * channels * sizeof(uint8_t);
+    buffer->data = calloc(buffer->size_bytes, sizeof(uint8_t));
     if (data != NULL) {
         memcpy(buffer->data, data, buffer->size_bytes);
     }
@@ -71,10 +71,6 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 
 #define _NRF_HACKRF_CHECK_STATUS(device, status, message) _nrf_hackrf_check_status(device, status, message, __FILE__, __LINE__)
 
-static int _nrf_lerp(float a, float b, float t) {
-    return a * (1.0 - t) + b * t;
-}
-
 static float _nrf_clampf(float v, float min, float max) {
     return v < min ? min : v > max ? max : v;
 }
@@ -90,70 +86,17 @@ double _nrf_clamp_frequency(nrf_device *device, double freq_mhz) {
     }
 }
 
-static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, int length) {
+static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int length) {
     assert(length == NRF_BUFFER_LENGTH);
 
     pthread_mutex_lock(&device->data_mutex);
-
-    if (device->t >= 1.0) {
-        memcpy(device->a_buffer, device->b_buffer, NRF_BUFFER_LENGTH);
-        memcpy(device->b_buffer, buffer, NRF_BUFFER_LENGTH);
-        device->t = 0.0;
-    } else if (device->t < 0.0) {
-        // Special start-up condition. Set b_buffer and interpolate from zero.
-        memcpy(device->b_buffer, buffer, NRF_BUFFER_LENGTH);
-        device->t = 0.0;
-    }
-
-    int j = 0;
-    int ii = 0;
-    memset(device->iq, 0, 256 * 256 * sizeof(float));
-    for (int i = 0; i < length; i += 2) {
-        float buffer_pos = i / (float) length;
-
-        int a_i = device->a_buffer[i];
-        int a_q = device->a_buffer[i + 1];
-        int b_i = device->b_buffer[i];
-        int b_q = device->b_buffer[i + 1];
-        if (device->device_type == NRF_DEVICE_HACKRF || device->device_type == NRF_DEVICE_DUMMY) {
-            a_i = (a_i + 128) % 256;
-            a_q = (a_q + 128) % 256;
-            b_i = (b_i + 128) % 256;
-            b_q = (b_q + 128) % 256;
-        }
-        float v_i = _nrf_lerp(a_i, b_i, device->t);
-        float v_q = _nrf_lerp(a_q, b_q, device->t);
-
-        device->samples[j++] = v_i / 256.0;
-        device->samples[j++] = v_q / 256.0;
-        device->samples[j++] = buffer_pos;
-
-        int iq_index = (int) (roundf(v_i * 256) + roundf(v_q));
-        device->iq[iq_index]++;
-
-        fftw_complex *p = device->fft_in;
-        p[ii][0] = powf(-1, ii) * v_i / 256.0;
-        p[ii][1] = powf(-1, ii) * v_q / 256.0;
-        ii++;
-    }
-
-    fftw_execute(device->fft_plan);
-    // Move the previous lines down
-    memcpy(device->fft + device->fft_size, device->fft, device->fft_size * (device->fft_history_size - 1) * sizeof(vec3));
-    // Set the first line
-    for (int i = 0; i < device->fft_size; i++) {
-        float buffer_pos = i / (float) device->fft_size;
-        fftw_complex *out = device->fft_out;
-        device->fft[i] = vec3_init(out[i][0], out[i][1], buffer_pos);
-    }
-
-    device->t += device->t_step;
-
-    if (device->decode_cb_fn != NULL) {
-        device->decode_cb_fn(device, device->decode_cb_ctx);
-    }
-
+    memcpy(device->samples, buffer, length);
     pthread_mutex_unlock(&device->data_mutex);
+
+    // if (device->decode_cb_fn != NULL) {
+    //     device->decode_cb_fn(device, device->decode_cb_ctx);
+    // }
+
     return 0;
 }
 
@@ -322,41 +265,23 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // Start receiving on the given frequency.
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
-nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step) {
+nrf_device *nrf_device_new(double freq_mhz, const char* data_file) {
     nrf_device_config config;
     memset(&config, 0, sizeof(nrf_device_config));
     config.freq_mhz = freq_mhz;
     config.data_file = data_file;
-    config.interpolate_step = interpolate_step;
     return nrf_device_new_with_config(config);
 }
 
 nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
+    int sample_rate = config.sample_rate;
     double freq_mhz = config.freq_mhz > 0.1 ? config.freq_mhz : 100;
     const char *data_file = config.data_file != 0 ? config.data_file : NULL;
-    float interpolate_step = config.interpolate_step;
-    int sample_rate = config.sample_rate;
-    int fft_size = config.fft_size != 0 ? config.fft_size : DEFAULT_FFT_SIZE;
-    int fft_history_size = config.fft_history_size != 0 ? config.fft_history_size : DEFAULT_FFT_HISTORY_SIZE;
 
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
-
     pthread_mutex_init(&device->data_mutex, NULL);
-
-    device->a_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
-    device->b_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
-    device->t = -1;
-    device->t_step = interpolate_step;
-
-    memset(device->samples, 0, NRF_SAMPLES_SIZE * 3 * sizeof(float));
-
-    device->fft_size = fft_size;
-    device->fft_history_size = fft_history_size;
-    device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
-    device->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
-    device->fft_plan = fftw_plan_dft_1d(fft_size, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
-    device->fft = calloc(fft_size * fft_history_size, sizeof(vec3));
+    memset(device->samples, 0, NRF_BUFFER_LENGTH);
 
     // Try to find a suitable hardware device, fall back to data file.
     status = _nrf_rtlsdr_start(device, freq_mhz, sample_rate);
@@ -404,17 +329,25 @@ void nrf_device_step(nrf_device *device) {
 
 nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(512, 256, 3, device->samples);
+    nrf_buffer *buffer = nrf_buffer_new(512, 256, 3, NULL);
+    int j = 0;
+    double t;
+    for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
+        t = i / (double) NRF_BUFFER_LENGTH;
+        buffer->data[j++] = device->samples[i];
+        buffer->data[j++] = device->samples[i + 1];
+        buffer->data[j++] = floor(t * 256);
+    }
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
 
-nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
-    pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
-    pthread_mutex_unlock(&device->data_mutex);
-    return buffer;
-}
+// nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
+//     pthread_mutex_lock(&device->data_mutex);
+//     nrf_buffer *buffer = nrf_buffer_new(256, 256, 1, device->iq);
+//     pthread_mutex_unlock(&device->data_mutex);
+//     return buffer;
+// }
 
 static void pixel_inc(nrf_buffer *image_buffer, int x, int y) {
     int offset = y * image_buffer->width + x;
@@ -458,12 +391,12 @@ nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
     return image_buffer;
 }
 
-nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
-    pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
-    pthread_mutex_unlock(&device->data_mutex);
-    return buffer;
-}
+// nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
+//     pthread_mutex_lock(&device->data_mutex);
+//     nrf_buffer *buffer = nrf_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
+//     pthread_mutex_unlock(&device->data_mutex);
+//     return buffer;
+// }
 
 // Stop receiving data
 void nrf_device_free(nrf_device *device) {
@@ -479,15 +412,53 @@ void nrf_device_free(nrf_device *device) {
         device->receiving = 0;
         pthread_join(device->receive_thread, NULL);
     }
-    free(device->a_buffer);
-    free(device->b_buffer);
     if (device->receive_buffer) {
         free(device->receive_buffer);
     }
-    fftw_destroy_plan(device->fft_plan);
-    fftw_free(device->fft_in);
-    fftw_free(device->fft_out);
     free(device);
+}
+
+// FFT Analysis
+
+nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
+    nrf_fft *fft = calloc(1, sizeof(nrf_fft));
+    fft->fft_size = fft_size;
+    fft->fft_history_size = fft_history_size;
+    fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
+    fft->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
+    fft->fft_plan = fftw_plan_dft_1d(fft_size, fft->fft_in, fft->fft_out, FFTW_FORWARD, FFTW_MEASURE);
+    fft->buffer = calloc(fft_size * fft_history_size * 2, sizeof(double));
+    return fft;
+}
+
+void nrf_fft_process(nrf_fft *fft, nrf_buffer *buffer) {
+    int length = NRF_BUFFER_LENGTH;
+    int ii = 0;
+    for (int i = 0; i < length; i += 2) {
+        fftw_complex *p = fft->fft_in;
+        double di = buffer->data[i];
+        double dq = buffer->data[i];
+        p[ii][0] = powf(-1, ii) * di / 256.0;
+        p[ii][1] = powf(-1, ii) * dq / 256.0;
+        ii++;
+    }
+    fftw_execute(fft->fft_plan);
+    // Move the previous lines down
+    memcpy(fft->buffer + fft->fft_size, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * 2 * sizeof(double));
+    // Set the first line
+    int j = 0;
+    for (int i = 0; i < fft->fft_size; i++) {
+        fftw_complex *out = fft->fft_out;
+        fft->buffer[j++] = out[i][0];
+        fft->buffer[j++] = out[i][1];
+    }
+}
+
+void nrf_fft_free(nrf_fft *fft) {
+    fftw_destroy_plan(fft->fft_plan);
+    fftw_free(fft->fft_in);
+    fftw_free(fft->fft_out);
+    free(fft);
 }
 
 // Finite Impulse Response (FIR) Filter
@@ -913,7 +884,7 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     if (player->shutting_down) return;
 
     // Decode/demodulate the signal.
-    nrf_decoder_process(player->decoder, device->b_buffer, NRF_SAMPLES_SIZE);
+    nrf_decoder_process(player->decoder, device->samples, NRF_SAMPLES_SIZE);
 
     if (player->shutting_down) return;
 
