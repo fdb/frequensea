@@ -737,7 +737,6 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_block_connect", l_nrf_block_connect);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
-    l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
     l_register_function(L, "nrf_device_step", l_nrf_device_step);
