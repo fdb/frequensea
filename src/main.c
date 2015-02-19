@@ -352,16 +352,7 @@ static int l_nrf_buffer_free(lua_State *L) {
     return 0;
 }
 
-static int l_nrf_device_new(lua_State *L) {
-    double freq_mhz = luaL_checknumber(L, 1);
-    const char *file_name = lua_tostring(L, 2);
-    double interpolate_step;
-    if (!lua_isnoneornil(L, 3)) {
-        interpolate_step = luaL_checknumber(L, 3);
-    } else {
-        interpolate_step = 1;
-    }
-    nrf_device *device = nrf_device_new(freq_mhz, file_name, interpolate_step);
+static int _l_to_nrf_device_table(lua_State *L, nrf_device* device) {
     l_to_table(L, "nrf_device", device);
 
     lua_pushliteral(L, "samples");
@@ -379,6 +370,19 @@ static int l_nrf_device_new(lua_State *L) {
     return 1;
 }
 
+static int l_nrf_device_new(lua_State *L) {
+    double freq_mhz = luaL_checknumber(L, 1);
+    const char *file_name = lua_tostring(L, 2);
+    double interpolate_step;
+    if (!lua_isnoneornil(L, 3)) {
+        interpolate_step = luaL_checknumber(L, 3);
+    } else {
+        interpolate_step = 1;
+    }
+    nrf_device *device = nrf_device_new(freq_mhz, file_name, interpolate_step);
+    return _l_to_nrf_device_table(L, device);
+}
+
 static int l_nrf_device_new_with_config(lua_State *L) {
     nrf_device_config config;
     memset(&config, 0, sizeof(nrf_device_config));
@@ -391,8 +395,7 @@ static int l_nrf_device_new_with_config(lua_State *L) {
         config.fft_history_size = l_table_integer(L, 1, "fft_history_size", 0);
     }
     nrf_device *device = nrf_device_new_with_config(config);
-    l_to_table(L, "nrf_device", device);
-    return 1;
+    return _l_to_nrf_device_table(L, device);
 }
 
 static int l_nrf_device_free(lua_State *L) {
