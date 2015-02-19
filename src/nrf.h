@@ -120,6 +120,7 @@ void nrf_fft_free(nrf_fft *fft);
 // Finite Impulse Response (FIR) Filter
 
 typedef struct {
+    NRF_BLOCK;
     int length;
     double *coefficients;
     int offset;
@@ -132,6 +133,8 @@ double *nrf_fir_get_low_pass_coefficients(int sample_rate, int half_ampl_freq, i
 nrf_fir_filter *nrf_fir_filter_new(int sample_rate, int half_ampl_freq, int length);
 void nrf_fir_filter_load(nrf_fir_filter *filter, double *samples, int length);
 double nrf_fir_filter_get(nrf_fir_filter *filter, int index);
+void nrf_fir_filter_process(nrf_block *block, nul_buffer *buffer);
+nul_buffer *nrf_fir_filter_get_buffer(nrf_fir_filter *filter);
 void nrf_fir_filter_free(nrf_fir_filter *filter);
 
 // Downsampler

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +30,20 @@ nul_buffer *nul_buffer_new_f64(int width, int height, int channels, const double
         memcpy(buffer->data.f64, data, buffer->size_bytes);
     }
     return buffer;
+}
+
+void nul_buffer_change_size(nul_buffer *buffer, int width, int height, int channels) {
+    int old_size = buffer->width * buffer->height * buffer->channels;
+    int new_size = width * height * channels;
+    if (old_size != new_size) {
+        fprintf(stderr, "Cannot change buffer size from %d x %d x %d to %d x %d x %d\n",
+            buffer->width, buffer->height, buffer->channels,
+            width, height, channels);
+        exit(1);
+    }
+    buffer->width = width;
+    buffer->height = height;
+    buffer->channels = channels;
 }
 
 void nul_buffer_free(nul_buffer *buffer) {
