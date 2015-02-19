@@ -402,10 +402,10 @@ nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
     nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
     int x1 = 0;
     int y1 = 0;
-    int max = NRF_SAMPLES_SIZE * 3 * line_percentage;
-    for (int i = 0; i < max; i += 3) {
-        int x2 = device->samples[i] * NRF_IQ_RESOLUTION * size_multiplier;
-        int y2 = device->samples[i + 1] * NRF_IQ_RESOLUTION * size_multiplier;
+    int max = NRF_BUFFER_LENGTH * line_percentage;
+    for (int i = 0; i < max; i += 2) {
+        int x2 = device->samples[i] * size_multiplier;
+        int y2 = device->samples[i + 1] * size_multiplier;
         if (i > 0) {
             draw_line(image_buffer, x1, y1, x2, y2, 0);
         }
