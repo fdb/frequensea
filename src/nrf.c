@@ -25,6 +25,24 @@
 #endif
 const double TAU = M_PI * 2;
 
+// Block
+
+void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn) {
+    block->type = type;
+    block->process_fn = process_fn;
+    assert(block->n_outputs == 0);
+}
+
+void nrf_block_connect(nrf_block* input, nrf_block* output) {
+    assert(input->n_outputs < NRF_BLOCK_MAX_OUTPUTS);
+    input->outputs[input->n_outputs] = output;
+    input->n_outputs++;
+}
+
+void nrf_block_process(nrf_block* block, nul_buffer* buffer) {
+    block->process_fn(block, buffer);
+}
+
 // Device
 
 void _nrf_rtlsdr_check_status(nrf_device *device, int status, const char *message, const char *file, int line) {
@@ -70,6 +88,7 @@ double _nrf_clamp_frequency(nrf_device *device, double freq_mhz) {
 
 static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int length) {
     assert(length == NRF_BUFFER_LENGTH);
+    if (device->receiving == 0) return 0;
 
     pthread_mutex_lock(&device->data_mutex);
     for (int i = 0; i < length; i += 2) {
@@ -87,6 +106,18 @@ static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int le
     // if (device->decode_cb_fn != NULL) {
     //     device->decode_cb_fn(device, device->decode_cb_ctx);
     // }
+
+    if (device->receiving == 0) return 0;
+
+    if (device->block.n_outputs > 0) {
+        nul_buffer *buffer = nrf_device_get_samples_buffer(device);
+        for (int i = 0; i < device->block.n_outputs; i++) {
+            if (device->receiving == 0) return 0;
+            nrf_block *output = device->block.outputs[i];
+            nrf_block_process(output, buffer);
+        }
+        nul_buffer_free(buffer);
+    }
 
     return 0;
 }
@@ -271,6 +302,7 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
 
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
+    nrf_block_init(&device->block, NRF_BLOCK_SOURCE, NULL);
     pthread_mutex_init(&device->data_mutex, NULL);
     memset(device->samples, 0, NRF_BUFFER_LENGTH);
 
@@ -320,7 +352,7 @@ void nrf_device_step(nrf_device *device) {
 
 nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nul_buffer *buffer = nul_buffer_new_u8(256, 256, 2, device->samples);
+    nul_buffer *buffer = nul_buffer_new_u8(512, 256, 2, device->samples);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
@@ -378,13 +410,6 @@ nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
     return image_buffer;
 }
 
-// nul_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
-//     pthread_mutex_lock(&device->data_mutex);
-//     nul_buffer *buffer = nul_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
-//     pthread_mutex_unlock(&device->data_mutex);
-//     return buffer;
-// }
-
 // Stop receiving data
 void nrf_device_free(nrf_device *device) {
     if (device->device_type == NRF_DEVICE_RTLSDR) {
@@ -409,6 +434,7 @@ void nrf_device_free(nrf_device *device) {
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     nrf_fft *fft = calloc(1, sizeof(nrf_fft));
+    nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, nrf_fft_process);
     fft->fft_size = fft_size;
     fft->fft_history_size = fft_history_size;
     fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
@@ -418,8 +444,10 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     return fft;
 }
 
-void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
-    int length = NRF_BUFFER_LENGTH;
+void nrf_fft_process(nrf_block *block, nul_buffer *buffer) {
+    nrf_fft* fft = (nrf_fft *) block;
+    int length = buffer->width * buffer->height * buffer->channels;
+    assert(length == NRF_BUFFER_LENGTH);
     int ii = 0;
     for (int i = 0; i < length; i += 2) {
         fftw_complex *p = fft->fft_in;
@@ -431,13 +459,13 @@ void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
             di = buffer->data.f64[i];
             dq = buffer->data.f64[i + 1];
         }
-        p[ii][0] = powf(-1, ii) * di / 256.0;
-        p[ii][1] = powf(-1, ii) * dq / 256.0;
+        p[ii][0] = powf(-1, ii) * di;
+        p[ii][1] = powf(-1, ii) * dq;
         ii++;
     }
     fftw_execute(fft->fft_plan);
     // Move the previous lines down
-    memcpy(fft->buffer + fft->fft_size, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * 2 * sizeof(double));
+    memcpy(fft->buffer + fft->fft_size * 2, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * 2 * sizeof(double));
     // Set the first line
     int j = 0;
     for (int i = 0; i < fft->fft_size; i++) {
@@ -445,6 +473,10 @@ void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
         fft->buffer[j++] = out[i][0];
         fft->buffer[j++] = out[i][1];
     }
+}
+
+nul_buffer *nrf_fft_get_buffer(nrf_fft *fft) {
+    return nul_buffer_new_f64(fft->fft_size, fft->fft_history_size, 2, (double *) fft->buffer);
 }
 
 void nrf_fft_free(nrf_fft *fft) {

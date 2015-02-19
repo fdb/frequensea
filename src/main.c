@@ -351,6 +351,25 @@ static int l_ngl_draw_model(lua_State *L) {
 
 // Lua NRF wrappers /////////////////////////////////////////////////////////
 
+// nrf_block
+
+static nrf_block* l_to_nrf_block(lua_State *L, int index) {
+    // Since this is a base type, we can't use l_from_table.
+    luaL_checktype(L, index, LUA_TTABLE);
+    lua_pushliteral(L, "__ptr__");
+    lua_gettable(L, index);
+    nrf_block *block = (nrf_block*) lua_touserdata(L, -1);
+    assert(block->type == NRF_BLOCK_SOURCE || block->type == NRF_BLOCK_GENERIC || block->type == NRF_BLOCK_SINK);
+    return block;
+}
+
+static int l_nrf_block_connect(lua_State *L) {
+    nrf_block* input = l_to_nrf_block(L, 1);
+    nrf_block* output = l_to_nrf_block(L, 2);
+    nrf_block_connect(input, output);
+    return 0;
+}
+
 // nrf_device
 
 static nrf_device* l_to_nrf_device(lua_State *L, int index) {
@@ -472,6 +491,12 @@ static int l_nrf_fft_new(lua_State *L) {
     nrf_fft* fft = nrf_fft_new(fft_size, fft_history_size);
     l_to_table(L, "nrf_fft", fft);
     return 1;
+}
+
+static int l_nrf_fft_get_buffer(lua_State *L) {
+    nrf_fft* fft = l_to_nrf_fft(L, 1);
+    nul_buffer* buffer = nrf_fft_get_buffer(fft);
+    return _l_nrf_push_buffer(L, buffer);
 }
 
 static int l_nrf_fft_free(lua_State *L) {
@@ -672,6 +697,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "nrf_block_connect", l_nrf_block_connect);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
     l_register_function(L, "nrf_device_free", l_nrf_device_free);
@@ -683,6 +709,7 @@ static lua_State *l_init() {
     // l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
     // l_register_function(L, "nrf_device_get_fft_buffer", l_nrf_device_get_fft_buffer);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
+    l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

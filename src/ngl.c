@@ -206,11 +206,12 @@ void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer) {
         glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
     } else {
         const int length = buffer->width * buffer->height * buffer->channels;
-        float tex[length];
+        float *tex = calloc(length, sizeof(float));
         for (int i = 0; i < length; i++) {
-            tex[i] = buffer->data.f64[i];
+            tex[i] = (float) buffer->data.f64[i];
         }
-        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_FLOAT, &tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_FLOAT, tex);
+        free(tex);
     }
     NGL_CHECK_ERROR();
 }

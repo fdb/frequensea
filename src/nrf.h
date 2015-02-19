@@ -34,7 +34,7 @@ typedef enum {
 
 typedef struct nrf_block nrf_block;
 
-typedef void (*nrf_block_process_fn)(nrf_block *block, void *input_data);
+typedef void (*nrf_block_process_fn)(nrf_block *block, nul_buffer *buffer);
 
 struct nrf_block {
     nrf_block_type type;
@@ -45,7 +45,9 @@ struct nrf_block {
 
 void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn);
 void nrf_block_connect(nrf_block* input, nrf_block* output);
-void nrf_block_process(nrf_block* block, void* input_data);
+void nrf_block_process(nrf_block* block, nul_buffer* buffer);
+
+#define NRF_BLOCK nrf_block block
 
 // Device
 
@@ -66,6 +68,7 @@ typedef struct nrf_device nrf_device;
 typedef void (*nrf_device_decode_cb_fn)(nrf_device *device, void *ctx);
 
 struct nrf_device {
+    NRF_BLOCK;
     nrf_device_type device_type;
     void *device;
     int sample_rate;
@@ -100,6 +103,7 @@ void nrf_device_free(nrf_device *device);
 // FFT Analysis
 
 typedef struct {
+    NRF_BLOCK;
     int fft_size;
     int fft_history_size;
     double *buffer;
@@ -109,7 +113,8 @@ typedef struct {
 } nrf_fft;
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size);
-void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer);
+void nrf_fft_process(nrf_block *block, nul_buffer *buffer);
+nul_buffer *nrf_fft_get_buffer(nrf_fft *fft);
 void nrf_fft_free(nrf_fft *fft);
 
 // Finite Impulse Response (FIR) Filter
