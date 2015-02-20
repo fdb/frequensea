@@ -465,6 +465,27 @@ nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer) {
     return img;
 }
 
+// Convert a buffer to I/Q lines.
+nul_buffer *nrf_buffer_to_iq_lines(nul_buffer *buffer, int size_multiplier, float line_percentage) {
+    line_percentage = _nrf_clampf(line_percentage, 0, 1);
+    int sz = NRF_IQ_RESOLUTION * size_multiplier;
+    nul_buffer *image_buffer = nul_buffer_new_u8(sz * sz, 1, NULL);
+    int x1 = 0;
+    int y1 = 0;
+    int size = buffer->length * buffer->channels;
+    int max = size * line_percentage;
+    for (int i = 0; i < max; i += 2) {
+        int x2 = nul_buffer_get_u8(buffer, i) * size_multiplier;
+        int y2 = nul_buffer_get_u8(buffer, i + 1) * size_multiplier;
+        if (i > 0) {
+            draw_line(image_buffer, NRF_IQ_RESOLUTION * size_multiplier, x1, y1, x2, y2, 0);
+        }
+        x1 = x2;
+        y1 = y2;
+    }
+    return image_buffer;
+}
+
 // FFT Analysis
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {

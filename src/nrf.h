@@ -105,6 +105,7 @@ void nrf_device_free(nrf_device *device);
 // IQ Drawing
 
 nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer);
+nul_buffer *nrf_buffer_to_iq_lines(nul_buffer *buffer, int size_multiplier, float line_percentage);
 
 // FFT Analysis
 

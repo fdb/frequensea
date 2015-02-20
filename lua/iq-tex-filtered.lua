@@ -24,7 +24,7 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 30;
+    float r = texture(uTexture, texCoord).r * 90;
     fragColor = vec4(r, r, r, 1);
 }
 ]]
@@ -45,8 +45,8 @@ function draw()
     buffer = nrf_iq_filter_get_buffer(filter)
     -- Initially buffer will be empty, so only attempt to change size when we have data
     if (buffer.length > 0) then
-        iq_buffer = nrf_buffer_to_iq_points(buffer)
-        ngl_texture_update(texture, iq_buffer, 256, 256)
+        iq_buffer = nrf_buffer_to_iq_lines(buffer, 4, 0.9)
+        ngl_texture_update(texture, iq_buffer, 1024, 1024)
     end
     ngl_draw_model(camera, model, shader)
 end
