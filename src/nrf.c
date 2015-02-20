@@ -87,7 +87,7 @@ double _nrf_clamp_frequency(nrf_device *device, double freq_mhz) {
 }
 
 static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int length) {
-    assert(length == NRF_BUFFER_LENGTH);
+    assert(length == NRF_BUFFER_SIZE_BYTES);
     if (device->receiving == 0) return 0;
 
     pthread_mutex_lock(&device->data_mutex);
@@ -126,13 +126,13 @@ static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int le
 void *_nrf_rtlsdr_receive_loop(nrf_device *device) {
     while (device->receiving) {
         int n_read;
-        int status = rtlsdr_read_sync((rtlsdr_dev_t*) device->device, device->receive_buffer, NRF_BUFFER_LENGTH, &n_read);
+        int status = rtlsdr_read_sync((rtlsdr_dev_t*) device->device, device->receive_buffer, NRF_BUFFER_SIZE_BYTES, &n_read);
         _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_read_sync");
-        if (n_read < NRF_BUFFER_LENGTH) {
+        if (n_read < NRF_BUFFER_SIZE_BYTES) {
             fprintf(stderr, "Short read, samples lost, exiting!\n");
             exit(EXIT_FAILURE);
         }
-        _nrf_process_sample_block(device, device->receive_buffer, NRF_BUFFER_LENGTH);
+        _nrf_process_sample_block(device, device->receive_buffer, NRF_BUFFER_SIZE_BYTES);
     }
     return NULL;
 }
@@ -162,8 +162,8 @@ static void _nrf_advance_block(nrf_device *device) {
 
 static void *_nrf_dummy_receive_loop(nrf_device *device) {
     while (device->receiving) {
-        unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_LENGTH);
-        _nrf_process_sample_block(device, buffer, NRF_BUFFER_LENGTH);
+        unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_SIZE_BYTES);
+        _nrf_process_sample_block(device, buffer, NRF_BUFFER_SIZE_BYTES);
         _nrf_advance_block(device);
         _nrf_sleep_milliseconds(1000 / 60);
     }
@@ -181,7 +181,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rat
     }
 
     device->device_type = NRF_DEVICE_RTLSDR;
-    device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+    device->receive_buffer = calloc(NRF_BUFFER_SIZE_BYTES, sizeof(uint8_t));
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
@@ -266,13 +266,13 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
             long size = ftell(fp);
             rewind(fp);
             device->receive_buffer = calloc(size, sizeof(uint8_t));
-            device->dummy_block_length = size / NRF_BUFFER_LENGTH;
+            device->dummy_block_length = size / NRF_BUFFER_SIZE_BYTES;
             device->dummy_block_index = 0;
             fread(device->receive_buffer, size, 1, fp);
             fclose(fp);
         } else {
             fprintf(stderr, "WARN nrf_device_new: Couldn't open %s. Using empty buffer.\n", data_file);
-            device->receive_buffer = calloc(NRF_BUFFER_LENGTH, sizeof(uint8_t));
+            device->receive_buffer = calloc(NRF_BUFFER_SIZE_BYTES, sizeof(uint8_t));
             device->dummy_block_length = 1;
             device->dummy_block_index = 0;
         }
@@ -304,7 +304,7 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
     nrf_device *device = calloc(1, sizeof(nrf_device));
     nrf_block_init(&device->block, NRF_BLOCK_SOURCE, NULL);
     pthread_mutex_init(&device->data_mutex, NULL);
-    memset(device->samples, 0, NRF_BUFFER_LENGTH);
+    memset(device->samples, 0, NRF_BUFFER_SIZE_BYTES);
 
     // Try to find a suitable hardware device, fall back to data file.
     status = _nrf_rtlsdr_start(device, freq_mhz, sample_rate);
@@ -360,7 +360,7 @@ nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
 nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
     nul_buffer *buffer = nul_buffer_new_u8(256, 256, 1, NULL);
-    for (int i = 0; i < NRF_BUFFER_LENGTH; i += 2) {
+    for (int i = 0; i < NRF_BUFFER_SIZE_BYTES; i += 2) {
         int u8i = device->samples[i];
         int u8q = device->samples[i + 1];
         int offset = u8i * 256 + u8q;
@@ -402,7 +402,7 @@ nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
     nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
     int x1 = 0;
     int y1 = 0;
-    int max = NRF_BUFFER_LENGTH * line_percentage;
+    int max = NRF_BUFFER_SIZE_BYTES * line_percentage;
     for (int i = 0; i < max; i += 2) {
         int x2 = device->samples[i] * size_multiplier;
         int y2 = device->samples[i + 1] * size_multiplier;
@@ -458,8 +458,8 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, nrf_fft_process);
     fft->fft_size = fft_size;
     fft->fft_history_size = fft_history_size;
-    fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
-    fft->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
+    fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
+    fft->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
     fft->fft_plan = fftw_plan_dft_1d(fft_size, fft->fft_in, fft->fft_out, FFTW_FORWARD, FFTW_MEASURE);
     fft->buffer = calloc(fft_size * fft_history_size * 2, sizeof(double));
     return fft;
@@ -468,7 +468,7 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
 void nrf_fft_process(nrf_block *block, nul_buffer *buffer) {
     nrf_fft* fft = (nrf_fft *) block;
     int length = buffer->width * buffer->height * buffer->channels;
-    assert(length == NRF_BUFFER_LENGTH);
+    assert(length == NRF_BUFFER_SIZE_BYTES);
     int ii = 0;
     for (int i = 0; i < length; i += 2) {
         fftw_complex *p = fft->fft_in;
@@ -980,7 +980,7 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     if (player->shutting_down) return;
 
     // Decode/demodulate the signal.
-    nrf_decoder_process(player->decoder, device->samples, NRF_SAMPLES_SIZE);
+    nrf_decoder_process(player->decoder, device->samples, NRF_SAMPLES_LENGTH);
 
     if (player->shutting_down) return;
 

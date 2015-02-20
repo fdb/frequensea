@@ -16,8 +16,8 @@
 #include "vec.h"
 #include "nul.h"
 
-#define NRF_BUFFER_LENGTH (16 * 16384)
-#define NRF_SAMPLES_SIZE 131072
+#define NRF_BUFFER_SIZE_BYTES (16 * 16384)
+#define NRF_SAMPLES_LENGTH 131072
 #define NRF_IQ_RESOLUTION 256
 #define DEFAULT_FFT_SIZE 128
 #define DEFAULT_FFT_HISTORY_SIZE 128
@@ -85,7 +85,7 @@ struct nrf_device {
     int dummy_block_length;
     int dummy_block_index;
 
-    uint8_t samples[NRF_BUFFER_LENGTH];
+    uint8_t samples[NRF_BUFFER_SIZE_BYTES];
 };
 
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file);

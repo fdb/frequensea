@@ -759,7 +759,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 
-    l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
+    l_register_constant(L, "NRF_SAMPLES_LENGTH", NRF_SAMPLES_LENGTH);
     l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);
     l_register_constant(L, "NRF_DEMODULATE_WBFM", NRF_DEMODULATE_WBFM);
     l_register_constant(L, "GL_POINTS", GL_POINTS);

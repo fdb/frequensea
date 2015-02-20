@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-const long NRF_SAMPLES_SIZE = 262144;
-const long BUFFER_SIZE = NRF_SAMPLES_SIZE * 1;
+const long NRF_SAMPLES_LENGTH = 262144;
+const long BUFFER_SIZE = NRF_SAMPLES_LENGTH * 1;
 const int DESIRED_FREQ = 1278e6;
 const int CENTER_FREQ = DESIRED_FREQ + 0;
 const int SAMPLE_RATE = 10e6;
@@ -27,7 +27,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
         skip--;
         return 0;
     }
-    printf("block length: %d index: %d\n", transfer->valid_length, (int)(buffer_pos / (double) NRF_SAMPLES_SIZE));
+    printf("block length: %d index: %d\n", transfer->valid_length, (int)(buffer_pos / (double) NRF_SAMPLES_LENGTH));
     for (int i = 0; i < transfer->valid_length; i++) {
         if (buffer_pos < BUFFER_SIZE) {
             buffer[buffer_pos++] = transfer->buffer[i];
