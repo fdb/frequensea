@@ -44,7 +44,7 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_device_get_samples_buffer(device)
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
+    ngl_texture_update(texture, buffer, 512, 256)
     ngl_draw_model(camera, model, shader)
     freq_time = freq_time + 1
     if freq_time >= time_to_switch then

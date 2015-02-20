@@ -182,7 +182,7 @@ ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader
 
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
-void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer) {
+void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer, int width, int height) {
     GLint format;
     if (buffer->channels == 1) {
         format = GL_RED;
@@ -202,15 +202,20 @@ void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer) {
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
     NGL_CHECK_ERROR();
 
+    if (width * height > buffer->length) {
+        fprintf(stderr, "ERROR ngl_texture_update: Invalid width / height (%d x %d) for buffer length %d\n", width, height, buffer->length);
+        exit(1);
+    }
+
     if (buffer->type == NUL_BUFFER_U8) {
-        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
     } else {
-        const int length = buffer->width * buffer->height * buffer->channels;
-        float *tex = calloc(length, sizeof(float));
-        for (int i = 0; i < length; i++) {
+        const int size = width * height * buffer->channels;
+        float *tex = calloc(size, sizeof(float));
+        for (int i = 0; i < size; i++) {
             tex[i] = (float) buffer->data.f64[i];
         }
-        glTexImage2D(GL_TEXTURE_2D, 0, format, buffer->width, buffer->height, 0, format, GL_FLOAT, tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, tex);
         free(tex);
     }
     NGL_CHECK_ERROR();

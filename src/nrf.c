@@ -352,14 +352,14 @@ void nrf_device_step(nrf_device *device) {
 
 nul_buffer *nrf_device_get_samples_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nul_buffer *buffer = nul_buffer_new_u8(512, 256, 2, device->samples);
+    nul_buffer *buffer = nul_buffer_new_u8(NRF_SAMPLES_LENGTH, 2, device->samples);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
 
 nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nul_buffer *buffer = nul_buffer_new_u8(256, 256, 1, NULL);
+    nul_buffer *buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * NRF_IQ_RESOLUTION, 1, NULL);
     for (int i = 0; i < NRF_BUFFER_SIZE_BYTES; i += 2) {
         int u8i = device->samples[i];
         int u8q = device->samples[i + 1];
@@ -370,8 +370,8 @@ nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     return buffer;
 }
 
-static void pixel_inc(nul_buffer *image_buffer, int x, int y) {
-    int offset = y * image_buffer->width + x;
+static void pixel_inc(nul_buffer *image_buffer, int stride, int x, int y) {
+    int offset = y * stride + x;
     if (image_buffer->type == NUL_BUFFER_U8) {
         image_buffer->data.u8[offset]++;
     } else {
@@ -379,7 +379,7 @@ static void pixel_inc(nul_buffer *image_buffer, int x, int y) {
     }
 }
 
-static void draw_line(nul_buffer *image_buffer, int x1, int y1, int x2, int y2, int color) {
+static void draw_line(nul_buffer *image_buffer, int stride, int x1, int y1, int x2, int y2, int color) {
   int dx = abs(x2 - x1);
   int sx = x1 < x2 ? 1 : -1;
   int dy = abs(y2-y1);
@@ -388,7 +388,7 @@ static void draw_line(nul_buffer *image_buffer, int x1, int y1, int x2, int y2, 
   int e2;
 
   for(;;){
-    pixel_inc(image_buffer, x1, y1);
+    pixel_inc(image_buffer, stride, x1, y1);
     if (x1 == x2 && y1 == y2) break;
     e2 = err;
     if (e2 > -dx) { err -= dy; x1 += sx; }
@@ -399,7 +399,7 @@ static void draw_line(nul_buffer *image_buffer, int x1, int y1, int x2, int y2, 
 nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
     line_percentage = _nrf_clampf(line_percentage, 0, 1);
     pthread_mutex_lock(&device->data_mutex);
-    nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
+    nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
     int x1 = 0;
     int y1 = 0;
     int max = NRF_BUFFER_SIZE_BYTES * line_percentage;
@@ -407,7 +407,7 @@ nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
         int x2 = device->samples[i] * size_multiplier;
         int y2 = device->samples[i + 1] * size_multiplier;
         if (i > 0) {
-            draw_line(image_buffer, x1, y1, x2, y2, 0);
+            draw_line(image_buffer, NRF_IQ_RESOLUTION * size_multiplier, x1, y1, x2, y2, 0);
         }
         x1 = x2;
         y1 = y2;
@@ -440,9 +440,9 @@ void nrf_device_free(nrf_device *device) {
 
 // Convert a buffer with raw samples to a buffer with I/Q points.
 nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer) {
-    nul_buffer *img = nul_buffer_new_u8(NRF_IQ_RESOLUTION, NRF_IQ_RESOLUTION, 1, NULL);
-    int length = buffer->width * buffer->height * buffer->channels;
-    for (int i = 0; i < length; i += 2) {
+    nul_buffer *img = nul_buffer_new_u8(NRF_IQ_RESOLUTION * NRF_IQ_RESOLUTION, 1, NULL);
+    int size = buffer->length * buffer->channels;
+    for (int i = 0; i < size; i += 2) {
         int u8i = nul_buffer_get_u8(buffer, i);
         int u8q = nul_buffer_get_u8(buffer, i + 1);
         int offset = u8i * NRF_IQ_RESOLUTION + u8q;
@@ -467,10 +467,10 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
 
 void nrf_fft_process(nrf_block *block, nul_buffer *buffer) {
     nrf_fft* fft = (nrf_fft *) block;
-    int length = buffer->width * buffer->height * buffer->channels;
-    assert(length == NRF_BUFFER_SIZE_BYTES);
+    int size = buffer->length * buffer->channels;
+    assert(size == NRF_BUFFER_SIZE_BYTES);
     int ii = 0;
-    for (int i = 0; i < length; i += 2) {
+    for (int i = 0; i < size; i += 2) {
         fftw_complex *p = fft->fft_in;
         double di, dq;
         if (buffer->type == NUL_BUFFER_U8) {
@@ -497,7 +497,7 @@ void nrf_fft_process(nrf_block *block, nul_buffer *buffer) {
 }
 
 nul_buffer *nrf_fft_get_buffer(nrf_fft *fft) {
-    return nul_buffer_new_f64(fft->fft_size, fft->fft_history_size, 2, (double *) fft->buffer);
+    return nul_buffer_new_f64(fft->fft_size * fft->fft_history_size, 2, (double *) fft->buffer);
 }
 
 void nrf_fft_free(nrf_fft *fft) {
@@ -602,7 +602,7 @@ void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer) {
     nrf_iq_filter *f = (nrf_iq_filter *) block;
 
     int old_length = f->samples_length;
-    int length = (buffer->width * buffer->height * buffer->channels) / 2;
+    int length = buffer->length;
     if (length != old_length) {
         free(f->samples_i);
         free(f->samples_q);
@@ -623,7 +623,7 @@ void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer) {
 
 nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f) {
     int length = f->samples_length;
-    nul_buffer *buffer = nul_buffer_new_f64(length, 1, 2, NULL);
+    nul_buffer *buffer = nul_buffer_new_f64(length, 2, NULL);
     int j = 0;
     for (int i = 0; i < length; i++) {
         buffer->data.f64[j++] = nrf_fir_filter_get(f->filter_i, i);

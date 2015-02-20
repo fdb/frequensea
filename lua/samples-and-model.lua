@@ -88,7 +88,7 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_device_get_samples_buffer(device)
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
+    ngl_texture_update(texture, buffer, 512, 256)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     ngl_draw_model(camera, grid_model, grid_shader)
     ngl_draw_model(camera, room_model, room_shader)

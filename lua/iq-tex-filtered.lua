@@ -24,7 +24,7 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 5;
+    float r = texture(uTexture, texCoord).r * 30;
     fragColor = vec4(r, r, r, 1);
 }
 ]]
@@ -32,7 +32,7 @@ void main() {
 function setup()
     freq = 936.2
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    filter = nrf_iq_filter_new(device.sample_rate, 200e3, 51)
+    filter = nrf_iq_filter_new(device.sample_rate, 100e3, 51)
     nrf_block_connect(device, filter)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -43,13 +43,10 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_iq_filter_get_buffer(filter)
-    --fir_buffer = nrf_device_get_samples_buffer(device)
     -- Initially buffer will be empty, so only attempt to change size when we have data
-    if (buffer.width > 0) then
-        -- Filter doesn't know the original size, so resize
-        nul_buffer_change_size(buffer, 512, 256, 2)
+    if (buffer.length > 0) then
         iq_buffer = nrf_buffer_to_iq_points(buffer)
-        ngl_texture_update(texture, iq_buffer)
+        ngl_texture_update(texture, iq_buffer, 256, 256)
     end
     ngl_draw_model(camera, model, shader)
 end

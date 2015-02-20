@@ -111,15 +111,6 @@ static nul_buffer* l_to_nul_buffer(lua_State *L, int index) {
     return (nul_buffer*) l_from_table(L, "nul_buffer", index);
 }
 
-static int l_nul_buffer_change_size(lua_State *L) {
-    nul_buffer *buffer = l_to_nul_buffer(L, 1);
-    int width = luaL_checkinteger(L, 2);
-    int height = luaL_checkinteger(L, 3);
-    int channels = luaL_checkinteger(L, 4);
-    nul_buffer_change_size(buffer, width, height, channels);
-    return 0;
-}
-
 static int l_nul_buffer_free(lua_State *L) {
     nul_buffer *buffer = l_to_nul_buffer(L, 1);
     nul_buffer_free(buffer);
@@ -223,7 +214,9 @@ static int l_ngl_texture_new_from_file(lua_State *L) {
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
     nul_buffer *buffer = l_to_nul_buffer(L, 2);
-    ngl_texture_update(texture, buffer);
+    int width = luaL_checkinteger(L, 3);
+    int height = luaL_checkinteger(L, 4);
+    ngl_texture_update(texture, buffer, width, height);
     return 0;
 }
 
@@ -448,12 +441,8 @@ static int l_nrf_device_step(lua_State *L) {
 static int _l_nrf_push_buffer(lua_State *L, nul_buffer *buffer) {
     l_to_table(L, "nul_buffer", buffer);
 
-    lua_pushliteral(L, "width");
-    lua_pushinteger(L, buffer->width);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "height");
-    lua_pushinteger(L, buffer->height);
+    lua_pushliteral(L, "length");
+    lua_pushinteger(L, buffer->length);
     lua_settable(L, -3);
 
     lua_pushliteral(L, "channels");
@@ -724,7 +713,6 @@ static lua_State *l_init() {
     l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
-    l_register_function(L, "nul_buffer_change_size", l_nul_buffer_change_size);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
     l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
