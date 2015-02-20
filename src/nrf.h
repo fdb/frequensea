@@ -100,6 +100,10 @@ nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, flo
 nul_buffer *nrf_device_get_fft_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
 
+// IQ Drawing
+
+nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer);
+
 // FFT Analysis
 
 typedef struct {

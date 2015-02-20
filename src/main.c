@@ -487,6 +487,14 @@ static int l_nrf_device_get_iq_lines(lua_State *L) {
     return _l_nrf_push_buffer(L, buffer);
 }
 
+// iq drawing
+
+static int l_nrf_buffer_to_iq_points(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer *img = nrf_buffer_to_iq_points(buffer);
+    return _l_nrf_push_buffer(L, img);
+}
+
 // nrf_fft
 
 static nrf_fft* l_to_nrf_fft(lua_State *L, int index) {
@@ -743,6 +751,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_get_samples_buffer", l_nrf_device_get_samples_buffer);
     l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
+    l_register_function(L, "nrf_buffer_to_iq_points", l_nrf_buffer_to_iq_points);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
     l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
     l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);

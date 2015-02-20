@@ -436,6 +436,21 @@ void nrf_device_free(nrf_device *device) {
     free(device);
 }
 
+// IQ Drawing
+
+// Convert a buffer with raw samples to a buffer with I/Q points.
+nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer) {
+    nul_buffer *img = nul_buffer_new_u8(NRF_IQ_RESOLUTION, NRF_IQ_RESOLUTION, 1, NULL);
+    int length = buffer->width * buffer->height * buffer->channels;
+    for (int i = 0; i < length; i += 2) {
+        int u8i = nul_buffer_get_u8(buffer, i);
+        int u8q = nul_buffer_get_u8(buffer, i + 1);
+        int offset = u8i * NRF_IQ_RESOLUTION + u8q;
+        img->data.u8[offset]++;
+    }
+    return img;
+}
+
 // FFT Analysis
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
