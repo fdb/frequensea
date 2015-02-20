@@ -537,6 +537,32 @@ static int l_nrf_iq_filter_free(lua_State *L) {
     return 0;
 }
 
+// nrf_freq_shifter
+
+static nrf_freq_shifter* l_to_nrf_freq_shifter(lua_State *L, int index) {
+    return (nrf_freq_shifter*) l_from_table(L, "nrf_freq_shifter", index);
+}
+
+static int l_nrf_freq_shifter_new(lua_State *L) {
+    int freq_offset = luaL_checkinteger(L, 1);
+    int sample_rate = luaL_checkinteger(L, 2);
+    nrf_freq_shifter *shifter = nrf_freq_shifter_new(freq_offset, sample_rate);
+    l_to_table(L, "nrf_freq_shifter", shifter);
+    return 1;
+}
+
+static int l_nrf_freq_shifter_get_buffer(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nul_buffer* buffer = nrf_freq_shifter_get_buffer(shifter);
+    return _l_nrf_push_buffer(L, buffer);
+}
+
+static int l_nrf_freq_shifter_free(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nrf_freq_shifter_free(shifter);
+    return 0;
+}
+
 // nrf_player
 
 static nrf_player* l_to_nrf_player(lua_State *L, int index) {
@@ -711,6 +737,7 @@ static lua_State *l_init() {
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
     l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
+    l_register_type(L, "nrf_freq_shifter", l_nrf_freq_shifter_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
@@ -744,6 +771,9 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
     l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
     l_register_function(L, "nrf_iq_filter_get_buffer", l_nrf_iq_filter_get_buffer);
+    l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
+    l_register_function(L, "nrf_freq_shifter_new", l_nrf_freq_shifter_new);
+    l_register_function(L, "nrf_freq_shifter_get_buffer", l_nrf_freq_shifter_get_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

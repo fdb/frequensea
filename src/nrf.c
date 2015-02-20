@@ -27,9 +27,10 @@ const double TAU = M_PI * 2;
 
 // Block
 
-void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn) {
+void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn, nrf_block_result_fn result_fn) {
     block->type = type;
     block->process_fn = process_fn;
+    block->result_fn = result_fn;
     assert(block->n_outputs == 0);
 }
 
@@ -40,7 +41,18 @@ void nrf_block_connect(nrf_block* input, nrf_block* output) {
 }
 
 void nrf_block_process(nrf_block* block, nul_buffer* buffer) {
-    block->process_fn(block, buffer);
+    if (block->process_fn != NULL) {
+        block->process_fn(block, buffer);
+    }
+
+    if (block->n_outputs > 0) {
+        nul_buffer *result = block->result_fn(block);
+        for (int i = 0; i < block->n_outputs; i++) {
+            nrf_block *output = block->outputs[i];
+            nrf_block_process(output, result);
+        }
+        nul_buffer_free(result);
+    }
 }
 
 // Device
@@ -109,15 +121,17 @@ static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int le
 
     if (device->receiving == 0) return 0;
 
-    if (device->block.n_outputs > 0) {
-        nul_buffer *buffer = nrf_device_get_samples_buffer(device);
-        for (int i = 0; i < device->block.n_outputs; i++) {
-            if (device->receiving == 0) return 0;
-            nrf_block *output = device->block.outputs[i];
-            nrf_block_process(output, buffer);
-        }
-        nul_buffer_free(buffer);
-    }
+    nrf_block_process(&device->block, NULL);
+
+    // if (device->block.n_outputs > 0) {
+    //     nul_buffer *buffer = nrf_device_get_samples_buffer(device);
+    //     for (int i = 0; i < device->block.n_outputs; i++) {
+    //         if (device->receiving == 0) return 0;
+    //         nrf_block *output = device->block.outputs[i];
+    //         nrf_block_process(output, buffer);
+    //     }
+    //     nul_buffer_free(buffer);
+    // }
 
     return 0;
 }
@@ -302,7 +316,7 @@ nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
 
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
-    nrf_block_init(&device->block, NRF_BLOCK_SOURCE, NULL);
+    nrf_block_init(&device->block, NRF_BLOCK_SOURCE, NULL, (nrf_block_result_fn) nrf_device_get_samples_buffer);
     pthread_mutex_init(&device->data_mutex, NULL);
     memset(device->samples, 0, NRF_BUFFER_SIZE_BYTES);
 
@@ -455,7 +469,7 @@ nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer) {
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     nrf_fft *fft = calloc(1, sizeof(nrf_fft));
-    nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, nrf_fft_process);
+    nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, nrf_fft_process, (nrf_block_result_fn) nrf_fft_get_buffer);
     fft->fft_size = fft_size;
     fft->fft_history_size = fft_history_size;
     fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
@@ -592,7 +606,7 @@ void nrf_fir_filter_free(nrf_fir_filter *filter) {
 
 nrf_iq_filter *nrf_iq_filter_new(int sample_rate, int half_ampl_freq, int kernel_length) {
     nrf_iq_filter *f = calloc(1, sizeof(nrf_iq_filter));
-    nrf_block_init(&f->block, NRF_BLOCK_GENERIC, nrf_iq_filter_process);
+    nrf_block_init(&f->block, NRF_BLOCK_GENERIC, nrf_iq_filter_process, (nrf_block_result_fn) nrf_iq_filter_get_buffer);
     f->filter_i = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
     f->filter_q = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
     return f;
@@ -623,13 +637,13 @@ void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer) {
 
 nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f) {
     int length = f->samples_length;
-    nul_buffer *buffer = nul_buffer_new_f64(length, 2, NULL);
-    int j = 0;
+    nul_buffer *result = nul_buffer_new_f64(length, 2, NULL);
+    int k = 0;
     for (int i = 0; i < length; i++) {
-        buffer->data.f64[j++] = nrf_fir_filter_get(f->filter_i, i);
-        buffer->data.f64[j++] = nrf_fir_filter_get(f->filter_q, i);
+        result->data.f64[k++] = nrf_fir_filter_get(f->filter_i, i);
+        result->data.f64[k++] = nrf_fir_filter_get(f->filter_q, i);
     }
-    return buffer;
+    return result;
 }
 
 void nrf_iq_filter_free(nrf_iq_filter *f) {
@@ -678,6 +692,7 @@ void nrf_downsampler_free(nrf_downsampler *d) {
 
 nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate) {
     nrf_freq_shifter *shifter = calloc(1, sizeof(nrf_freq_shifter));
+    nrf_block_init(&shifter->block, NRF_BLOCK_GENERIC, nrf_freq_shifter_process_block, (nrf_block_result_fn) nrf_freq_shifter_get_buffer);
     shifter->freq_offset = freq_offset;
     shifter->sample_rate = sample_rate;
     shifter->cosine = 1;
@@ -702,6 +717,36 @@ void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, doub
     }
     shifter->cosine = cosine;
     shifter->sine = sine;
+}
+
+void nrf_freq_shifter_process_block(nrf_block *block, nul_buffer *buffer) {
+    nrf_freq_shifter *shifter = (nrf_freq_shifter *) block;
+    double delta_cos = cos(TAU * shifter->freq_offset / (double) shifter->sample_rate);
+    double delta_sin = sin(TAU * shifter->freq_offset / (double) shifter->sample_rate);
+    double cosine = shifter->cosine;
+    double sine = shifter->sine;
+    assert(buffer->channels == 2);
+    int size = buffer->length * buffer->channels;
+    if (shifter->buffer == NULL) {
+        shifter->buffer = nul_buffer_new_f64(size, 2, NULL);
+    }
+    double *out_samples = shifter->buffer->data.f64;
+    for (int i = 0; i < size; i += 2) {
+        double vi = nul_buffer_get_f64(buffer, i);
+        double vq = nul_buffer_get_f64(buffer, i + 1);
+        out_samples[i] = vi * cosine - vq * sine;
+        out_samples[i + 1] = vi * sine + vq * cosine;
+        double new_sine = cosine * delta_sin + sine * delta_cos;
+        double new_cosine = cosine * delta_cos - sine * delta_sin;
+        sine = new_sine;
+        cosine = new_cosine;
+    }
+    shifter->cosine = cosine;
+    shifter->sine = sine;
+}
+
+nul_buffer *nrf_freq_shifter_get_buffer(nrf_freq_shifter *shifter) {
+    return nul_buffer_copy(shifter->buffer);
 }
 
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter) {

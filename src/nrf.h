@@ -35,15 +35,17 @@ typedef enum {
 typedef struct nrf_block nrf_block;
 
 typedef void (*nrf_block_process_fn)(nrf_block *block, nul_buffer *buffer);
+typedef nul_buffer* (*nrf_block_result_fn)(void *block);
 
 struct nrf_block {
     nrf_block_type type;
     nrf_block_process_fn process_fn;
+    nrf_block_result_fn result_fn;
     int n_outputs;
     void* outputs[NRF_BLOCK_MAX_OUTPUTS];
 };
 
-void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn);
+void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn, nrf_block_result_fn result_fn);
 void nrf_block_connect(nrf_block* input, nrf_block* output);
 void nrf_block_process(nrf_block* block, nul_buffer* buffer);
 
@@ -172,14 +174,18 @@ void nrf_downsampler_free(nrf_downsampler *d);
 // Frequency shifter
 
 typedef struct {
+    NRF_BLOCK;
     int freq_offset;
     int sample_rate;
     double cosine;
     double sine;
+    nul_buffer *buffer;
 } nrf_freq_shifter;
 
 nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate);
 void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
+void nrf_freq_shifter_process_block(nrf_block *block, nul_buffer *buffer);
+nul_buffer *nrf_freq_shifter_get_buffer(nrf_freq_shifter *shifter);
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 
 // RAW Demodulator
