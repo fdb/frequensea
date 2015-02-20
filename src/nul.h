@@ -30,6 +30,8 @@ nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data);
 nul_buffer *nul_buffer_copy(nul_buffer *buffer);
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset);
 double nul_buffer_get_f64(nul_buffer *buffer, int offset);
+nul_buffer *nul_buffer_convert(nul_buffer *buffer, nul_buffer_type new_type);
+void nul_buffer_save(nul_buffer *buffer, const char *fname);
 void nul_buffer_free(nul_buffer *buffer);
 
 #endif // NUL_H

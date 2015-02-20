@@ -56,6 +56,36 @@ double nul_buffer_get_f64(nul_buffer *buffer, int offset) {
     }
 }
 
+nul_buffer *nul_buffer_convert(nul_buffer *buffer, nul_buffer_type new_type) {
+    assert(buffer != NULL);
+    int size = buffer->length * buffer->channels;
+    if (new_type == NUL_BUFFER_U8) {
+        nul_buffer *out = nul_buffer_new_u8(buffer->length, buffer->channels, NULL);
+        uint8_t *out_data = out->data.u8;
+        for (int i = 0; i < size; i++) {
+            out_data[i] = nul_buffer_get_u8(buffer, i);
+        }
+        return out;
+    } else {
+        nul_buffer *out = nul_buffer_new_f64(buffer->length, buffer->channels, NULL);
+        double *out_data = out->data.f64;
+        for (int i = 0; i < size; i++) {
+            out_data[i] = nul_buffer_get_f64(buffer, i);
+        }
+        return out;
+    }
+}
+
+void nul_buffer_save(nul_buffer *buffer, const char *fname) {
+    assert(buffer != NULL);
+    FILE *fp = fopen(fname, "wb");
+    if (fp) {
+        fwrite(buffer->data.u8, buffer->size_bytes, 1, fp);
+        fclose(fp);
+        printf("Written %s.\n", fname);
+    }
+}
+
 void nul_buffer_free(nul_buffer *buffer) {
     if (buffer->type == NUL_BUFFER_U8) {
         free(buffer->data.u8);

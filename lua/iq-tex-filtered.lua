@@ -32,7 +32,7 @@ void main() {
 function setup()
     freq = 936.2
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    filter = nrf_iq_filter_new(device.sample_rate, 100e3, 51)
+    filter = nrf_iq_filter_new(device.sample_rate, 200e3, 51)
     nrf_block_connect(device, filter)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -45,7 +45,7 @@ function draw()
     buffer = nrf_iq_filter_get_buffer(filter)
     -- Initially buffer will be empty, so only attempt to change size when we have data
     if (buffer.length > 0) then
-        iq_buffer = nrf_buffer_to_iq_lines(buffer, 4, 0.9)
+        iq_buffer = nrf_buffer_to_iq_lines(buffer, 4, 0.5)
         ngl_texture_update(texture, iq_buffer, 1024, 1024)
     end
     ngl_draw_model(camera, model, shader)
@@ -53,4 +53,7 @@ end
 
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
+    if key == KEY_E then
+        nul_buffer_save(nul_buffer_convert(buffer, 1), "out.raw")
+    end
 end
