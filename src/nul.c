@@ -40,6 +40,14 @@ uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
     }
 }
 
+double nul_buffer_get_f64(nul_buffer *buffer, int offset) {
+    if (buffer->type == NUL_BUFFER_U8) {
+        return buffer->data.u8[offset] / 256.0;
+    } else {
+        return buffer->data.f64[offset];
+    }
+}
+
 void nul_buffer_change_size(nul_buffer *buffer, int width, int height, int channels) {
     int old_size = buffer->width * buffer->height * buffer->channels;
     int new_size = width * height * channels;

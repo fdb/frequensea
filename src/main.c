@@ -513,30 +513,30 @@ static int l_nrf_fft_free(lua_State *L) {
     return 0;
 }
 
-// nrf_fir_filter
+// nrf_iq_filter
 
-static nrf_fir_filter* l_to_nrf_fir_filter(lua_State *L, int index) {
-    return (nrf_fir_filter*) l_from_table(L, "nrf_fir_filter", index);
+static nrf_iq_filter* l_to_nrf_iq_filter(lua_State *L, int index) {
+    return (nrf_iq_filter*) l_from_table(L, "nrf_iq_filter", index);
 }
 
-static int l_nrf_fir_filter_new(lua_State *L) {
+static int l_nrf_iq_filter_new(lua_State *L) {
     int sample_rate = luaL_checkinteger(L, 1);
     int filter_freq = luaL_checkinteger(L, 2);
     int kernel_length = luaL_checkinteger(L, 3);
-    nrf_fir_filter *filter = nrf_fir_filter_new(sample_rate, filter_freq, kernel_length);
-    l_to_table(L, "nrf_fir_filter", filter);
+    nrf_iq_filter *filter = nrf_iq_filter_new(sample_rate, filter_freq, kernel_length);
+    l_to_table(L, "nrf_iq_filter", filter);
     return 1;
 }
 
-static int l_nrf_fir_filter_get_buffer(lua_State *L) {
-    nrf_fir_filter* filter = l_to_nrf_fir_filter(L, 1);
-    nul_buffer* buffer = nrf_fir_filter_get_buffer(filter);
+static int l_nrf_iq_filter_get_buffer(lua_State *L) {
+    nrf_iq_filter* filter = l_to_nrf_iq_filter(L, 1);
+    nul_buffer* buffer = nrf_iq_filter_get_buffer(filter);
     return _l_nrf_push_buffer(L, buffer);
 }
 
-static int l_nrf_fir_filter_free(lua_State *L) {
-    nrf_fir_filter* filter = l_to_nrf_fir_filter(L, 1);
-    nrf_fir_filter_free(filter);
+static int l_nrf_iq_filter_free(lua_State *L) {
+    nrf_iq_filter* filter = l_to_nrf_iq_filter(L, 1);
+    nrf_iq_filter_free(filter);
     return 0;
 }
 
@@ -713,7 +713,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
-    l_register_type(L, "nrf_fir_filter", l_nrf_fir_filter_free);
+    l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
     l_register_function(L, "nul_buffer_change_size", l_nul_buffer_change_size);
@@ -743,10 +743,10 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_get_samples_buffer", l_nrf_device_get_samples_buffer);
     l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
-    l_register_function(L, "nrf_fir_filter_new", l_nrf_fir_filter_new);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
-    l_register_function(L, "nrf_fir_filter_get_buffer", l_nrf_fir_filter_get_buffer);
     l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
+    l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
+    l_register_function(L, "nrf_iq_filter_get_buffer", l_nrf_iq_filter_get_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

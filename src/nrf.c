@@ -528,7 +528,6 @@ double *nrf_fir_get_low_pass_coefficients(int sample_rate, int half_ampl_freq, i
 
 nrf_fir_filter *nrf_fir_filter_new(int sample_rate, int half_ampl_freq, int length) {
     nrf_fir_filter *filter = calloc(1, sizeof(nrf_fir_filter));
-    nrf_block_init(&filter->block, NRF_BLOCK_GENERIC, nrf_fir_filter_process);
     filter->length = length;
     filter->coefficients = nrf_fir_get_low_pass_coefficients(sample_rate, half_ampl_freq, length);
     filter->offset = length - 1;
@@ -568,34 +567,62 @@ double nrf_fir_filter_get(nrf_fir_filter *filter, int index) {
     return v;
 }
 
-void nrf_fir_filter_process(nrf_block *block, nul_buffer *buffer) {
-    nrf_fir_filter *filter = (nrf_fir_filter *) block;
-    double *samples;
-    int length = buffer->width * buffer->height * buffer->channels;
-    if (buffer->type == NUL_BUFFER_U8) {
-        samples = calloc(length, sizeof(double));
-        for (int i = 0; i < length; i++) {
-            samples[i] = buffer->data.u8[i] / 256.0;
-        }
-    } else {
-        samples = buffer->data.f64;
-    }
-    nrf_fir_filter_load(filter, samples, length);
-}
-
-nul_buffer *nrf_fir_filter_get_buffer(nrf_fir_filter *filter) {
-    int length = filter->samples_length - filter->offset;
-    nul_buffer *buffer = nul_buffer_new_f64(length, 1, 1, NULL);
-    for (int i = 0; i < length; i++) {
-        buffer->data.f64[i] = nrf_fir_filter_get(filter, i);
-    }
-    return buffer;
-}
-
 void nrf_fir_filter_free(nrf_fir_filter *filter) {
     free(filter->coefficients);
     free(filter->samples);
     free(filter);
+}
+
+// IQ Filter
+
+nrf_iq_filter *nrf_iq_filter_new(int sample_rate, int half_ampl_freq, int kernel_length) {
+    nrf_iq_filter *f = calloc(1, sizeof(nrf_iq_filter));
+    nrf_block_init(&f->block, NRF_BLOCK_GENERIC, nrf_iq_filter_process);
+    f->filter_i = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
+    f->filter_q = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
+    return f;
+}
+
+void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer) {
+    nrf_iq_filter *f = (nrf_iq_filter *) block;
+
+    int old_length = f->samples_length;
+    int length = (buffer->width * buffer->height * buffer->channels) / 2;
+    if (length != old_length) {
+        free(f->samples_i);
+        free(f->samples_q);
+        f->samples_i = calloc(length, sizeof(double));
+        f->samples_q = calloc(length, sizeof(double));
+    }
+    f->samples_length = length;
+
+    int j = 0;
+    for (int i = 0; i < length * 2; i += 2) {
+        f->samples_i[j] = nul_buffer_get_f64(buffer, i);
+        f->samples_q[j] = nul_buffer_get_f64(buffer, i + 1);
+        j++;
+    }
+    nrf_fir_filter_load(f->filter_i, f->samples_i, length);
+    nrf_fir_filter_load(f->filter_q, f->samples_q, length);
+}
+
+nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f) {
+    int length = f->samples_length;
+    nul_buffer *buffer = nul_buffer_new_f64(length, 1, 2, NULL);
+    int j = 0;
+    for (int i = 0; i < length; i++) {
+        buffer->data.f64[j++] = nrf_fir_filter_get(f->filter_i, i);
+        buffer->data.f64[j++] = nrf_fir_filter_get(f->filter_q, i);
+    }
+    return buffer;
+}
+
+void nrf_iq_filter_free(nrf_iq_filter *f) {
+    nrf_fir_filter_free(f->filter_i);
+    nrf_fir_filter_free(f->filter_q);
+    free(f->samples_i);
+    free(f->samples_q);
+    free(f);
 }
 
 // Downsampler
