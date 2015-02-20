@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +29,15 @@ nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data) {
         memcpy(buffer->data.f64, data, buffer->size_bytes);
     }
     return buffer;
+}
+
+nul_buffer *nul_buffer_copy(nul_buffer *buffer) {
+    assert(buffer != NULL);
+    if (buffer->type == NUL_BUFFER_U8) {
+        return nul_buffer_new_u8(buffer->length, buffer->channels, buffer->data.u8);
+    } else {
+        return nul_buffer_new_f64(buffer->length, buffer->channels, buffer->data.f64);
+    }
 }
 
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
