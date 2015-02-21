@@ -1,0 +1,439 @@
+start_freq,end_freq,allocation,applications
+9000,14000,not allocated,"Inductive applications, Ultra Low Power Active Medical Implants, On-site paging"
+14000,19950,MARITIME MOBILE,"Inductive applications, Ultra Low Power Active Medical Implants, Maritime military systems, On-site paging"
+19950,20050,not allocated,"Inductive applications, Ultra Low Power Active Medical Implants, On-site paging"
+20050,70000,"FIXED, MARITIME MOBILE","Inductive applications, Ultra Low Power Active Medical Implants, Maritime military systems, On-site paging, Point-to-Point"
+70000,72000,not allocated,"Inductive applications, Ultra Low Power Active Medical Implants"
+72000,84000,FIXED,"Inductive applications, Ultra Low Power Active Medical Implants, Point-to-Point"
+84000,130000,not allocated,"Inductive applications, Ultra Low Power Active Medical Implants"
+130000,135700,FIXED,"Inductive applications, Ultra Low Power Active Medical Implants, Point-to-Point, Tracking systems"
+135700,137800,"FIXED, Amateur","Inductive applications, Ultra Low Power Active Medical Implants, Point-to-Point, Tracking systems, Amateur"
+137800,148500,FIXED,"Inductive applications, Ultra Low Power Active Medical Implants, Point-to-Point, Tracking systems"
+148500,255000,not allocated,"Inductive applications, Ultra Low Power Active Medical Implants"
+255000,283500,AERONAUTICAL RADIONAVIGATION,"Inductive applications, Ultra Low Power Active Medical Implants, Beacons (aeronautical)"
+283500,315000,"AERONAUTICAL RADIONAVIGATION, MARITIME RADIONAVIGATION","Inductive applications, Ultra Low Power Active Medical Implants, Beacons (aeronautical), Beacons (maritime), Defence systems"
+315000,405000,AERONAUTICAL RADIONAVIGATION,"Inductive applications, Ultra Low Power Animal Implantable Devices, Beacons (aeronautical), Defence systems"
+405000,415000,RADIONAVIGATION,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems"
+415000,435000,"AERONAUTICAL RADIONAVIGATION, MARITIME MOBILE","Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications, Defence systems"
+435000,495000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications, Defence systems, Detection of avalanche victims (457 kHz), Amateur (472-479 kHz)"
+495000,505000,MOBILE (distress and calling),"Inductive applications, Ultra Low Power Animal Implantable Devices, GMDSS, Amateur (501-504 kHz)"
+505000,526500,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems, Maritime communications"
+526500,1606500,BROADCASTING,"Inductive applications, Ultra Low Power Animal Implantable Devices (315-600 kHz), AM sound analogue"
+1606500,1625000,MARITIME MOBILE,"Inductive applications, Defence systems, Maritime communications"
+1625000,1635000,RADIOLOCATION,"Inductive applications, Defence systems"
+1635000,1800000,"FIXED, MARITIME MOBILE","Inductive applications, Defence systems, Maritime communications, Point-to-Point"
+1800000,1810000,RADIOLOCATION,"Inductive applications, Defence systems"
+1810000,1830000,MOBILE except aeronautical mobile,"Inductive applications, Amateur, Defence systems, Maritime communications"
+1830000,1850000,AMATEUR,"Inductive applications, Amateur"
+1850000,2000000,MOBILE except aeronautical mobile,"Inductive applications, Amateur, Defence systems, Maritime communications"
+2000000,2025000,"FIXED, MOBILE except aeronautical mobile (R)","Inductive applications, Defence systems"
+2025000,2045000,MOBILE except aeronautical mobile (R),"Inductive applications, Defence systems"
+2045000,2160000,"LAND MOBILE, MARITIME MOBILE","Inductive applications, Defence systems, Maritime communications"
+2160000,2170000,RADIOLOCATION,"Inductive applications, Defence systems"
+2170000,2173500,MARITIME MOBILE,"Inductive applications, Defence systems"
+2173500,2190500,MOBILE (distress and calling),"Inductive applications, GMDSS"
+2190500,2300000,MARITIME MOBILE,"Inductive applications, Defence systems"
+2300000,2498000,MOBILE except aeronautical mobile (R),"Inductive applications, Defence systems"
+2498000,2502000,not allocated,Inductive applications
+2502000,2625000,"FIXED, MOBILE except aeronautical mobile (R)","Inductive applications, Defence systems, Point-to-Point"
+2625000,2650000,"MARITIME MOBILE, MARITIME RADIONAVIGATION","Inductive applications, Defence systems"
+2650000,2850000,"FIXED, MOBILE except aeronautical mobile (R)","Inductive applications, Defence systems, Point-to-Point"
+2850000,3025000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+3025000,3155000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+3155000,3230000,"FIXED, MOBILE except aeronautical mobile (R)","Inductive applications, Defence systems, Point-to-Point"
+3230000,3400000,"FIXED, MOBILE except aeronautical mobile","Inductive applications, Defence systems, Point-to-Point"
+3400000,3500000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+3500000,3800000,"AMATEUR, FIXED, MOBILE except aeronautical mobile","Inductive applications, Amateur, Defence systems, Point-to-Point"
+3800000,3900000,"AERONAUTICAL MOBILE (OR), FIXED, LAND MOBILE","Inductive applications, Defence systems, Point-to-Point"
+3900000,3950000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+3950000,4000000,FIXED,"Inductive applications, Point-to-Point"
+4000000,4063000,FIXED,"Inductive applications, Point-to-Point, Defence systems"
+4063000,4152000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+4152000,4172000,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+4172000,4438000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+4438000,4650000,"FIXED, MOBILE except aeronautical mobile (R)","Inductive applications, Defence systems, Euroloop, Point-to-Point"
+4650000,4700000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+4700000,4750000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+4750000,4850000,FIXED,"Inductive applications, Point-to-Point"
+4850000,4995000,"FIXED, LAND MOBILE","Inductive applications, Point-to-Point"
+4995000,5060000,not allocated,Inductive applications
+5060000,5450000,FIXED,"Inductive applications, Defence systems, Point-to-Point"
+5450000,5480000,"FIXED, LAND MOBILE, AERONAUTICAL MOBILE (OR)","Inductive applications, Defence systems"
+5480000,5680000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+5680000,5730000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+5730000,5900000,FIXED,"Inductive applications, Point-to-Point"
+5900000,5950000,not allocated,Inductive applications
+5950000,6200000,BROADCASTING,"Inductive applications, AM sound analogue"
+6200000,6233000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+6233000,6261000,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+6261000,6525000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+6525000,6685000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+6685000,6765000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+6765000,7000000,FIXED,"Inductive applications, Point-to-Point, ISM (6765-6795 kHz), Non-specific Short Range Devices (6765-6795 kHz)"
+7000000,7100000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Amateur, Amateur-satellite"
+7100000,7200000,Amateur,"Inductive applications, Amateur"
+7200000,7300000,BROADCASTING,"Inductive applications, AM sound analogue"
+7300000,7350000,not allocated,Inductive applications
+7350000,8195000,FIXED,"Inductive applications, Point-to-Point"
+8195000,8300000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+8300000,8340000,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+8340000,8815000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+8815000,8965000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+8965000,9040000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+9040000,9400000,FIXED,"Inductive applications, Point-to-Point"
+9400000,9500000,not allocated,Inductive applications
+9500000,9900000,BROADCASTING,"Inductive applications, AM sound analogue"
+9900000,9995000,FIXED,"Inductive applications, Point-to-Point"
+9995000,10005000,not allocated,Inductive applications
+10005000,10100000,not allocated,Inductive applications
+10100000,10150000,Amateur,"Inductive applications, Amateur"
+10150000,11175000,FIXED,"Inductive applications, Defence systems, Point-to-Point"
+11175000,11275000,AERONAUTICAL MOBILE (OR),"Inductive applications, Aeronautical military systems"
+11275000,11400000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+11400000,11600000,FIXED,"Inductive applications, Point-to-Point"
+11600000,11650000,not allocated,Inductive applications
+11650000,12050000,BROADCASTING,"Inductive applications, AM sound analogue"
+12050000,12100000,not allocated,Inductive applications
+12100000,12230000,FIXED,"Inductive applications, Point-to-Point"
+12230000,12368000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+12368000,12420000,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+12420000,13200000,MARITIME MOBILE,"Inductive applications, Maritime communications, Ultra Low Power Animal Implantable Devices (12500-20000 kHz)"
+13200000,13260000,AERONAUTICAL MOBILE (OR),"Inductive applications, Ultra Low Power Animal Implantable Devices, Aeronautical military systems"
+13260000,13360000,AERONAUTICAL MOBILE (R),"Inductive applications, Ultra Low Power Animal Implantable Devices, Aeronautical communications"
+13360000,13570000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems, Point-to-Point, ISM (13553-13567 kHz), Non-specific Short Range Devices (13553-13567 kHz)"
+13570000,13600000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+13600000,13800000,BROADCASTING,"Inductive applications, Ultra Low Power Animal Implantable Devices, AM sound analogue"
+13800000,13870000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+13870000,14000000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems, Point-to-Point"
+14000000,14250000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Ultra Low Power Animal Implantable Devices, Amateur, Amateur-satellite"
+14250000,14350000,AMATEUR,"Inductive applications, Ultra Low Power Animal Implantable Devices, Amateur"
+14350000,14990000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems, Point-to-Point"
+14990000,15010000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+15010000,15100000,AERONAUTICAL MOBILE (OR),"Inductive applications, Ultra Low Power Animal Implantable Devices, Aeronautical military systems"
+15100000,15600000,BROADCASTING,"Inductive applications, Ultra Low Power Animal Implantable Devices, AM sound analogue"
+15600000,15800000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+15800000,16360000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Point-to-Point"
+16360000,16549000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications"
+16549000,16617000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime military systems"
+16617000,17410000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications"
+17410000,17480000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Point-to-Point"
+17480000,17550000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+17550000,17900000,BROADCASTING,"Inductive applications, Ultra Low Power Animal Implantable Devices, AM sound analogue"
+17900000,17970000,AERONAUTICAL MOBILE (R),"Inductive applications, Ultra Low Power Animal Implantable Devices, Aeronautical communications"
+17970000,18030000,AERONAUTICAL MOBILE (OR),"Inductive applications, Ultra Low Power Animal Implantable Devices, Aeronautical military systems"
+18030000,18052000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Point-to-Point"
+18052000,18068000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+18068000,18168000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Ultra Low Power Animal Implantable Devices, Amateur, Amateur-satellite"
+18168000,18780000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems, Point-to-Point"
+18780000,18846000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications"
+18846000,18870000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime military systems"
+18870000,18900000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Maritime communications"
+18900000,19020000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices"
+19020000,19680000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Point-to-Point"
+19680000,19800000,MARITIME MOBILE,"Inductive applications, Ultra Low Power Animal Implantable Devices, Defence systems"
+19800000,19990000,FIXED,"Inductive applications, Ultra Low Power Animal Implantable Devices, Point-to-Point"
+19990000,20010000,not allocated,"Inductive applications, Ultra Low Power Animal Implantable Devices (12500-20000 kHz)"
+20010000,21000000,FIXED,"Inductive applications, Point-to-Point"
+21000000,21450000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Amateur, Amateur-satellite"
+21450000,21850000,BROADCASTING,"Inductive applications, AM sound analogue"
+21850000,21870000,FIXED,"Inductive applications, Point-to-Point"
+21870000,21924000,not allocated,Inductive applications
+21924000,22000000,AERONAUTICAL MOBILE (R),"Inductive applications, Aeronautical communications"
+22000000,22180000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+22180000,22240000,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+22240000,22855000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+22855000,23200000,FIXED,"Inductive applications, Defence systems, Point-to-Point"
+23200000,23350000,"AERONAUTICAL MOBILE (OR), FIXED","Inductive applications, Defence systems"
+23350000,24890000,FIXED,"Inductive applications, Defence systems, Point-to-Point"
+24890000,24990000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Amateur, Amateur-satellite"
+24990000,25070000,not allocated,"Inductive applications, Defence systems"
+25070000,25121000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+25121000,25161250,MARITIME MOBILE,"Inductive applications, Maritime military systems"
+25161250,25210000,MARITIME MOBILE,"Inductive applications, Maritime communications"
+25210000,25550000,FIXED,"Inductive applications, Defence systems, Point-to-Point"
+25550000,25670000,not allocated,Inductive applications
+25670000,26100000,BROADCASTING,"Inductive applications, AM sound analogue"
+26100000,26175000,MARITIME MOBILE,Inductive applications
+26175000,27500000,"FIXED, MOBILE except aeronautical mobile","Inductive applications, Defence systems, Point-to-Point, Eurobalise (26345-27845 kHz) (27.095 MHz), On-site paging (26500-26960 kHz), ISM (26957-27283 kHz), Non-specific Short Range Devices (26957-27283 kHz), AM CB (26960-26990 kHz), PR 27 (26960-26990 kHz), Model control (26990-27000 kHz), AM CB (27000-27040 kHz), PR 27 (27000-27040 kHz), Model control (27040-27050 kHz), AM CB (27050-27090 kHz), PR 27 (27050-27090 kHz), Model control (27090-27100 kHz), AM CB (27100-27140 kHz), PR 27 (27100-27140 kHz), Model control (27140-27150 kHz), AM CB (27150-27190 kHz), PR 27 (27150-27190 kHz), Model control (27190-27200 kHz), AM CB (27200-27410 kHz), PR 27 (27200-27410 kHz)"
+27500000,28000000,not allocated,"Inductive applications, Eurobalise (26345-27845 kHz) (27.095 MHz)"
+28000000,29700000,"AMATEUR, AMATEUR-SATELLITE","Inductive applications, Amateur, Amateur-satellite"
+29700000,30025000,MOBILE,"Inductive applications (9-30000 kHz), Defence systems, Ultra Low Power Medical Membrane Implants (30-37.5 MHz)"
+30025000,30287500,MOBILE,"Ultra Low Power Medical Membrane Implants, PMR, Radio microphone"
+30287500,32462500,MOBILE,"Ultra Low Power Medical Membrane Implants, Defence systems"
+32462500,33287500,MOBILE,"Ultra Low Power Medical Membrane Implants, PMR, Radio microphone"
+33287500,34062500,MOBILE,"Ultra Low Power Medical Membrane Implants, Defence systems"
+34062500,36987500,MOBILE,"Ultra Low Power Medical Membrane Implants, Radio microphone, PMR, Flying model control (34.995-35.335 MHz), Wireless audio applications (36.6-36.8 MHz)"
+36987500,37262500,MOBILE,"Ultra Low Power Medical Membrane Implants, Radio microphone, Defence systems, Wireless audio applications (37-37.2 MHz)"
+37262500,37712500,MOBILE,"Ultra Low Power Medical Membrane Implants (30-37.5 MHz), Defence systems"
+37712500,39925000,MOBILE,"Radio microphone, Wireless audio applications (37.8-38 MHz)"
+39925000,40562500,MOBILE,Defence systems
+40562500,40700000,MOBILE,"Radio microphone, Model control (40.57-40.7 MHz), ISM (40.66-40.7 MHz), Non-specific Short Range Devices (40.66-40.7 MHz)"
+40700000,40787500,MOBILE,On-site paging
+40787500,40975000,MOBILE,Defence systems
+40975000,41212500,MOBILE,"On-site paging, Radio microphone"
+41212500,41725000,MOBILE,Defence systems
+41725000,41987500,MOBILE,"On-site paging, Radio microphone"
+41987500,47000000,MOBILE,Defence systems
+47000000,68000000,LAND MOBILE,"Land military systems, Amateur (50-52 MHz)"
+68000000,69945000,MOBILE except aeronautical mobile,Defence systems
+69945000,69955000,"MOBILE except aeronautical mobile, Amateur","Defence systems, Amateur (69.950 MHz)"
+69955000,70112500,MOBILE except aeronautical mobile,Defence systems
+70112500,70412500,MOBILE except aeronautical mobile,"PMR, Amateur (70.19-70.4125 MHz)"
+70412500,71987500,MOBILE except aeronautical mobile,Defence systems
+71987500,72512500,MOBILE except aeronautical mobile,"PMR, Model control (72.0125-72.2625 MHz)"
+72512500,74787500,MOBILE except aeronautical mobile,Defence systems
+74787500,74800000,MOBILE except aeronautical mobile,
+74800000,75200000,AERONAUTICAL RADIONAVIGATION,ILS
+75200000,78687500,MOBILE except aeronautical mobile,PMR
+78687500,81525000,MOBILE except aeronautical mobile,Defence systems
+81525000,82500000,MOBILE except aeronautical mobile,PMR
+82500000,84987500,MOBILE except aeronautical mobile,Defence systems
+84987500,87500000,MOBILE except aeronautical mobile,PMR
+87500000,108000000,BROADCASTING,"FM sound analogue, Wireless audio applications"
+108000000,117975000,AERONAUTICAL RADIONAVIGATION,"ILS, VOR"
+117975000,121450000,AERONAUTICAL MOBILE (R),Aeronautical communications
+121450000,121550000,AERONAUTICAL MOBILE (R),EPIRBs
+121550000,137000000,AERONAUTICAL MOBILE (R),Aeronautical communications
+137000000,137025000,"METEOROLOGICAL-SATELLITE (space-to-Earth), MOBILE-SATELLITE (space-to-Earth), SPACE OPERATION (space-to-Earth), SPACE RESEARCH (space-to-Earth)","Space Operations, S-PCS, Weather satellites"
+137025000,137175000,"METEOROLOGICAL-SATELLITE (space-to-Earth), Mobile-Satellite (space-to-Earth), SPACE OPERATION (space-to-Earth), SPACE RESEARCH (space-to-Earth)","Space Operations, S-PCS, Weather satellites"
+137175000,137875000,"METEOROLOGICAL-SATELLITE (space-to-Earth), MOBILE-SATELLITE (space-to-Earth), SPACE OPERATION (space-to-Earth), SPACE RESEARCH (space-to-Earth)","Space Operations, S-PCS, Weather satellites"
+137875000,138000000,"METEOROLOGICAL-SATELLITE (space-to-Earth), Mobile-Satellite (space-to-Earth), SPACE OPERATION (space-to-Earth), SPACE RESEARCH (space-to-Earth)","Space Operations, S-PCS, Weather satellites"
+138000000,144000000,"AERONAUTICAL MOBILE (OR), LAND MOBILE",Defence systems
+144000000,146000000,"AMATEUR, AMATEUR-SATELLITE","Amateur, Amateur-satellite"
+146000000,148000000,MOBILE except aeronautical mobile (R),PMR
+148000000,149900000,"MOBILE except aeronautical mobile (R), MOBILE-SATELLITE (Earth-to-space)","On-site paging, PMR, S-PCS"
+149900000,150050000,"MOBILE-SATELLITE (Earth-to-space), RADIONAVIGATION-SATELLITE","PMR (No new assignments), S-PCS"
+150050000,153000000,"MOBILE except aeronautical mobile, RADIO ASTRONOMY",PMR
+153000000,154000000,"Meteorological Aids, MOBILE except aeronautical mobile (R)",PMR
+154000000,156000000,MOBILE except aeronautical mobile (R),PMR
+156000000,156512500,MOBILE except aeronautical mobile (R),Maritime communications
+156512500,156537500,MOBILE except aeronautical mobile (R),SAR (communications)
+156537500,156762500,MOBILE except aeronautical mobile (R),Maritime communications
+156762500,156837500,MARITIME MOBILE (distress and calling),SAR (communications)
+156837500,174000000,MOBILE except aeronautical mobile,"On-site paging, Maritime communications (156.8375-157.45 MHz), PMR (157.45-160.6 MHz), Maritime communications (160.6-160.975 MHz), PMR (160.975-161.475 MHz), Maritime communications (161.475-162.05 MHz), PMR (162.05-169.4 MHz), Aids for hearing impaired (169.4-169.475 MHz) (License exempt), Aids for hearing impaired (169.4-169.475 MHz) (Individual license required), Aids for hearing impaired (169.4-169.475 MHz) (Individual license required), Aids for hearing impaired (169.4-169.475 MHz) (License exempt), Asset tracking and tracing (169.4-169.475 MHz), Meter reading (169.4-169.475 MHz), Alarms (169.475-169.4875 MHz), Aids for hearing impaired (169.4875-169.5875 MHz) (Individual license , required), Aids for hearing impaired (169.4875-169.5875 MHz) (License exempt), Aids for hearing impaired (169.4875-169.5875 MHz) (License exempt), Aids for hearing impaired (169.4875-169.5875 MHz) (Individual license , required), Alarms (169.5875-169.6 MHz), PMR (169.825-174 MHz)"
+174000000,223000000,"BROADCASTING, LAND MOBILE","T-DAB (Foreseen), SAP/SAB portable audio link (174-216 MHz), SAP/SAB vehicular audio links (174-216 MHz), Radio microphone (174-202 MHz), On-site paging (174-174.06 MHz), Radio microphone (202-209 MHz), Radio microphone (209-216 MHz)"
+223000000,226500000,BROADCASTING,T-DAB
+226500000,230000000,"BROADCASTING, Fixed, Mobile","Defence systems, T-DAB (Foreseen)"
+230000000,235000000,"FIXED, MOBILE",Defence systems
+235000000,242950000,"FIXED, MOBILE, Mobile-Satellite",Defence systems
+242950000,243050000,"FIXED, MOBILE, Mobile-Satellite",EPIRBs
+243050000,322000000,"FIXED, MOBILE, Mobile-Satellite",Defence systems
+322000000,328600000,"FIXED, MOBILE, RADIO ASTRONOMY","Defence systems, Radio astronomy"
+328600000,335400000,AERONAUTICAL RADIONAVIGATION,ILS
+335400000,380000000,"FIXED, MOBILE, Mobile-Satellite",Defence systems
+380000000,385000000,"FIXED, MOBILE, Mobile-Satellite",Emergency services
+385000000,390000000,"FIXED, MOBILE, Mobile-Satellite",Defence systems
+390000000,395000000,"FIXED, MOBILE, Mobile-Satellite",Emergency services
+395000000,399900000,"FIXED, MOBILE, Mobile-Satellite",Defence systems
+399900000,400050000,"MOBILE-SATELLITE (Earth-to-space), RADIONAVIGATION-SATELLITE",
+400050000,400150000,STANDARD FREQUENCY AND TIME SIGNAL-SATELLITE,
+400150000,401000000,"METEOROLOGICAL AIDS, MOBILE-SATELLITE (space-to-Earth)","Defence systems, Sondes"
+401000000,403000000,"METEOROLOGICAL AIDS, Meteorological-Satellite (Earth-to-space)","Defence systems, Sondes, Weather satellites, Active medical implants (401-402 MHz), Ultra Low Power Active Medical Implants (402-405 MHz)"
+403000000,406000000,METEOROLOGICAL AIDS,"Defence systems, Sondes, Ultra Low Power Active Medical Implants (402-405 MHz), Active medical implants (405-406 MHz)"
+406000000,406100000,MOBILE-SATELLITE (Earth-to-space),EPIRBs
+406100000,410000000,"MOBILE except aeronautical mobile, RADIO ASTRONOMY","PMR, Radio astronomy"
+410000000,430000000,MOBILE except aeronautical mobile,"PAMR, PMR, TETRA (415-419 MHz), TETRA (425-429 MHz)"
+430000000,440000000,"AMATEUR, RADIOLOCATION","Amateur, Defence systems, ISM (433.05-434.79 MHz), Non-specific Short Range Devices (433.05-434.79 MHz), Amateur-satellite (435-438 MHz)"
+440000000,450000000,MOBILE except aeronautical mobile,"Medical Telemetry, PMR, Analogue PMR446 (446-446.1 MHz), Digital PMR446 (446.1-446.2 MHz)"
+450000000,470000000,"FIXED, MOBILE","Medical Telemetry, On-site paging, PMR, On-board communications (457.525-457.575 MHz), On-board communications (467.525-467.575 MHz)"
+470000000,608000000,"BROADCASTING, Land Mobile","DVB-T, SAP/SAB portable audio link, SAP/SAB vehicular audio links, Radio microphone (470-518 MHz), Medical Telemetry (470-470.225 MHz), Radio microphone (518-526 MHz), Radio microphone (526-534 MHz), Radio microphone (534-542 MHz), Radio microphone (542-786 MHz), Intercom (550-574 MHz)"
+608000000,614000000,"BROADCASTING, Land Mobile, Radio Astronomy","Radio microphone, Radio astronomy"
+614000000,790000000,"BROADCASTING, Land Mobile","Radio microphone (542-786 MHz), DVB-T, SAP/SAB portable audio link (614-780 MHz), SAP/SAB vehicular audio links (614-780 MHz), Intercom (614-646 MHz), Intercom (774-784 MHz), Radio microphone (786-789 MHz)"
+790000000,826000000,MOBILE except aeronautical mobile,"Broadband Wireless Access (791-821 MHz), Radio microphone (823-826 MHz)"
+826000000,832000000,MOBILE except aeronautical mobile,Radio microphone
+832000000,862000000,MOBILE except aeronautical mobile,Broadband Wireless Access
+862000000,863000000,MOBILE except aeronautical mobile,Defence systems
+863000000,868600000,MOBILE except aeronautical mobile,"Radio microphone (863-865 MHz), Wireless audio applications (863-865 MHz), CT2 (864.1-868.1 MHz), RFID (865-868 MHz), Non-specific Short Range Devices (868-868.6 MHz)"
+868600000,868700000,MOBILE except aeronautical mobile,Alarms
+868700000,869200000,MOBILE except aeronautical mobile,Non-specific Short Range Devices
+869200000,869400000,MOBILE except aeronautical mobile,Alarms
+869400000,869650000,MOBILE except aeronautical mobile,Non-specific Short Range Devices
+869650000,869700000,MOBILE except aeronautical mobile,Alarms
+869700000,870000000,MOBILE except aeronautical mobile,Non-specific Short Range Devices
+870000000,876000000,MOBILE except aeronautical mobile,
+876000000,880000000,MOBILE except aeronautical mobile,GSM-R
+880000000,915000000,MOBILE except aeronautical mobile,"GSM, IMT-2000"
+915000000,921000000,MOBILE except aeronautical mobile,
+921000000,925000000,MOBILE except aeronautical mobile,GSM-R
+925000000,960000000,MOBILE except aeronautical mobile,"GSM, IMT-2000"
+960000000,1164000000,AERONAUTICAL RADIONAVIGATION,"Aeronautical surveillance, DME, JTIDS/MIDS, TACAN-DME"
+1164000000,1215000000,"AERONAUTICAL RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)","Aeronautical surveillance, DME, JTIDS/MIDS, TACAN-DME, Satellite navigation systems"
+1215000000,1240000000,"RADIOLOCATION, RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)","Satellite navigation systems, Defence systems"
+1240000000,1260000000,"Amateur, RADIOLOCATION, RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)","Amateur, Defence systems"
+1260000000,1270000000,"Amateur, Amateur-Satellite, RADIOLOCATION, RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)","Satellite navigation systems, Aeronautical surveillance, Amateur, Amateur-satellite, Defence systems"
+1270000000,1300000000,"Amateur, RADIOLOCATION, RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)","Satellite navigation systems, Aeronautical surveillance, Amateur, Defence systems"
+1300000000,1350000000,"AERONAUTICAL RADIONAVIGATION, Radiolocation","Aeronautical surveillance, Defence systems"
+1350000000,1362500000,FIXED,
+1362500000,1375000000,FIXED,Tactical radio relay
+1375000000,1387500000,FIXED,Radio relay
+1387500000,1400000000,FIXED,Tactical radio relay
+1400000000,1427000000,RADIO ASTRONOMY,
+1427000000,1439500000,FIXED,Radio relay
+1439500000,1452000000,FIXED,Tactical radio relay
+1452000000,1467500000,BROADCASTING,T-DAB (Foreseen)
+1467500000,1492000000,"BROADCASTING, FIXED",T-DAB (1452-1479.5 MHz) (Foreseen)
+1492000000,1504500000,FIXED,Radio relay (Unidirectional links)
+1504500000,1517000000,FIXED,Tactical radio relay
+1517000000,1525000000,FIXED,Radio relay (Unidirectional links)
+1525000000,1530000000,"FIXED, MOBILE-SATELLITE (space-to-Earth)",MSS Earth stations
+1530000000,1535000000,"Fixed, MOBILE-SATELLITE (space-to-Earth)",MSS Earth stations
+1535000000,1559000000,MOBILE-SATELLITE (space-to-Earth),"MSS Earth stations, SAR (communications) (1544-1545 MHz)"
+1559000000,1610000000,"AERONAUTICAL RADIONAVIGATION, RADIONAVIGATION-SATELLITE (space-to-Earth)",Satellite navigation systems
+1610000000,1613800000,"AERONAUTICAL RADIONAVIGATION, MOBILE-SATELLITE (Earth-to-space)",S-PCS
+1613800000,1626500000,"AERONAUTICAL RADIONAVIGATION, METEOROLOGICAL-SATELLITE (Earth-to-space), Meteorological-Satellite (space-to-Earth)",S-PCS
+1626500000,1660000000,MOBILE-SATELLITE (Earth-to-space),"MSS Earth stations, SAR (communications) (1645.5-1646.5 MHz)"
+1660000000,1660500000,"METEOROLOGICAL-SATELLITE (Earth-to-space), RADIO ASTRONOMY",MSS Earth stations
+1660500000,1668400000,RADIO ASTRONOMY,
+1668400000,1670000000,METEOROLOGICAL AIDS,Meteorology
+1670000000,1675000000,"METEOROLOGICAL AIDS, METEOROLOGICAL-SATELLITE (space-to-Earth), MOBILE",Meteorology
+1675000000,1700000000,"METEOROLOGICAL AIDS, METEOROLOGICAL-SATELLITE (space-to-Earth)",Meteorology
+1700000000,1710000000,FIXED,Tactical radio relay
+1710000000,1785000000,MOBILE,"GSM, IMT-2000, Mobile Communications on Board Aircraft, Mobile Communications on Board Vessel (1731.1-1733.5 MHz)"
+1785000000,1880000000,MOBILE,"Radio microphone (1785-1800 MHz), GSM (1805-1880 MHz), IMT-2000 (1805-1880 MHz), Mobile Communications on Board Aircraft (1805-1880 MHz), Mobile Communications on Board Vessel (1826.1-1828.5 MHz)"
+1880000000,1900000000,MOBILE,DECT
+1900000000,1980000000,MOBILE,IMT-2000
+1980000000,2010000000,"FIXED, MOBILE-SATELLITE (Earth-to-space)","SAP/SAB and ENG/OB (Temporary links), MSS Earth stations"
+2010000000,2025000000,"FIXED, MOBILE",SAP/SAB and ENG/OB (Temporary links)
+2025000000,2110000000,"FIXED, SPACE OPERATION (Earth-to-space) (space-to-space)","SAP/SAB airborne video links, SAP/SAB portable video link, SAP/SAB vehicular video links, Space Operations"
+2110000000,2170000000,MOBILE,IMT-2000
+2170000000,2200000000,"FIXED, MOBILE-SATELLITE (space-to-Earth)","MSS Earth stations, SAP/SAB and ENG/OB (Temporary links)"
+2200000000,2290000000,"FIXED, SPACE OPERATION (space-to-Earth) (space-to-space)","SAP/SAB airborne video links, SAP/SAB portable video link, SAP/SAB vehicular video links, Space Operations"
+2290000000,2300000000,FIXED,"SAP/SAB airborne video links, SAP/SAB portable video link, SAP/SAB vehicular video links"
+2300000000,2450000000,"Amateur, MOBILE, Radiolocation","SAP/SAB airborne video links (2200-2400 MHz), SAP/SAB portable video link (2200-2400 MHz), SAP/SAB vehicular video links (2200-2400 MHz), Amateur, Defence systems, Detection of movement and alert (2400-2483.5 MHz), ISM (2400-2483.5 MHz), Non-specific Short Range Devices (2400-2483.5 MHz), Wideband Data Transmission Systems (2400-2483.5 MHz), Amateur-satellite (2400-2450 MHz), AVI (2446-2454 MHz), RFID (2446-2454 MHz)"
+2450000000,2483500000,"MOBILE, Radiolocation","Detection of movement and alert, ISM, Non-specific Short Range Devices, Wideband Data Transmission Systems, AVI (2446-2454 MHz), RFID (2446-2454 MHz), Defence systems"
+2483500000,2500000000,"FIXED, MOBILE, MOBILE-SATELLITE (space-to-Earth), Radiolocation","SAP/SAB and ENG/OB (Temporary links), S-PCS"
+2500000000,2690000000,"FIXED, MOBILE except aeronautical mobile","SAP/SAB and ENG/OB (Temporary links), Broadband Wireless Access"
+2690000000,2700000000,RADIO ASTRONOMY,SAP/SAB and ENG/OB (Temporary links)
+2700000000,2900000000,"AERONAUTICAL RADIONAVIGATION, Radiolocation","Aeronautical surveillance, Radiolocation (military)"
+2900000000,3100000000,"Radiolocation, RADIONAVIGATION",Radiolocation (military)
+3100000000,3400000000,RADIOLOCATION,Radiolocation (military)
+3400000000,3410000000,Radiolocation,"SAP/SAB airborne video links (Until 01/10/2010), Radiolocation (military)"
+3410000000,3500000000,"FIXED, Mobile","SAP/SAB airborne video links (3400-3450 MHz) (Until 01/10/2010), Broadband Wireless Access"
+3500000000,3600000000,"FIXED, Mobile","SAP/SAB airborne video links (3500-3550 MHz) (Until 01/10/2010), Broadband Wireless Access (3510-3600 MHz)"
+3600000000,3625000000,FIXED,Radio relay (ITU-R F.635)
+3625000000,4200000000,"FIXED, FIXED-SATELLITE (space-to-Earth)","Radio relay (ITU-R F.635), FSS Earth stations, Radio relay (3800-4200 MHz) (ERC/REC 12-08 Annex B)"
+4200000000,4400000000,AERONAUTICAL RADIONAVIGATION,Defence systems
+4400000000,4825000000,"FIXED, MOBILE","Defence systems, Tank Level Probing Radar (4500-7000 MHz)"
+4825000000,4835000000,"MOBILE except aeronautical mobile, FIXED","Defence systems, Tank Level Probing Radar"
+4835000000,4950000000,"MOBILE, FIXED","Defence systems, Tank Level Probing Radar"
+4950000000,5000000000,"MOBILE except aeronautical mobile, FIXED","Defence systems, Tank Level Probing Radar"
+5000000000,5150000000,AERONAUTICAL RADIONAVIGATION,"Tank Level Probing Radar, MLS (5031-5091 MHz) (Envisaged)"
+5150000000,5250000000,"AERONAUTICAL RADIONAVIGATION, MOBILE","Tank Level Probing Radar, Wideband Data Transmission Systems"
+5250000000,5350000000,RADIOLOCATION,"Tank Level Probing Radar, Defence systems, Wideband Data Transmission Systems"
+5350000000,5470000000,"AERONAUTICAL RADIONAVIGATION, Radiolocation","Tank Level Probing Radar, Defence systems"
+5470000000,5650000000,"MARITIME RADIONAVIGATION, Radiolocation","Tank Level Probing Radar, Wideband Data Transmission Systems, Defence systems, Weather radar"
+5650000000,5830000000,"RADIOLOCATION, Amateur","Tank Level Probing Radar, Wideband Data Transmission Systems (5470-5725 MHz), Amateur, Defence systems, Amateur-satellite (5650-5670 MHz), ISM (5725-5875 MHz), Non-specific Short Range Devices (5725-5875 MHz), RTTT (5795-5815 MHz)"
+5830000000,5850000000,"RADIOLOCATION, Amateur, Amateur-Satellite","Tank Level Probing Radar, Amateur, Defence systems, ISM, Non-specific Short Range Devices, Amateur-satellite"
+5850000000,6700000000,"FIXED, FIXED-SATELLITE (Earth-to-space)","Tank Level Probing Radar, ISM (5725-5875 MHz), Non-specific Short Range Devices (5725-5875 MHz), FSS Earth stations (5850-6425 MHz), Intelligent Transport Systems (5875-5905 MHz), Radio relay (5925-6425 MHz), Radio relay (6425-7125 MHz), SAP/SAB P to P video links (6425-7125 MHz)"
+6700000000,7075000000,"FIXED, FIXED-SATELLITE (space-to-Earth) (Earth-to-space)","Tank Level Probing Radar (4500-7000 MHz), Radio relay, SAP/SAB P to P video links"
+7075000000,7250000000,FIXED,"Radio relay (6425-7125 MHz), SAP/SAB P to P video links (6425-7125 MHz)"
+7250000000,7375000000,"FIXED, FIXED-SATELLITE (space-to-Earth), MOBILE-SATELLITE",Satellite systems (military)
+7375000000,7450000000,"FIXED, FIXED-SATELLITE (space-to-Earth), MOBILE-SATELLITE","Satellite systems (military), SAP/SAB P to P video links, Radio relay (7425-7900 MHz)"
+7450000000,7750000000,"FIXED, FIXED-SATELLITE (space-to-Earth)","Satellite systems (military), SAP/SAB P to P video links (7375-7484 MHz), Radio relay, SAP/SAB P to P video links (7596-7729 MHz)"
+7750000000,7900000000,FIXED,"Radio relay, SAP/SAB P to P video links (7841-7900 MHz)"
+7900000000,8025000000,"FIXED, FIXED-SATELLITE (Earth-to-space), MOBILE-SATELLITE",Satellite systems (military)
+8025000000,8400000000,"FIXED, FIXED-SATELLITE (Earth-to-space)","Satellite systems (military), Fixed radio relay (military) (8200-8500 MHz), Radio relay (8200-8500 MHz)"
+8400000000,8500000000,FIXED,"Fixed radio relay (military), Radio relay"
+8500000000,8750000000,RADIOLOCATION,"Tank Level Probing Radar, Radiolocation (military)"
+8750000000,8850000000,"AERONAUTICAL RADIONAVIGATION, MARITIME RADIONAVIGATION, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military)"
+8850000000,9000000000,"MARITIME RADIONAVIGATION, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military)"
+9000000000,9200000000,"AERONAUTICAL RADIONAVIGATION, MARITIME RADIONAVIGATION, Radiolocation","Tank Level Probing Radar, Radiolocation (military)"
+9200000000,9300000000,"MARITIME RADIONAVIGATION, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Detection of movement and alert"
+9300000000,9500000000,"Radiolocation, RADIONAVIGATION","Tank Level Probing Radar, Radiolocation (military), Detection of movement and alert"
+9500000000,9800000000,"RADIOLOCATION, RADIONAVIGATION","Tank Level Probing Radar, Radiolocation (military), Detection of movement and alert"
+9800000000,10000000000,"Fixed, Meteorological-Satellite, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Detection of movement and alert (9500-9975 MHz)"
+10000000000,10150000000,"Amateur, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Amateur"
+10150000000,10300000000,"Amateur, FIXED, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Amateur, Broadband Wireless Access"
+10300000000,10450000000,"Amateur, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Amateur"
+10450000000,10500000000,"Amateur, Amateur-Satellite, RADIOLOCATION","Tank Level Probing Radar, Radiolocation (military), Amateur, Amateur-satellite"
+10500000000,10600000000,"FIXED, Radiolocation","Tank Level Probing Radar, Broadband Wireless Access, Detection of movement and alert, Radiolocation (civil), SAP/SAB P to P video links (10.56-10.588 GHz)"
+10600000000,10680000000,FIXED,Broadband Wireless Access (10.5-10.65 GHz)
+10680000000,10700000000,RADIO ASTRONOMY,
+10700000000,11700000000,"FIXED, FIXED-SATELLITE (space-to-Earth) (Earth-to-space)","SIT/SUT, FSS Earth stations, MSS Earth stations, Radio relay, SNG, VSAT"
+11700000000,12500000000,"BROADCASTING-SATELLITE, FIXED",SIT/SUT
+12500000000,12750000000,FIXED-SATELLITE (space-to-Earth) (Earth-to-space),"SIT/SUT, MSS Earth stations, SNG, VSAT"
+12750000000,13250000000,FIXED,"FSS Earth stations (No new assignments), Radio relay, SAP/SAB P to P video links"
+13250000000,13400000000,AERONAUTICAL RADIONAVIGATION,Defence systems
+13400000000,13750000000,RADIOLOCATION,"Detection of movement and alert, Radiolocation (civil), Radiolocation (military)"
+13750000000,14000000000,"RADIOLOCATION, FIXED-SATELLITE (Earth-to-space)","Detection of movement and alert, Radiolocation (civil), Radiolocation (military), FSS Earth stations"
+14000000000,14250000000,"FIXED-SATELLITE (Earth-to-space), RADIONAVIGATION","FSS Earth stations, SNG, VSAT, MSS Earth stations"
+14250000000,14500000000,FIXED-SATELLITE (Earth-to-space),"FSS Earth stations, SNG, VSAT"
+14500000000,14620000000,FIXED,Radio relay
+14620000000,15230000000,FIXED,Fixed radio relay (military)
+15230000000,15350000000,FIXED,Radio relay
+15350000000,15400000000,RADIO ASTRONOMY,
+15400000000,15700000000,AERONAUTICAL RADIONAVIGATION,
+15700000000,16200000000,RADIOLOCATION,Radiolocation (military)
+16200000000,17300000000,RADIOLOCATION,"Radiolocation (military), Ground Based Synthetic Aperture Radar (17.1-17.3 GHz)"
+17300000000,17700000000,"FIXED-SATELLITE (Earth-to-space), Radiolocation","Radiolocation (military), FSS Earth stations"
+17700000000,19700000000,FIXED,"FSS Earth stations (No new assignments), Radio relay"
+19700000000,20200000000,FIXED-SATELLITE (space-to-Earth),SIT/SUT
+20200000000,21200000000,"FIXED-SATELLITE (space-to-Earth), MOBILE-SATELLITE (space-to-Earth)",Defence systems
+21200000000,23600000000,FIXED,"Radio relay, SAP/SAB P to P video links, Short-range radar (21.65-24.25 GHz)"
+23600000000,24000000000,not allocated,Short-range radar
+24000000000,24050000000,"AMATEUR, AMATEUR-SATELLITE","Short-range radar, ISM, Non-specific Short Range Devices, Amateur, Amateur-satellite"
+24050000000,24250000000,"Amateur, RADIOLOCATION","Short-range radar, ISM, Non-specific Short Range Devices, Tank Level Probing Radar, Amateur, Detection of movement and alert, Radiolocation (civil), Radiolocation (military)"
+24250000000,24500000000,FIXED,"Tank Level Probing Radar, Short-range radar"
+24500000000,25250000000,FIXED,"Tank Level Probing Radar, Short-range radar, Radio relay (24.549-25.333 GHz), Wireless Local Loop (25.137-25.193 GHz)"
+25250000000,25333000000,"FIXED, MOBILE","Tank Level Probing Radar, Short-range radar, Radio relay"
+25333000000,25500000000,"FIXED, MOBILE","Tank Level Probing Radar, Short-range radar, Fixed radio relay (military) (25.333-25.445 GHz)"
+25500000000,26341000000,"FIXED, MOBILE","Tank Level Probing Radar, Short-range radar, Radio relay (25.557-26.341 GHz), Wireless Local Loop (26.145-26.201 GHz)"
+26341000000,27500000000,"FIXED, MOBILE","Tank Level Probing Radar (24.05-27 GHz), Short-range radar (24.25-26.65 GHz), Fixed radio relay (military) (26.341-26.453 GHz)"
+27500000000,27828500000,FIXED,FSS Earth stations (27.5485-27.8285 GHz) (Foreseen)
+27828500000,27940500000,FIXED,Fixed radio relay (military)
+27940500000,28836500000,FIXED,"Radio relay (27.9405-28.1925 GHz), Wireless Local Loop (28.2205-28.4445 GHz), FSS Earth stations (28.5565-28.8365 GHz) (Foreseen)"
+28836500000,28948500000,FIXED,Fixed radio relay (military)
+28948500000,29500000000,FIXED,"Radio relay (28.9485-29.2005 GHz), Wireless Local Loop (29.2285-29.4525 GHz)"
+29500000000,30000000000,FIXED-SATELLITE (Earth-to-space),SIT/SUT
+30000000000,31000000000,"FIXED-SATELLITE (Earth-to-space), MOBILE-SATELLITE (Earth-to-space)",Defence systems
+31000000000,31300000000,FIXED,Radio relay
+31300000000,31500000000,"EARTH EXPLORATION-SATELLITE (passive), RADIO ASTRONOMY, SPACE RESEARCH (passive)",
+31500000000,31800000000,not allocated,
+31800000000,33400000000,"RADIONAVIGATION, FIXED",Radio relay
+33400000000,36000000000,RADIOLOCATION,Radiolocation (military)
+36000000000,37282000000,"FIXED, MOBILE","Defence systems (36-37 GHz), Fixed radio relay (military) (37.058-37.282 GHz) (CEPT T/R 12-01)"
+37282000000,37500000000,"FIXED, MOBILE",Radio relay (37.308-38.178 GHz)
+37500000000,38318000000,FIXED,Radio relay (37.308-38.178 GHz)
+38318000000,38542000000,FIXED,Fixed radio relay (military) (38.318-38.452 GHz) (CEPT T/R 12-01)
+38542000000,39500000000,FIXED,Radio relay (38.568-39.438 GHz)
+39500000000,40500000000,"FIXED-SATELLITE (space-to-Earth), MOBILE-SATELLITE (space-to-Earth)",Satellite systems (military) (Foreseen)
+40500000000,43500000000,FIXED,
+43500000000,47000000000,"MOBILE, MOBILE-SATELLITE, RADIONAVIGATION, RADIONAVIGATION-SATELLITE",
+47000000000,47200000000,"AMATEUR, AMATEUR-SATELLITE","Amateur, Amateur-satellite"
+47200000000,50200000000,FIXED,"HAPS (47.2-47.5 GHz) (Foreseen), HAPS (47.9-48.2 GHz) (Foreseen)"
+50200000000,50400000000,not allocated,
+50400000000,51400000000,"FIXED-SATELLITE (Earth-to-space), Mobile-Satellite (Earth-to-space)",
+51400000000,52600000000,FIXED,Radio relay
+52600000000,55780000000,not allocated,
+55780000000,57000000000,FIXED,Radio relay
+57000000000,59000000000,FIXED,"Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems, Wideband Data Transmission Systems, Tank Level Probing Radar, Unplanned. uncoordinated fixed links"
+59000000000,62000000000,"FIXED, MOBILE, RADIOLOCATION","Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems, Wideband Data Transmission Systems, Tank Level Probing Radar, Unplanned. uncoordinated fixed links, ISM (61-61.5 GHz), Non-specific Short Range Devices (61-61.5 GHz)"
+62000000000,63000000000,"FIXED, MOBILE, RADIOLOCATION","Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems, Wideband Data Transmission Systems, Tank Level Probing Radar, Unplanned. uncoordinated fixed links"
+63000000000,64000000000,"MOBILE, RADIOLOCATION","Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems, Wideband Data Transmission Systems, Tank Level Probing Radar, RTTT"
+64000000000,66000000000,"MOBILE, FIXED","Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems (Indoor applications), Wideband Data Transmission Systems, Wideband Data Transmission Systems, Unplanned. uncoordinated fixed links"
+66000000000,71000000000,"RADIONAVIGATION, RADIONAVIGATION-SATELLITE",
+71000000000,74000000000,FIXED,Unplanned. uncoordinated fixed links
+74000000000,75500000000,FIXED,"Unplanned. uncoordinated fixed links, Tank Level Probing Radar (75-85 GHz)"
+75500000000,76000000000,"AMATEUR, AMATEUR-SATELLITE, FIXED","Unplanned. uncoordinated fixed links, Tank Level Probing Radar, Amateur, Amateur-satellite"
+76000000000,81000000000,"RADIOLOCATION, Amateur, Amateur-Satellite","Tank Level Probing Radar, Amateur, Amateur-satellite, RTTT (76-77 GHz), Short-range radar (77-81 GHz)"
+81000000000,84000000000,FIXED,"Tank Level Probing Radar, Unplanned. uncoordinated fixed links"
+84000000000,86000000000,FIXED,"Tank Level Probing Radar (75-85 GHz), Unplanned. uncoordinated fixed links"
+86000000000,92000000000,not allocated,
+92000000000,95000000000,RADIOLOCATION,
+95000000000,100000000000,"RADIONAVIGATION, RADIONAVIGATION-SATELLITE, RADIOLOCATION",
+100000000000,126000000000,not allocated,"ISM (122-123 GHz), Non-specific Short Range Devices (122-123 GHz)"
+126000000000,134000000000,RADIOLOCATION,
+134000000000,142000000000,"RADIONAVIGATION, RADIONAVIGATION-SATELLITE",
+142000000000,144000000000,"AMATEUR, AMATEUR-SATELLITE","Amateur, Amateur-satellite"
+144000000000,149000000000,"Amateur, Amateur-Satellite","Amateur, Amateur-satellite"
+149000000000,190000000000,not allocated,
+190000000000,200000000000,"RADIONAVIGATION, RADIONAVIGATION-SATELLITE",
+200000000000,231000000000,not allocated,
+231000000000,235000000000,Radiolocation,
+235000000000,238000000000,not allocated,
+238000000000,241000000000,Radiolocation,
+241000000000,248000000000,"Amateur, Amateur-Satellite, RADIOLOCATION","Amateur, Amateur-satellite, ISM (244-246 GHz), Non-specific Short Range Devices (244-246 GHz)"
+248000000000,250000000000,"AMATEUR, AMATEUR-SATELLITE","Amateur, Amateur-satellite"
+250000000000,252000000000,not allocated,
+252000000000,265000000000,"RADIONAVIGATION, RADIONAVIGATION-SATELLITE",
+265000000000,275000000000,not allocated,

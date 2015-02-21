@@ -32,7 +32,9 @@ nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *dat
     buffer->channels = channels;
     buffer->size_bytes = width * height * channels * sizeof(float);
     buffer->data = calloc(buffer->size_bytes, sizeof(float));
-    memcpy(buffer->data, data, buffer->size_bytes);
+    if (data != NULL) {
+        memcpy(buffer->data, data, buffer->size_bytes);
+    }
     return buffer;
 }
 
@@ -71,6 +73,10 @@ void _nrf_hackrf_check_status(nrf_device *device, int status, const char *messag
 
 static int _nrf_lerp(float a, float b, float t) {
     return a * (1.0 - t) + b * t;
+}
+
+static float _nrf_clampf(float v, float min, float max) {
+    return v < min ? min : v > max ? max : v;
 }
 
 // Limit the frequency range to a possible value.
@@ -133,10 +139,10 @@ static int _nrf_process_sample_block(nrf_device *device, unsigned char *buffer, 
 
     fftw_execute(device->fft_plan);
     // Move the previous lines down
-    memcpy((char *)&device->fft + FFT_SIZE * sizeof(vec3), &device->fft, FFT_SIZE * (FFT_HISTORY_SIZE - 1) * sizeof(vec3));
+    memcpy(device->fft + device->fft_size, device->fft, device->fft_size * (device->fft_history_size - 1) * sizeof(vec3));
     // Set the first line
-    for (int i = 0; i < FFT_SIZE; i++) {
-        float buffer_pos = i / (float) FFT_SIZE;
+    for (int i = 0; i < device->fft_size; i++) {
+        float buffer_pos = i / (float) device->fft_size;
         fftw_complex *out = device->fft_out;
         device->fft[i] = vec3_init(out[i][0], out[i][1], buffer_pos);
     }
@@ -199,9 +205,9 @@ static void *_nrf_dummy_receive_loop(nrf_device *device) {
     return NULL;
 }
 
-static const int RTLSDR_DEFAULT_SAMPLE_RATE = 2e6;
+static const int RTLSDR_DEFAULT_SAMPLE_RATE = 3e6;
 
-static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
+static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
 
     status = rtlsdr_open((rtlsdr_dev_t**)&device->device, 0);
@@ -214,9 +220,10 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
     rtlsdr_dev_t* dev = (rtlsdr_dev_t*) device->device;
 
-    status = rtlsdr_set_sample_rate(dev, 2e6);
+    sample_rate = sample_rate != 0 ? sample_rate : RTLSDR_DEFAULT_SAMPLE_RATE;
+    status = rtlsdr_set_sample_rate(dev, sample_rate);
     _NRF_RTLSDR_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
-    device->sample_rate = RTLSDR_DEFAULT_SAMPLE_RATE;
+    device->sample_rate = sample_rate;
 
     // Set auto-gain mode
     status = rtlsdr_set_tuner_gain_mode(dev, 0);
@@ -240,7 +247,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz) {
 
 static const int HACKRF_DEFAULT_SAMPLE_RATE = 5e6;
 
-static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
+static int _nrf_hackrf_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
 
     status = hackrf_init();
@@ -259,9 +266,10 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz) {
     status = hackrf_set_freq(dev, freq_mhz * 1e6);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(dev, HACKRF_DEFAULT_SAMPLE_RATE);
+    sample_rate = sample_rate != 0 ? sample_rate : HACKRF_DEFAULT_SAMPLE_RATE;
+    status = hackrf_set_sample_rate(dev, sample_rate);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_sample_rate");
-    device->sample_rate = HACKRF_DEFAULT_SAMPLE_RATE;
+    device->sample_rate = sample_rate;
 
     status = hackrf_set_amp_enable(dev, 0);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_amp_enable");
@@ -315,6 +323,22 @@ static int _nrf_dummy_start(nrf_device *device, const char *data_file) {
 // If the device could not be opened, use the raw contents of the data_file
 // instead.
 nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step) {
+    nrf_device_config config;
+    memset(&config, 0, sizeof(nrf_device_config));
+    config.freq_mhz = freq_mhz;
+    config.data_file = data_file;
+    config.interpolate_step = interpolate_step;
+    return nrf_device_new_with_config(config);
+}
+
+nrf_device *nrf_device_new_with_config(const nrf_device_config config) {
+    double freq_mhz = config.freq_mhz > 0.1 ? config.freq_mhz : 100;
+    const char *data_file = config.data_file != 0 ? config.data_file : NULL;
+    float interpolate_step = config.interpolate_step;
+    int sample_rate = config.sample_rate;
+    int fft_size = config.fft_size != 0 ? config.fft_size : DEFAULT_FFT_SIZE;
+    int fft_history_size = config.fft_history_size != 0 ? config.fft_history_size : DEFAULT_FFT_HISTORY_SIZE;
+
     int status;
     nrf_device *device = calloc(1, sizeof(nrf_device));
 
@@ -326,15 +350,18 @@ nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpo
     device->t_step = interpolate_step;
 
     memset(device->samples, 0, NRF_SAMPLES_SIZE * 3 * sizeof(float));
+
+    device->fft_size = fft_size;
+    device->fft_history_size = fft_history_size;
     device->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
     device->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_SIZE);
-    device->fft_plan = fftw_plan_dft_1d(FFT_SIZE, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
-    memset(device->fft, 0, sizeof(vec3) * FFT_SIZE * FFT_HISTORY_SIZE);
+    device->fft_plan = fftw_plan_dft_1d(fft_size, device->fft_in, device->fft_out, FFTW_FORWARD, FFTW_MEASURE);
+    device->fft = calloc(fft_size * fft_history_size, sizeof(vec3));
 
     // Try to find a suitable hardware device, fall back to data file.
-    status = _nrf_rtlsdr_start(device, freq_mhz);
+    status = _nrf_rtlsdr_start(device, freq_mhz, sample_rate);
     if (status != 0) {
-        status = _nrf_hackrf_start(device, freq_mhz);
+        status = _nrf_hackrf_start(device, freq_mhz, sample_rate);
         if (status != 0) {
             status = _nrf_dummy_start(device, data_file);
             if (status != 0) {
@@ -389,9 +416,51 @@ nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
     return buffer;
 }
 
+static void pixel_inc(nrf_buffer *image_buffer, int x, int y) {
+    int offset = y * image_buffer->width + x;
+    image_buffer->data[offset]++;
+}
+
+static void draw_line(nrf_buffer *image_buffer, int x1, int y1, int x2, int y2, int color) {
+  int dx = abs(x2 - x1);
+  int sx = x1 < x2 ? 1 : -1;
+  int dy = abs(y2-y1);
+  int sy = y1 < y2 ? 1 : -1;
+  int err = (dx > dy ? dx : -dy) / 2;
+  int e2;
+
+  for(;;){
+    pixel_inc(image_buffer, x1, y1);
+    if (x1 == x2 && y1 == y2) break;
+    e2 = err;
+    if (e2 > -dx) { err -= dy; x1 += sx; }
+    if (e2 <  dy) { err += dx; y1 += sy; }
+  }
+}
+
+nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
+    line_percentage = _nrf_clampf(line_percentage, 0, 1);
+    pthread_mutex_lock(&device->data_mutex);
+    nrf_buffer *image_buffer = nrf_buffer_new(NRF_IQ_RESOLUTION * size_multiplier, NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
+    int x1 = 0;
+    int y1 = 0;
+    int max = NRF_SAMPLES_SIZE * 3 * line_percentage;
+    for (int i = 0; i < max; i += 3) {
+        int x2 = device->samples[i] * NRF_IQ_RESOLUTION * size_multiplier;
+        int y2 = device->samples[i + 1] * NRF_IQ_RESOLUTION * size_multiplier;
+        if (i > 0) {
+            draw_line(image_buffer, x1, y1, x2, y2, 0);
+        }
+        x1 = x2;
+        y1 = y2;
+    }
+    pthread_mutex_unlock(&device->data_mutex);
+    return image_buffer;
+}
+
 nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device) {
     pthread_mutex_lock(&device->data_mutex);
-    nrf_buffer *buffer = nrf_buffer_new(FFT_SIZE, FFT_HISTORY_SIZE, 3, (float *) device->fft);
+    nrf_buffer *buffer = nrf_buffer_new(device->fft_size, device->fft_history_size, 3, (float *) device->fft);
     pthread_mutex_unlock(&device->data_mutex);
     return buffer;
 }
@@ -605,11 +674,10 @@ nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_ra
     nrf_fm_demodulator *d = calloc(1, sizeof(nrf_fm_demodulator));
     const int inter_rate = 336000;
     const int  max_f = 75000;
-    const double filter = max_f * 0.8;
+    const double filter_freq = max_f * 0.8;
     d->in_sample_rate = in_sample_rate;
     d->out_sample_rate = out_sample_rate;
     d->ampl_conv = out_sample_rate / (TAU * max_f);
-    int filter_freq = filter * 0.8;
     d->downsampler_i = nrf_downsampler_new(in_sample_rate, inter_rate, filter_freq, 51);
     d->downsampler_q = nrf_downsampler_new(in_sample_rate, inter_rate, filter_freq, 51);
     d->downsampler_audio = nrf_downsampler_new(inter_rate, out_sample_rate, 10000, 41);

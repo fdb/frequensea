@@ -167,6 +167,20 @@ ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name) {
     return texture;
 }
 
+ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader, const char *uniform_name) {
+    int width, height, channels;
+    uint8_t *image_data = stbi_load(file_name, &width, &height, &channels, 4);
+    if (!image_data) {
+        fprintf (stderr, "ERROR: could not load texture %s\n", file_name);
+        exit(1);
+    }
+    ngl_texture *texture = ngl_texture_new(shader, uniform_name);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    NGL_CHECK_ERROR();
+    free(image_data);
+    return texture;
+}
+
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
 void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int channels, const float *data) {
@@ -281,7 +295,9 @@ ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_
             points[i++] = top + y * row_height;
         }
     }
-    return ngl_model_new(2, i / 2, points, NULL, NULL);
+    ngl_model *model = ngl_model_new(2, i / 2, points, NULL, NULL);
+    free(points);
+    return model;
 }
 
 ngl_model* _ngl_model_new_grid_triangles_with_buffer(int row_count, int column_count, float row_height, float column_width, float height_multiplier, int buffer_stride, int buffer_offset, const float *buffer) {
@@ -381,7 +397,11 @@ ngl_model* _ngl_model_new_grid_triangles_with_buffer(int row_count, int column_c
             uv_index += 12;
         }
     }
-    return ngl_model_new(3, point_count, points, normals, uvs);
+    ngl_model* model = ngl_model_new(3, point_count, points, normals, uvs);
+    free(points);
+    free(normals);
+    free(uvs);
+    return model;
 }
 
 ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width) {

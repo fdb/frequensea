@@ -19,9 +19,11 @@
 #include <fcntl.h>
 #include <termios.h>
 
-
-#define WIDTH 256
-#define HEIGHT 256
+#define IQ_RESOLUTION 256
+#define SIZE_MULTIPLIER 2
+#define WINDOW_WIDTH (IQ_RESOLUTION * SIZE_MULTIPLIER)
+#define WINDOW_HEIGHT (IQ_RESOLUTION * SIZE_MULTIPLIER)
+#define SAMPLE_BUFFER_SIZE 262144
 
 EGL_DISPMANX_WINDOW_T window;
 EGLDisplay display;
@@ -35,22 +37,65 @@ GLuint program;
 GLuint position_vbo;
 GLuint uv_vbo;
 GLuint vao;
-uint8_t * buffer=0; 
-uint8_t * buffer_wr=0; 
+uint8_t * buffer=0;
+uint8_t * buffer_wr=0;
 rtlsdr_dev_t *device;
 pthread_t receive_thread;
 pthread_mutex_t buffer_lock;
 
-double freq_mhz = 124.2;
+double freq_mhz = 143.2;
 int paused = 0;
-int intensity = 3;
 void *rtl_buffer;
 const uint32_t rtl_buffer_length = (16 * 16384);
 int rtl_should_quit = 0;
 
+int line_intensity = 3;
+float line_percentage = 0.05;
+
+// Utility //////////////////////////////////////////////////////////////////
+
+float clampf(float v, float min, float max) {
+    return v < min ? min : v > max ? max : v;
+}
+
+// Line drawing ///////////////////////////////////////////////////////////////
+
+void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
+    int offset = 3 * (y * WINDOW_WIDTH  + x);
+    image_buffer[offset] = color;
+}
+
+void pixel_inc(uint8_t *image_buffer, int x, int y) {
+    int offset = 3 * (y * WINDOW_WIDTH + x);
+    int v = image_buffer[offset];
+    v += line_intensity;
+    if (v <= 255) {
+        image_buffer[offset] = v;
+    }
+}
+
+void draw_line(uint8_t *image_buffer, int x1, int y1, int x2, int y2, int color) {
+  int dx = abs(x2 - x1);
+  int sx = x1 < x2 ? 1 : -1;
+  int dy = abs(y2-y1);
+  int sy = y1 < y2 ? 1 : -1;
+  int err = (dx > dy ? dx : -dy) / 2;
+  int e2;
+
+  for(;;){
+    pixel_inc(image_buffer, x1, y1);
+    if (x1 == x2 && y1 == y2) break;
+    e2 = err;
+    if (e2 > -dx) { err -= dy; x1 += sx; }
+    if (e2 <  dy) { err += dx; y1 += sy; }
+  }
+}
+
+// RTL-SDR //////////////////////////////////////////////////////////////////
+
 void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, const char *file, int line) {
     if (status != 0) {
-        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\n", message, status, file, line);
+        fprintf(stderr, "RTL-SDR: %s (Status code %d) %s:%d\r\n", message, status, file, line);
         if (device != NULL) {
             rtlsdr_close(device);
         }
@@ -63,17 +108,17 @@ void rtl_check_status(rtlsdr_dev_t *device, int status, const char *message, con
 void receive_block(unsigned char *in_buffer, uint32_t buffer_length, void *ctx) {
     if (paused) return;
     pthread_mutex_lock(&buffer_lock);
-    memset(buffer_wr, 0x0, WIDTH * HEIGHT * 3 );
+    memset(buffer_wr, 0x0, WINDOW_WIDTH * WINDOW_HEIGHT * 3);
     int i = 0;
-    for (i = 0; i < buffer_length; i += 2) {
-        int vi = in_buffer[i];
-        int vq = in_buffer[i + 1];
-
-        int d = ((vq * WIDTH) + vi) * 3;
-        uint8_t v = buffer_wr[d];
-        v += intensity;
-        v = v < 0 ? 0 : v > 255 ? 255 : v;
-        buffer_wr[d] = v;
+    int x1 = 0;
+    int y1 = 0;
+    int max = SAMPLE_BUFFER_SIZE * line_percentage;
+    for (i = 0; i < max; i += 2) {
+        int x2 = in_buffer[i] ;
+        int y2 = in_buffer[i+1];
+        draw_line(buffer_wr, x1 * SIZE_MULTIPLIER, y1 * SIZE_MULTIPLIER, x2 * SIZE_MULTIPLIER, y2 * SIZE_MULTIPLIER, 0);
+        x1 = x2;
+        y1 = y2;
     }
     pthread_mutex_unlock(&buffer_lock);
 }
@@ -86,7 +131,7 @@ void *_receive_loop(rtlsdr_dev_t *device) {
         RTL_CHECK_STATUS(device, status, "rtlsdr_read_sync");
 
         if (n_read < rtl_buffer_length) {
-            fprintf(stderr, "Short read, samples lost, exiting!\n");
+            fprintf(stderr, "Short read, samples lost, exiting!\r\n");
             exit(EXIT_FAILURE);
         }
 
@@ -102,17 +147,17 @@ static void setup_rtl() {
 
     int device_count = rtlsdr_get_device_count();
     if (device_count == 0) {
-        fprintf(stderr, "RTL-SDR: No devices found.\n");
+        fprintf(stderr, "RTL-SDR: No devices found.\r\n");
         exit(EXIT_FAILURE);
     }
 
     const char *device_name = rtlsdr_get_device_name(0);
-    printf("Device %s\n", device_name);
+    printf("Device %s\r\n", device_name);
 
     status = rtlsdr_open(&device, 0);
     RTL_CHECK_STATUS(device, status, "rtlsdr_open");
 
-    status = rtlsdr_set_sample_rate(device, 3200000);
+    status = rtlsdr_set_sample_rate(device, 3e6);
     RTL_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
 
     // Set auto-gain mode
@@ -128,9 +173,9 @@ static void setup_rtl() {
     status = rtlsdr_reset_buffer(device);
     RTL_CHECK_STATUS(device, status, "rtlsdr_reset_buffer");
 
-    printf("Start\n");
+    printf("Start\r\n");
     pthread_create(&receive_thread, NULL, (void *(*)(void *))_receive_loop, device);
-    printf("Running\n");
+    printf("Running\r\n");
 
 }
 
@@ -146,15 +191,16 @@ static void teardown_rtl() {
 
     rtl_should_quit = 1;
 
-    printf("pthread_join\n");
+    printf("pthread_join\r\n");
     pthread_join(receive_thread, NULL);
 
-    printf("rtlsdr_close\n");
+    printf("rtlsdr_close\r\n");
     status = rtlsdr_close(device);
-    //printf("Closed\n");
+    //printf("Closed\r\n");
     RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
+// OpenGL ///////////////////////////////////////////////////////////////////
 
 void ngl_check_gl_error(const char *file, int line) {
     GLenum err = glGetError();
@@ -168,20 +214,20 @@ void ngl_check_gl_error(const char *file, int line) {
             break;
             case GL_INVALID_ENUM:
             msg = "GL_INVALID_ENUM";
-            fprintf(stderr, "OpenGL error: GL_INVALID_ENUM\n");
+            fprintf(stderr, "OpenGL error: GL_INVALID_ENUM\r\n");
             break;
             case GL_INVALID_VALUE:
             msg = "GL_INVALID_VALUE";
-            fprintf(stderr, "OpenGL error: GL_INVALID_VALUE\n");
+            fprintf(stderr, "OpenGL error: GL_INVALID_VALUE\r\n");
             break;
             case GL_OUT_OF_MEMORY:
             msg = "GL_OUT_OF_MEMORY";
-            fprintf(stderr, "OpenGL error: GL_OUT_OF_MEMORY\n");
+            fprintf(stderr, "OpenGL error: GL_OUT_OF_MEMORY\r\n");
             break;
             default:
             msg = "UNKNOWN_ERROR";
         }
-        fprintf(stderr, "OpenGL error: %s - %s:%d\n", msg, file, line);
+        fprintf(stderr, "OpenGL error: %s - %s:%d\r\n", msg, file, line);
         err = glGetError();
     }
     if (has_error) {
@@ -199,7 +245,7 @@ static void check_shader_error(GLuint shader) {
     if (length > 0) {
         char message[length];
         glGetShaderInfoLog(shader, length, NULL, message);
-        printf("%s\n", message);
+        printf("%s\r\n", message);
     }
 }
 
@@ -218,7 +264,7 @@ static const GLfloat uvs[] = {
     0.0, 0.0
 };
 
-GLuint u_texture;
+
 static void setup() {
     glPixelStorei ( GL_UNPACK_ALIGNMENT, 1 );
     NGL_CHECK_ERROR();
@@ -235,34 +281,34 @@ static void setup() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
     NGL_CHECK_ERROR();
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
     //glBindTexture(GL_TEXTURE_2D, 0);
     //NGL_CHECK_ERROR();
 
     const char *vertex_shader_source =
-        "#ifdef GL_ES\n"
-        "precision mediump float;\n"
-        "#endif\n"
-        "attribute vec2 vp;\n"
-        "attribute vec2 vt;\n"
-        "varying vec2 uv;\n"
-        "void main(void) {\n"
-        "  uv = vt;\n"
-        "  gl_Position = vec4(vp.x, vp.y, 0, 1);\n"
-        "}\n";
+        "#ifdef GL_ES\r\n"
+        "precision mediump float;\r\n"
+        "#endif\r\n"
+        "attribute vec2 vp;\r\n"
+        "attribute vec2 vt;\r\n"
+        "varying vec2 uv;\r\n"
+        "void main(void) {\r\n"
+        "  uv = vt;\r\n"
+        "  gl_Position = vec4(vp.x, vp.y, 0, 1);\r\n"
+        "}\r\n";
 
     const char *fragment_shader_source =
-        "#ifdef GL_ES\n"
-        "precision mediump float;\n"
-        "#endif\n"
-        "uniform sampler2D texture;\n"
-        "varying vec2 uv;\n"
-        "void main(void) {\n"
-        "  vec4 c = texture2D(texture, uv);\n"
-        "  float v = c.r;\n"
-        "  gl_FragColor = vec4(v, v, v, 1);\n"
-        "}\n";
+        "#ifdef GL_ES\r\n"
+        "precision mediump float;\r\n"
+        "#endif\r\n"
+        "uniform sampler2D texture;\r\n"
+        "varying vec2 uv;\r\n"
+        "void main(void) {\r\n"
+        "  vec4 c = texture2D(texture, uv);\r\n"
+        "  float v = c.r;\r\n"
+        "  gl_FragColor = vec4(v, v, v, 1);\r\n"
+        "}\r\n";
 
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -283,7 +329,7 @@ static void setup() {
     glUseProgram(program);
     NGL_CHECK_ERROR();
 
-    u_texture = glGetUniformLocation(program, "texture");
+    GLuint u_texture = glGetUniformLocation(program, "texture");
     glUniform1i(u_texture, 0);
 
     NGL_CHECK_ERROR();
@@ -296,9 +342,6 @@ static void setup() {
     glVertexAttribPointer(a_vt, 2, GL_FLOAT, 0, 0, uvs);
     glEnableVertexAttribArray(a_vt);
     NGL_CHECK_ERROR();
-
-
-
 }
 
 static void prepare() {
@@ -314,21 +357,14 @@ static void prepare() {
 }
 
 static void update() {
-    
     glBindTexture(GL_TEXTURE_2D, texture_id);
     NGL_CHECK_ERROR();
-    //printf("Up: %d\n", buffer[(128*WIDTH + 128) * 3]);
-    //FILE *fp = fopen("buf.raw", "wb");
-    //fwrite(buffer, 1, WIDTH * HEIGHT * 3, fp);
-    //fclose(fp);
-    //sleep(1);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
     if (!pthread_mutex_trylock(&buffer_lock)) {
-      memcpy(buffer, buffer_wr, WIDTH*HEIGHT*3);
-      pthread_mutex_unlock(&buffer_lock); 
+      memcpy(buffer, buffer_wr, WINDOW_WIDTH * WINDOW_HEIGHT * 3);
+      pthread_mutex_unlock(&buffer_lock);
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
     NGL_CHECK_ERROR();
 }
 
@@ -339,52 +375,12 @@ static void draw() {
 
     glUseProgram(program);
     NGL_CHECK_ERROR();
-    //
-    //glActiveTexture ( GL_TEXTURE0 );
-    //glBindTexture ( GL_TEXTURE_2D, texture_id );
-    //NGL_CHECK_ERROR();
-    glUniform1i(u_texture,0);
-    NGL_CHECK_ERROR();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     NGL_CHECK_ERROR();
 
-    //glUseProgram(0);
-    //NGL_CHECK_ERROR();
-
-    //glFlush();
     glFinish();
-    //NGL_CHECK_ERROR();
+    NGL_CHECK_ERROR();
 }
-
-/*
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        if (mods == 0) {
-            freq_mhz += 0.1;
-        } else {
-            freq_mhz += 10;
-        }
-        set_frequency();
-    } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        if (mods == 0) {
-            freq_mhz -= 0.1;
-        } else {
-            freq_mhz -= 10;
-        }
-        set_frequency();
-    } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        paused = !paused;
-    } else if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
-        intensity += 0.01;
-        printf("Intensity: %.2f\n", intensity);
-    } else if (key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
-        intensity -= 0.01;
-        printf("Intensity: %.2f\n", intensity);
-    }
-}
-*/
 
 void nwm_init() {
     EGLBoolean result;
@@ -406,6 +402,7 @@ void nwm_init() {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_NONE
     };
+
     EGLConfig config;
     EGLint num_config;
     result = eglChooseConfig(display, frame_buffer_attributes, &config, 1, &num_config);
@@ -426,7 +423,7 @@ void nwm_init() {
     // Create an EGL window surface.
     int32_t success = graphics_get_display_size(0, &screen_width, &screen_height);
     assert(success >= 0);
-    printf("%d %d\n", screen_width, screen_height);
+    printf("%d %d\r\n", screen_width, screen_height);
 
     VC_RECT_T dst_rect;
     dst_rect.x = 0;
@@ -457,22 +454,20 @@ void nwm_init() {
     // Connect the rendering context to the surface.
     result = eglMakeCurrent(display, surface, surface, context);
     assert(result != EGL_FALSE);
-
 }
 
+// Main /////////////////////////////////////////////////////////////////////
 
 int main(void) {
-    buffer =  malloc(WIDTH * HEIGHT * 3);
-    buffer_wr =  malloc(WIDTH * HEIGHT * 3);
+    buffer =  calloc(WINDOW_WIDTH * WINDOW_HEIGHT * 3, 1);
+    buffer_wr =  calloc(WINDOW_HEIGHT * WINDOW_HEIGHT * 3, 1);
     bcm_host_init();
     nwm_init();
 
     setup_rtl();
     setup();
 
-   freq_mhz=94.2;
-   set_frequency();
-
+    // set terminal nonblocking i/o
     struct termios ios_old, ios_new;
     tcgetattr(STDIN_FILENO, &ios_old);
     tcgetattr(STDIN_FILENO, &ios_new);
@@ -480,33 +475,50 @@ int main(void) {
     tcsetattr(STDIN_FILENO, 0, &ios_new);
     fcntl(0, F_SETFL, O_NONBLOCK);
 
-    while ( 1) {
-        switch (getchar()) {
+    for (;;) {
+       switch (getchar()) {
             case 'Q':
             case 'q':
             case 0x7f:      /* Ctrl+c */
             case 0x03:      /* Ctrl+c */
             case 0x1b:      /* ESC */
                 printf("\r\nexit\r\n");
-                            goto goal;
-            case '<':
-                            freq_mhz-=.1;
-                            set_frequency();
-                            break;
-            case '>':
-                            freq_mhz+=.1;
-                            set_frequency();
-                            break;
-        }
-        prepare();
-        update();
+                goto end;
+            case '[':
+                freq_mhz-=.1;
+                set_frequency();
+                break;
+            case ']':
+                freq_mhz+=.1;
+                set_frequency();
+                break;
+            case '-':
+                line_intensity--;
+                printf("Intensity: %d\r\n", line_intensity);
+                break;
+            case '=':
+                line_intensity++;
+                printf("Intensity: %d\r\n", line_intensity);
+                break;
+            case ',':
+                line_percentage = clampf(line_percentage - 0.01, 0, 1);
+                printf("Line percentage: %.2f%%\r\n", line_percentage * 100);
+                break;
+            case '.':
+                line_percentage = clampf(line_percentage + 0.01, 0, 1);
+                printf("Line percentage: %.2f%%\r\n", line_percentage * 100);
+                break;
+
+       }
+       prepare();
+       update();
        draw();
        eglSwapBuffers(display, surface);
-       //sleep(0);
     }
-goal:
+end:
       teardown_rtl();
- 
+
+      // reset terminal i/o parameters
       tcsetattr(STDIN_FILENO, 0, &ios_old);
 
       exit(EXIT_SUCCESS);

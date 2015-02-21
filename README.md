@@ -24,6 +24,25 @@
     sudo make install
     sudo ldconfig
 
+## Installing dependencies (Raspberry Pi)
+
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev 
+
+    # There is no RTL-SDR package so install from source
+    git clone git://git.osmocom.org/rtl-sdr.git
+    cd rtl-sdr
+    mkdir build
+    cd build
+    cmake ../
+    make
+    sudo make install
+    sudo ldconfig
+
+    # Disable default kernel driver
+    sudo modprobe -r dvb_usb_rtl28xxu
+
+Note that you might need to run as root to claim the graphics driver, especially if you don't use the default "pi" user.
+
 ## Building
 
     mkdir build

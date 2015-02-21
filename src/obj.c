@@ -76,6 +76,7 @@ int obj_parse(const char *file_name, float** points_ptr, float** normals_ptr, in
     }
     fclose(fp);
     free(vp_array);
+    free(vn_array);
     return 1;
 }
 

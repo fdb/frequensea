@@ -25,7 +25,7 @@ uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
     float r = texture(uTexture, texCoord).r * 0.01;
-    fragColor = vec4(r, r, r, 0.95);
+    fragColor = vec4(r, r, r, 1);
 }
 ]]
 

@@ -1,5 +1,4 @@
--- Visualize IQ data as a texture from the HackRF
--- You want seizures? 'Cause this is how you get seizures.
+-- Visualize IQ data as lines.
 
 VERTEX_SHADER = [[
 #version 400
@@ -12,7 +11,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    texCoord = vt; // vec2(vp.x + 0.5, vp.z + 0.5);
+    texCoord = vt;
     gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
 }
 ]]
@@ -24,16 +23,14 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 0.02;
-    fragColor = vec4(r, r, r, 0.95);
+    float r = texture(uTexture, texCoord).r * 0.005;
+    fragColor = vec4(r, r, r, 1);
 }
 ]]
 
 function setup()
-    freq = 97.6
-    freq_offset = 100000
+    freq = 230.8
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -42,12 +39,11 @@ end
 
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_iq_buffer(device);
+    buffer = nrf_device_get_iq_lines(device, 4, 0.5);
     ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data);
     ngl_draw_model(camera, model, shader)
 end
 
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
-    keys_frequency_offset_handler(key, mods)
 end

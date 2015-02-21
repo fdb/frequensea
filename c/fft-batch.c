@@ -11,13 +11,13 @@
 
 #include "easypng.h"
 
-const uint32_t FFT_SIZE = 4096;
-const uint32_t FFT_HISTORY_SIZE = 1024;
+const uint32_t FFT_SIZE = 1024;
+const uint32_t FFT_HISTORY_SIZE = 16384;
 const uint32_t SAMPLES_SIZE = 131072;
-const uint64_t FREQUENCY_START = 800e6;
-const uint64_t FREQUENCY_END = 1000e6;
-const uint32_t FREQUENCY_STEP = 3e6;
-const uint32_t SAMPLE_RATE = 10e6;
+const uint64_t FREQUENCY_START = 2e6;
+const uint64_t FREQUENCY_END = 148e6;
+const uint32_t FREQUENCY_STEP = 2e6;
+const uint32_t SAMPLE_RATE = 5e6;
 const uint32_t SAMPLE_BLOCKS_TO_SKIP = 10;
 
 uint64_t frequency = FREQUENCY_START;
@@ -29,6 +29,12 @@ int history_rows = 0;
 fftw_plan fft_plan;
 hackrf_device *device;
 int skip = SAMPLE_BLOCKS_TO_SKIP;
+
+// Utility ////////////////////////////////////////////////////////////////////
+
+uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
+    return (uint8_t) (v < min ? min : v > max ? max : v);
+}
 
 // HackRF /////////////////////////////////////////////////////////////////////
 
@@ -46,6 +52,7 @@ static void hackrf_check_status(int status, const char *message, const char *fil
 #define HACKRF_CHECK_STATUS(status, message) hackrf_check_status(status, message, __FILE__, __LINE__)
 
 int receive_sample_block(hackrf_transfer *transfer) {
+    int local_frequency = frequency;
     if (skip > 0) {
         skip--;
         return 0;
@@ -53,8 +60,10 @@ int receive_sample_block(hackrf_transfer *transfer) {
     if (history_rows >= FFT_HISTORY_SIZE) return 0;
     int ii = 0;
     for (int i = 0; i < SAMPLES_SIZE; i += 2) {
-        fft_in[ii][0] = powf(-1, ii) * transfer->buffer[i] / 255.0;
-        fft_in[ii][1] = powf(-1, ii) * transfer->buffer[i + 1] / 255.0;
+        int vi = (transfer->buffer[i] + 128) % 256;
+        int vq = (transfer->buffer[i + 1] + 128) % 256;
+        fft_in[ii][0] = powf(-1, ii) * vi / 256.0;
+        fft_in[ii][1] = powf(-1, ii) * vq / 256.0;
         ii++;
     }
     fftw_execute(fft_plan);
@@ -75,12 +84,16 @@ int receive_sample_block(hackrf_transfer *transfer) {
             for (int x = 0; x < FFT_SIZE; x++) {
                 double ci = fft_history[y * FFT_SIZE + x][0];
                 double cq = fft_history[y * FFT_SIZE + x][1];
-                uint8_t v = sqrt(ci * ci + cq * cq) * 2;
+                double pwr = ci * ci + cq * cq;
+                //double pwr_dbfs = 10.0 * log2(pwr + 1.0e-20) / log2(2.7182818284);
+                double pwr_dbfs = 10.0 * log10(pwr + 1.0e-20);
+                pwr_dbfs = pwr_dbfs * 10;
+                uint8_t v = clamp_u8(pwr_dbfs, 0, 255);
                 buffer[y * FFT_SIZE + x] = v;
             }
         }
         char file_name[100];
-        snprintf(file_name, 100, "fft-%.4f.png", frequency / 1.0e6);
+        snprintf(file_name, 100, "fft-%.4f.png", local_frequency / 1.0e6);
         write_gray_png(file_name, FFT_SIZE, FFT_HISTORY_SIZE, buffer);
         free(buffer);
     }
