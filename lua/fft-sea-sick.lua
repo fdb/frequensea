@@ -77,7 +77,7 @@ void main() {
 
 function setup()
     freq = 97
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 128)
 
     camera = ngl_camera_new_look_at(0, 0.01, 0.2)

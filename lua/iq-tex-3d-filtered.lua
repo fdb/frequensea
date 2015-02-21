@@ -55,7 +55,7 @@ camera_z = 1
 
 function setup()
     freq = 97
-    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw",0.01)
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
     filter = nrf_iq_filter_new(device.sample_rate, 200e3, 21)
 
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)

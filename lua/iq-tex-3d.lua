@@ -55,7 +55,7 @@ camera_z = 1
 
 function setup()
     freq = 201.2
-    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw",0.01)
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
 
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
