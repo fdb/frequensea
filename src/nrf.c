@@ -413,7 +413,8 @@ static void draw_line(nul_buffer *image_buffer, int stride, int x1, int y1, int 
 nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage) {
     line_percentage = _nrf_clampf(line_percentage, 0, 1);
     pthread_mutex_lock(&device->data_mutex);
-    nul_buffer *image_buffer = nul_buffer_new_u8(NRF_IQ_RESOLUTION * NRF_IQ_RESOLUTION * size_multiplier, 1, NULL);
+    int sz = NRF_IQ_RESOLUTION * size_multiplier;
+    nul_buffer *image_buffer = nul_buffer_new_u8(sz * sz, 1, NULL);
     int x1 = 0;
     int y1 = 0;
     int max = NRF_BUFFER_SIZE_BYTES * line_percentage;
