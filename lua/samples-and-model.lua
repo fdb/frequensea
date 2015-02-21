@@ -78,6 +78,9 @@ function setup()
     camera_z = 50
     freq = 50.1
     device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
+    interpolator = nrf_interpolator_new(0.01)
+
+
     grid_shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     room_shader = ngl_shader_new(GL_TRIANGLES, ROOM_VERTEX_SHADER, ROOM_FRAGMENT_SHADER)
     texture = ngl_texture_new(grid_shader, "uTexture")
@@ -86,9 +89,12 @@ function setup()
 end
 
 function draw()
-    ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_device_get_samples_buffer(device)
-    ngl_texture_update(texture, buffer, 512, 256)
+    nrf_interpolator_process(interpolator, buffer)
+    interpolator_buffer = nrf_interpolator_get_buffer(interpolator)
+
+    ngl_clear(0.2, 0.2, 0.2, 1.0)
+    ngl_texture_update(texture, interpolator_buffer, 512, 256)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
     ngl_draw_model(camera, grid_model, grid_shader)
     ngl_draw_model(camera, room_model, room_shader)
