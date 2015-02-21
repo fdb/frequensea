@@ -490,7 +490,7 @@ nul_buffer *nrf_buffer_to_iq_lines(nul_buffer *buffer, int size_multiplier, floa
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     nrf_fft *fft = calloc(1, sizeof(nrf_fft));
-    nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, nrf_fft_process, (nrf_block_result_fn) nrf_fft_get_buffer);
+    nrf_block_init(&fft->block, NRF_BLOCK_GENERIC, (nrf_block_process_fn) nrf_fft_process, (nrf_block_result_fn) nrf_fft_get_buffer);
     fft->fft_size = fft_size;
     fft->fft_history_size = fft_history_size;
     fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
@@ -500,8 +500,7 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     return fft;
 }
 
-void nrf_fft_process(nrf_block *block, nul_buffer *buffer) {
-    nrf_fft* fft = (nrf_fft *) block;
+void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     int size = buffer->length * buffer->channels;
     assert(size == NRF_BUFFER_SIZE_BYTES);
     int ii = 0;

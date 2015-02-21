@@ -73,7 +73,7 @@ function setup()
     freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
     fft = nrf_fft_new(128, 128)
-    nrf_block_connect(device, fft)
+
     camera = ngl_camera_new_look_at(0, 0.01, 0.1)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -82,9 +82,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_fft_process(fft, samples_buffer)
+    fft_buffer = nrf_fft_get_buffer(fft)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_fft_get_buffer(fft)
-    ngl_texture_update(texture, buffer, 128, 128)
+    ngl_texture_update(texture, fft_buffer, 128, 128)
     ngl_draw_model(camera, model, shader)
 end
 

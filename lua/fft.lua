@@ -36,9 +36,9 @@ void main() {
 
 function setup()
     freq = 97
-    device = nrf_device_new_with_config({freq_mhz=freq, data_file="../rfdata/rf-200.500-big.raw"})
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(1024, 1024)
-    nrf_block_connect(device, fft)
+
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -46,9 +46,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_fft_process(fft, samples_buffer)
+    fft_buffer = nrf_fft_get_buffer(fft)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_fft_get_buffer(fft)
-    ngl_texture_update(texture, buffer, 1024, 1024)
+    ngl_texture_update(texture, fft_buffer, 1024, 1024)
     ngl_draw_model(camera, model, shader)
 end
 
