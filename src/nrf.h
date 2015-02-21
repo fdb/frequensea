@@ -153,7 +153,7 @@ typedef struct {
 } nrf_iq_filter;
 
 nrf_iq_filter *nrf_iq_filter_new(int sample_rate, int half_ampl_freq, int kernel_length);
-void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer);
+void nrf_iq_filter_process(nrf_iq_filter *filter, nul_buffer *buffer);
 nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f);
 void nrf_iq_filter_free(nrf_iq_filter *filter);
 

@@ -630,33 +630,31 @@ void nrf_fir_filter_free(nrf_fir_filter *filter) {
 
 nrf_iq_filter *nrf_iq_filter_new(int sample_rate, int half_ampl_freq, int kernel_length) {
     nrf_iq_filter *f = calloc(1, sizeof(nrf_iq_filter));
-    nrf_block_init(&f->block, NRF_BLOCK_GENERIC, nrf_iq_filter_process, (nrf_block_result_fn) nrf_iq_filter_get_buffer);
+    nrf_block_init(&f->block, NRF_BLOCK_GENERIC, (nrf_block_process_fn) nrf_iq_filter_process, (nrf_block_result_fn) nrf_iq_filter_get_buffer);
     f->filter_i = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
     f->filter_q = nrf_fir_filter_new(sample_rate, half_ampl_freq, kernel_length);
     return f;
 }
 
-void nrf_iq_filter_process(nrf_block *block, nul_buffer *buffer) {
-    nrf_iq_filter *f = (nrf_iq_filter *) block;
-
-    int old_length = f->samples_length;
+void nrf_iq_filter_process(nrf_iq_filter *filter, nul_buffer *buffer) {
+    int old_length = filter->samples_length;
     int length = buffer->length;
     if (length != old_length) {
-        free(f->samples_i);
-        free(f->samples_q);
-        f->samples_i = calloc(length, sizeof(double));
-        f->samples_q = calloc(length, sizeof(double));
+        free(filter->samples_i);
+        free(filter->samples_q);
+        filter->samples_i = calloc(length, sizeof(double));
+        filter->samples_q = calloc(length, sizeof(double));
     }
-    f->samples_length = length;
+    filter->samples_length = length;
 
     int j = 0;
     for (int i = 0; i < length * 2; i += 2) {
-        f->samples_i[j] = nul_buffer_get_f64(buffer, i);
-        f->samples_q[j] = nul_buffer_get_f64(buffer, i + 1);
+        filter->samples_i[j] = nul_buffer_get_f64(buffer, i);
+        filter->samples_q[j] = nul_buffer_get_f64(buffer, i + 1);
         j++;
     }
-    nrf_fir_filter_load(f->filter_i, f->samples_i, length);
-    nrf_fir_filter_load(f->filter_q, f->samples_q, length);
+    nrf_fir_filter_load(filter->filter_i, filter->samples_i, length);
+    nrf_fir_filter_load(filter->filter_q, filter->samples_q, length);
 }
 
 nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f) {
