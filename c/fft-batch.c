@@ -52,7 +52,7 @@ static void hackrf_check_status(int status, const char *message, const char *fil
 #define HACKRF_CHECK_STATUS(status, message) hackrf_check_status(status, message, __FILE__, __LINE__)
 
 int receive_sample_block(hackrf_transfer *transfer) {
-    int local_frequency = frequency;
+    uint64_t local_frequency = frequency;
     if (skip > 0) {
         skip--;
         return 0;
