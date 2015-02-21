@@ -62,6 +62,7 @@ nwm_window *nwm_window_init(int x, int y, int width, int height) {
         EGL_GREEN_SIZE, 8,
         EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8,
+        EGL_DEPTH_SIZE, 8,
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_NONE
     };
@@ -69,6 +70,10 @@ nwm_window *nwm_window_init(int x, int y, int width, int height) {
     EGLint num_config;
     result = eglChooseConfig(display, frame_buffer_attributes, &config, 1, &num_config);
     assert(result != EGL_FALSE);
+
+    EGLint value;
+    eglGetConfigAttrib(display,config,EGL_DEPTH_SIZE,&value);
+    printf("depth buffer size: %d\r\n",value);
 
     // Set the current rendering API.
     result = eglBindAPI(EGL_OPENGL_ES_API);
@@ -117,6 +122,11 @@ nwm_window *nwm_window_init(int x, int y, int width, int height) {
     result = eglMakeCurrent(display, surface, surface, context);
     assert(result != EGL_FALSE);
     printf("ok\n");
+
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
 
     return (nwm_window*) &window;
 }
