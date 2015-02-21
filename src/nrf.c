@@ -592,7 +592,9 @@ void nrf_fir_filter_load(nrf_fir_filter *filter, double *samples, int length) {
     int new_length = length + filter->offset;
     double *new_samples;
     if (filter->samples_length != new_length) {
-        should_free = 1;
+        if (filter->samples_length != 0) {
+            should_free = 1;
+        }
         new_samples = calloc(new_length, sizeof(double));
     } else {
         new_samples = filter->samples;
@@ -618,6 +620,7 @@ double nrf_fir_filter_get(nrf_fir_filter *filter, int index) {
 }
 
 void nrf_fir_filter_free(nrf_fir_filter *filter) {
+    filter->samples_length = 0;
     free(filter->coefficients);
     free(filter->samples);
     free(filter);
