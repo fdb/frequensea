@@ -450,6 +450,62 @@ void nrf_device_free(nrf_device *device) {
     free(device);
 }
 
+// Interpolator
+
+nrf_interpolator *nrf_interpolator_new(double interpolate_step) {
+    nrf_interpolator *interpolator = calloc(1, sizeof(nrf_interpolator));
+    interpolator->interpolate_step = interpolate_step;
+    interpolator->t = -1;
+    return interpolator;
+}
+
+void nrf_interpolator_process(nrf_interpolator *interpolator, nul_buffer *buffer) {
+    if (interpolator->t < 0.0) {
+        // Special start-up condition. Set b_buffer and interpolate from zero.
+        if (buffer->type == NUL_BUFFER_U8) {
+            interpolator->buffer_a = nul_buffer_new_u8(buffer->length, buffer->channels, NULL);
+        } else {
+            interpolator->buffer_a = nul_buffer_new_f64(buffer->length, buffer->channels, NULL);
+        }
+        interpolator->buffer_b = nul_buffer_copy(buffer);
+        interpolator->t = 0.0;
+    } else if (interpolator->t >= 1.0) {
+        nul_buffer_set_data(interpolator->buffer_a, interpolator->buffer_b);
+        nul_buffer_set_data(interpolator->buffer_b, buffer);
+        interpolator->t = 0.0;
+    } else
+
+    interpolator->t += interpolator->interpolate_step;
+}
+
+nul_buffer *nrf_interpolator_get_buffer(nrf_interpolator *interpolator) {
+    nul_buffer *a = interpolator->buffer_a;
+    nul_buffer *b = interpolator->buffer_b;
+    double t = interpolator->t;
+    assert(a->type == b->type);
+    assert(a->size_bytes == b->size_bytes);
+    nul_buffer *dst;
+    if (a->type == NUL_BUFFER_U8) {
+        dst = nul_buffer_new_u8(a->length, a->channels, NULL);
+    } else {
+        dst = nul_buffer_new_f64(a->length, a->channels, NULL);
+    }
+    int size = a->length * a->channels;
+    for (int i = 0; i < size; i++) {
+        double va = nul_buffer_get_f64(a, i);
+        double vb = nul_buffer_get_f64(b, i);
+        double v = va * (1.0 - t) + vb * t;
+        nul_buffer_set_f64(dst, i, v);
+    }
+    return dst;
+}
+
+void nrf_interpolator_free(nrf_interpolator *interpolator) {
+    nul_buffer_free(interpolator->buffer_a);
+    nul_buffer_free(interpolator->buffer_b);
+    free(interpolator);
+}
+
 // IQ Drawing
 
 // Convert a buffer with raw samples to a buffer with I/Q points.

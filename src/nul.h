@@ -28,8 +28,11 @@ typedef struct {
 nul_buffer *nul_buffer_new_u8(int length, int channels, const uint8_t *data);
 nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data);
 nul_buffer *nul_buffer_copy(nul_buffer *buffer);
+void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src);
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset);
 double nul_buffer_get_f64(nul_buffer *buffer, int offset);
+void nul_buffer_set_u8(nul_buffer *buffer, int offset, uint8_t value);
+void nul_buffer_set_f64(nul_buffer *buffer, int offset, double value);
 nul_buffer *nul_buffer_convert(nul_buffer *buffer, nul_buffer_type new_type);
 void nul_buffer_save(nul_buffer *buffer, const char *fname);
 void nul_buffer_free(nul_buffer *buffer);

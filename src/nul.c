@@ -40,6 +40,18 @@ nul_buffer *nul_buffer_copy(nul_buffer *buffer) {
     }
 }
 
+void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src) {
+    assert(dst != NULL);
+    assert(src != NULL);
+    assert(dst->type == src->type);
+    assert(dst->size_bytes == src->size_bytes);
+    if (dst->type == NUL_BUFFER_U8) {
+        memcpy(dst->data.u8, src->data.u8, dst->size_bytes);
+    } else {
+        memcpy(dst->data.f64, src->data.f64, dst->size_bytes);
+    }
+}
+
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
     if (buffer->type == NUL_BUFFER_U8) {
         return buffer->data.u8[offset];
@@ -53,6 +65,22 @@ double nul_buffer_get_f64(nul_buffer *buffer, int offset) {
         return buffer->data.u8[offset] / 256.0;
     } else {
         return buffer->data.f64[offset];
+    }
+}
+
+void nul_buffer_set_u8(nul_buffer *buffer, int offset, uint8_t value) {
+    if (buffer->type == NUL_BUFFER_U8) {
+        buffer->data.u8[offset] = value;
+    } else {
+        buffer->data.f64[offset] = value / 256.0;
+    }
+}
+
+void nul_buffer_set_f64(nul_buffer *buffer, int offset, double value) {
+    if (buffer->type == NUL_BUFFER_U8) {
+        buffer->data.u8[offset] = value * 256.0;
+    } else {
+        buffer->data.f64[offset] = value;
     }
 }
 

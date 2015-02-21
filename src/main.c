@@ -490,6 +490,38 @@ static int l_nrf_device_get_iq_lines(lua_State *L) {
     return l_push_nul_buffer(L, buffer);
 }
 
+// nrf_interpolator
+
+static nrf_interpolator* l_to_nrf_interpolator(lua_State *L, int index) {
+    return (nrf_interpolator*) l_from_table(L, "nrf_interpolator", index);
+}
+
+static int l_nrf_interpolator_new(lua_State *L) {
+    double interpolate_step = luaL_checknumber(L, 1);
+    nrf_interpolator* interpolator = nrf_interpolator_new(interpolate_step);
+    l_to_table(L, "nrf_interpolator", interpolator);
+    return 1;
+}
+
+static int l_nrf_interpolator_process(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nul_buffer* buffer = l_to_nul_buffer(L, 2);
+    nrf_interpolator_process(interpolator, buffer);
+    return 0;
+}
+
+static int l_nrf_interpolator_get_buffer(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nul_buffer* buffer = nrf_interpolator_get_buffer(interpolator);
+    return l_push_nul_buffer(L, buffer);
+}
+
+static int l_nrf_interpolator_free(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nrf_interpolator_free(interpolator);
+    return 0;
+}
+
 // iq drawing
 
 static int l_nrf_buffer_to_iq_points(lua_State *L) {
@@ -778,6 +810,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
+    l_register_type(L, "nrf_interpolator", l_nrf_interpolator_free);
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
     l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
     l_register_type(L, "nrf_freq_shifter", l_nrf_freq_shifter_free);
@@ -811,6 +844,9 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_device_get_samples_buffer", l_nrf_device_get_samples_buffer);
     l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
+    l_register_function(L, "nrf_interpolator_new", l_nrf_interpolator_new);
+    l_register_function(L, "nrf_interpolator_process", l_nrf_interpolator_process);
+    l_register_function(L, "nrf_interpolator_get_buffer", l_nrf_interpolator_get_buffer);
     l_register_function(L, "nrf_buffer_to_iq_points", l_nrf_buffer_to_iq_points);
     l_register_function(L, "nrf_buffer_to_iq_lines", l_nrf_buffer_to_iq_lines);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
