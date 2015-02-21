@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +38,17 @@ nul_buffer *nul_buffer_copy(nul_buffer *buffer) {
         return nul_buffer_new_u8(buffer->length, buffer->channels, buffer->data.u8);
     } else {
         return nul_buffer_new_f64(buffer->length, buffer->channels, buffer->data.f64);
+    }
+}
+
+nul_buffer *nul_buffer_reduce(nul_buffer *buffer, double percentage) {
+    percentage = percentage < 0.0 ? 0.0 : percentage > 1.0 ? 1.0 : percentage;
+    int new_length = round(buffer->length * percentage);
+    assert(buffer != NULL);
+    if (buffer->type == NUL_BUFFER_U8) {
+        return nul_buffer_new_u8(new_length, buffer->channels, buffer->data.u8);
+    } else {
+        return nul_buffer_new_f64(new_length, buffer->channels, buffer->data.f64);
     }
 }
 

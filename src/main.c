@@ -129,6 +129,13 @@ static int l_push_nul_buffer(lua_State *L, nul_buffer *buffer) {
     return 1;
 }
 
+static int l_nul_buffer_reduce(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    double percentage = luaL_checknumber(L, 2);
+    nul_buffer *result = nul_buffer_reduce(buffer, percentage);
+    return l_push_nul_buffer(L, result);
+}
+
 static int l_nul_buffer_convert(lua_State *L) {
     nul_buffer *buffer = l_to_nul_buffer(L, 1);
     int new_type = luaL_checkinteger(L, 2);
@@ -823,6 +830,9 @@ static lua_State *l_init() {
     l_register_type(L, "nrf_freq_shifter", l_nrf_freq_shifter_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
+
+
+    l_register_function(L, "nul_buffer_reduce", l_nul_buffer_reduce);
     l_register_function(L, "nul_buffer_convert", l_nul_buffer_convert);
     l_register_function(L, "nul_buffer_save", l_nul_buffer_save);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
