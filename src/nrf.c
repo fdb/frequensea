@@ -518,13 +518,14 @@ nul_buffer *nrf_buffer_add_position_channel(nul_buffer *buffer) {
         result = nul_buffer_new_f64(buffer->length, buffer->channels + 1, NULL);
     }
     int size = buffer->length * buffer->channels;
+    int k = 0;
     for (int i = 0; i < size; i += buffer->channels) {
         for (int j = 0; j < buffer->channels; j++) {
             double v = nul_buffer_get_f64(buffer, i + j);
-            nul_buffer_set_f64(result, i + j, v);
+            nul_buffer_set_f64(result, k++, v);
         }
         double t = i / (double) size;
-        nul_buffer_set_f64(result, i + buffer->channels, t);
+        nul_buffer_set_f64(result, k++, t);
     }
     return result;
 }
