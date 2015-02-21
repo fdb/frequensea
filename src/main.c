@@ -287,6 +287,13 @@ static int l_ngl_model_new(lua_State *L) {
     return  1;
 }
 
+static int l_ngl_model_new_with_buffer(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    ngl_model *model = ngl_model_new_with_buffer(buffer);
+    l_to_table(L, "ngl_model", model);
+    return  1;
+}
+
 static int l_ngl_model_new_grid_points(lua_State *L) {
     int row_count = luaL_checkinteger(L, 1);
     int column_count = luaL_checkinteger(L, 2);
@@ -827,6 +834,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_texture_new_from_file", l_ngl_texture_new_from_file);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_new", l_ngl_model_new);
+    l_register_function(L, "ngl_model_new_with_buffer", l_ngl_model_new_with_buffer);
     l_register_function(L, "ngl_model_new_grid_points", l_ngl_model_new_grid_points);
     l_register_function(L, "ngl_model_new_grid_triangles", l_ngl_model_new_grid_triangles);
     l_register_function(L, "ngl_model_new_with_height_map", l_ngl_model_new_with_height_map);

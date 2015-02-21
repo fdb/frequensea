@@ -71,6 +71,7 @@ ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader
 void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer, int width, int height);
 void ngl_texture_free(ngl_texture *texture);
 ngl_model* ngl_model_new(int component_count, int point_count, float* positions, float* normals, float* uvs);
+ngl_model* ngl_model_new_with_buffer(nul_buffer *buffer);
 ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_model_new_grid_triangles(int row_count, int column_count, float row_height, float column_width);
 ngl_model* ngl_model_new_with_height_map(int row_count, int column_count, float row_height, float column_width, float height_multiplier, int stride, int offset, const float *buffer);

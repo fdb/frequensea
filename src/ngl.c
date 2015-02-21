@@ -288,6 +288,17 @@ ngl_model* ngl_model_new(int component_count, int point_count, float* positions,
     return model;
 }
 
+ngl_model* ngl_model_new_with_buffer(nul_buffer *buffer) {
+    int size = buffer->channels * buffer->length;
+    float *positions = calloc(size, sizeof(float));
+    for (int i = 0; i < size; i++) {
+        positions[i] = nul_buffer_get_f64(buffer, i);
+    }
+    ngl_model *model = ngl_model_new(buffer->channels, buffer->length, positions, NULL, NULL);
+    free(positions);
+    return model;
+}
+
 ngl_model* ngl_model_new_grid_points(int row_count, int column_count, float row_height, float column_width) {
     int point_count = row_count * column_count;
     float* points = calloc(point_count * 2, sizeof(float));
