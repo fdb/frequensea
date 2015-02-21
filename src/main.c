@@ -587,6 +587,13 @@ static int l_nrf_freq_shifter_new(lua_State *L) {
     return 1;
 }
 
+static int l_nrf_freq_shifter_process(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nul_buffer *buffer = l_to_nul_buffer(L, 2);
+    nrf_freq_shifter_process(shifter, buffer);
+    return 0;
+}
+
 static int l_nrf_freq_shifter_get_buffer(lua_State *L) {
     nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
     nul_buffer* buffer = nrf_freq_shifter_get_buffer(shifter);
@@ -814,6 +821,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_iq_filter_get_buffer", l_nrf_iq_filter_get_buffer);
     l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
     l_register_function(L, "nrf_freq_shifter_new", l_nrf_freq_shifter_new);
+    l_register_function(L, "nrf_freq_shifter_process", l_nrf_freq_shifter_process);
     l_register_function(L, "nrf_freq_shifter_get_buffer", l_nrf_freq_shifter_get_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);

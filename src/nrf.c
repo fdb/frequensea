@@ -713,7 +713,7 @@ void nrf_downsampler_free(nrf_downsampler *d) {
 
 nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate) {
     nrf_freq_shifter *shifter = calloc(1, sizeof(nrf_freq_shifter));
-    nrf_block_init(&shifter->block, NRF_BLOCK_GENERIC, nrf_freq_shifter_process_block, (nrf_block_result_fn) nrf_freq_shifter_get_buffer);
+    nrf_block_init(&shifter->block, NRF_BLOCK_GENERIC, (nrf_block_process_fn) nrf_freq_shifter_process, (nrf_block_result_fn) nrf_freq_shifter_get_buffer);
     shifter->freq_offset = freq_offset;
     shifter->sample_rate = sample_rate;
     shifter->cosine = 1;
@@ -721,7 +721,7 @@ nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate) {
     return shifter;
 }
 
-void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length) {
+void nrf_freq_shifter_process_samples(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length) {
     double delta_cos = cos(TAU * shifter->freq_offset / (double) shifter->sample_rate);
     double delta_sin = sin(TAU * shifter->freq_offset / (double) shifter->sample_rate);
     double cosine = shifter->cosine;
@@ -740,8 +740,7 @@ void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, doub
     shifter->sine = sine;
 }
 
-void nrf_freq_shifter_process_block(nrf_block *block, nul_buffer *buffer) {
-    nrf_freq_shifter *shifter = (nrf_freq_shifter *) block;
+void nrf_freq_shifter_process(nrf_freq_shifter *shifter, nul_buffer *buffer) {
     double delta_cos = cos(TAU * shifter->freq_offset / (double) shifter->sample_rate);
     double delta_sin = sin(TAU * shifter->freq_offset / (double) shifter->sample_rate);
     double cosine = shifter->cosine;
@@ -938,7 +937,7 @@ void nrf_decoder_process(nrf_decoder *decoder, uint8_t *buffer, size_t length) {
     }
 
     // Shift frequency
-    nrf_freq_shifter_process(decoder->freq_shifter, samples_i, samples_q, length);
+    nrf_freq_shifter_process_samples(decoder->freq_shifter, samples_i, samples_q, length);
 
     // Demodulate
     if (decoder->demodulate_type == NRF_DEMODULATE_RAW) {

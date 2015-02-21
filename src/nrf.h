@@ -184,8 +184,8 @@ typedef struct {
 } nrf_freq_shifter;
 
 nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate);
-void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
-void nrf_freq_shifter_process_block(nrf_block *block, nul_buffer *buffer);
+void nrf_freq_shifter_process_samples(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
+void nrf_freq_shifter_process(nrf_freq_shifter *shifter, nul_buffer *buffer);
 nul_buffer *nrf_freq_shifter_get_buffer(nrf_freq_shifter *shifter);
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 
