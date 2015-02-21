@@ -9,7 +9,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(0.95, 0.95, 0.95);
-    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z - 0.5) * 100);
+    vec3 pt = vec3((vp.x - 0.5) * 5, (vp.y - 0.5) * 5, (vp.z - 0.5) * 5);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
     gl_PointSize = 3;
 }
@@ -26,7 +26,7 @@ void main() {
 
 camera_x = 0
 camera_y = 0
-camera_z = 51
+camera_z = 5
 function setup()
     freq = 203.5
     device = nrf_device_new(freq, "../rfdata/rf-100.900-2.raw")
@@ -34,10 +34,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    position_buffer = nrf_buffer_add_position_channel(samples_buffer)
+
     ngl_clear(0.05, 0.05, 0.05, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
-    buffer = nrf_device_get_samples_buffer(device)
-    model = ngl_model_new(buffer.channels, buffer.width * buffer.height, buffer.data)
+    model = ngl_model_new_with_buffer(position_buffer)
     ngl_draw_model(camera, model, shader)
 end
 

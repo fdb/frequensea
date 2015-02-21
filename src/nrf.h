@@ -119,6 +119,7 @@ void nrf_interpolator_free(nrf_interpolator *interpolator);
 
 // IQ Drawing
 
+nul_buffer *nrf_buffer_add_position_channel(nul_buffer *buffer);
 nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer);
 nul_buffer *nrf_buffer_to_iq_lines(nul_buffer *buffer, int size_multiplier, float line_percentage);
 

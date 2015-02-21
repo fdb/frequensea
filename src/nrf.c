@@ -509,6 +509,26 @@ void nrf_interpolator_free(nrf_interpolator *interpolator) {
 
 // IQ Drawing
 
+// Take a buffer with 2 channels and a channel for "t", the position.
+nul_buffer *nrf_buffer_add_position_channel(nul_buffer *buffer) {
+    nul_buffer *result;
+    if (buffer->type == NUL_BUFFER_U8) {
+        result = nul_buffer_new_u8(buffer->length, buffer->channels + 1, NULL);
+    } else {
+        result = nul_buffer_new_f64(buffer->length, buffer->channels + 1, NULL);
+    }
+    int size = buffer->length * buffer->channels;
+    for (int i = 0; i < size; i += buffer->channels) {
+        for (int j = 0; j < buffer->channels; j++) {
+            double v = nul_buffer_get_f64(buffer, i + j);
+            nul_buffer_set_f64(result, i + j, v);
+        }
+        double t = i / (double) size;
+        nul_buffer_set_f64(result, i + buffer->channels, t);
+    }
+    return result;
+}
+
 // Convert a buffer with raw samples to a buffer with I/Q points.
 nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer) {
     nul_buffer *img = nul_buffer_new_u8(NRF_IQ_RESOLUTION * NRF_IQ_RESOLUTION, 1, NULL);

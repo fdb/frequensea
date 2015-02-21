@@ -538,6 +538,12 @@ static int l_nrf_interpolator_free(lua_State *L) {
 
 // iq drawing
 
+static int l_nrf_buffer_add_position_channel(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer *result = nrf_buffer_add_position_channel(buffer);
+    return l_push_nul_buffer(L, result);
+}
+
 static int l_nrf_buffer_to_iq_points(lua_State *L) {
     nul_buffer *buffer = l_to_nul_buffer(L, 1);
     nul_buffer *img = nrf_buffer_to_iq_points(buffer);
@@ -865,6 +871,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_interpolator_new", l_nrf_interpolator_new);
     l_register_function(L, "nrf_interpolator_process", l_nrf_interpolator_process);
     l_register_function(L, "nrf_interpolator_get_buffer", l_nrf_interpolator_get_buffer);
+    l_register_function(L, "nrf_buffer_add_position_channel", l_nrf_buffer_add_position_channel);
     l_register_function(L, "nrf_buffer_to_iq_points", l_nrf_buffer_to_iq_points);
     l_register_function(L, "nrf_buffer_to_iq_lines", l_nrf_buffer_to_iq_lines);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
