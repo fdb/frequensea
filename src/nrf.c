@@ -115,9 +115,9 @@ static int _nrf_process_sample_block(nrf_device *device, uint8_t *buffer, int le
     }
     pthread_mutex_unlock(&device->data_mutex);
 
-    // if (device->decode_cb_fn != NULL) {
-    //     device->decode_cb_fn(device, device->decode_cb_ctx);
-    // }
+    if (device->decode_cb_fn != NULL) {
+        device->decode_cb_fn(device, device->decode_cb_ctx);
+    }
 
     if (device->receiving == 0) return 0;
 
