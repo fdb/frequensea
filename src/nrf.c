@@ -256,7 +256,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz, int sample_rat
     status = hackrf_set_lna_gain(dev, 32);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_lna_gain");
 
-    status = hackrf_set_vga_gain(dev, 30);
+    status = hackrf_set_vga_gain(dev, 40);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_lna_gain");
 
     device->receiving = 1;
