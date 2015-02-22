@@ -3,7 +3,7 @@
 #include <png.h>
 
 // Write a grayscale PNG image.
-static void write_gray_png(char *fname, int width, int height, uint8_t *buffer) {
+static void write_gray_png(const char *fname, const int width, const int height, uint8_t *buffer) {
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
     png_bytepp row_pointers;
