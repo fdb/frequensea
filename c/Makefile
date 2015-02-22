@@ -25,8 +25,14 @@ fft: fft.c
 fft-batch: fft-batch.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-batch fft-batch.c -lhackrf -lpng -lfftw3
 
+fft-batch-broad: fft-batch-broad.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-batch-broad fft-batch-broad.c -lhackrf -lpng -lfftw3
+
 fft-stitch: fft-stitch.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-stitch fft-stitch.c -lpng
+
+fft-stitch-broad: fft-stitch-broad.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o fft-stitch-broad fft-stitch-broad.c -lpng
 
 iq-lines: iq-lines.c
 	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs --static libpng libhackrf glfw3` -o iq-lines iq-lines.c
