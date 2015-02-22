@@ -11,7 +11,7 @@
 
 #include "easypng.h"
 
-const uint32_t FFT_SIZE = 4096;
+const uint32_t FFT_SIZE = 256;
 const uint32_t FFT_HISTORY_SIZE = 4096;
 const uint32_t SAMPLES_SIZE = 131072;
 const uint64_t FREQUENCY_START = 25.00001e6;
