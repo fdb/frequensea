@@ -13,15 +13,18 @@
 
 // Stitch FFT sweeps PNG
 
-const uint32_t TOTAL_HEIGHT = 11811;
+const uint32_t IMAGE_HEIGHT = 11811;
 const uint32_t FOOTER_HEIGHT = 600;
 const uint32_t FFT_SIZE = 1024;
-const uint32_t FFT_HISTORY_SIZE = TOTAL_HEIGHT - FOOTER_HEIGHT;
-const uint64_t FREQUENCY_START = 2e6;
-const uint64_t FREQUENCY_END = 100e6;
+const uint32_t FFT_HISTORY_SIZE = IMAGE_HEIGHT - FOOTER_HEIGHT;
+const uint64_t FREQUENCY_START = 1802e6;
+const uint64_t FREQUENCY_END = 2400e6;
 const uint32_t FREQUENCY_STEP = 2e6;
+
 const uint32_t SAMPLE_RATE = 5e6;
 const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
+const uint32_t FREQUENCY_RANGE = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
+const uint32_t IMAGE_WIDTH = FFT_SIZE + (FREQUENCY_RANGE) * WIDTH_STEP;
 const uint32_t MINOR_TICK_RATE = 0.1e6;
 const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MINOR_TICK_RATE;
 const uint32_t MAJOR_TICK_RATE = 1e6;
@@ -156,16 +159,15 @@ void ntt_font_draw(const ntt_font *font, uint8_t *img, const uint32_t img_stride
 
 int main() {
     ntt_font *font = ntt_font_load(FONT_FILE);
-    uint32_t frequency_range = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
-    uint32_t image_width = FFT_SIZE + (frequency_range) * WIDTH_STEP;
-    uint32_t image_height = TOTAL_HEIGHT;
-    printf("Image size: %d x %d\n", image_width, image_height);
-    uint8_t *buffer = calloc(image_width * image_height, sizeof(uint8_t));
-    //memset(buffer, 128, image_width * image_height);
+    uint32_t image_height = IMAGE_HEIGHT;
+    printf("Image size: %d x %d\n", IMAGE_WIDTH, image_height);
+    uint8_t *buffer = calloc(IMAGE_WIDTH * image_height, sizeof(uint8_t));
+    //memset(buffer, 128, IMAGE_WIDTH * image_height);
     uint32_t x = 0;
     for (uint32_t frequency = FREQUENCY_START; frequency <= FREQUENCY_END; frequency += FREQUENCY_STEP) {
         char file_name[100];
         snprintf(file_name, 100, "fft-%.4f.png", frequency / 1.0e6);
+        printf("Composing %s...\n", file_name);
 
         int width, height, n;
         unsigned char *image_data = stbi_load(file_name, &width, &height, &n, 1);
@@ -179,39 +181,47 @@ int main() {
         }
 
         // Compose image into buffer
-        img_gray_copy(buffer, image_data, x, 0, 0, 0, FFT_SIZE, FFT_HISTORY_SIZE, image_width, FFT_SIZE);
+        img_gray_copy(buffer, image_data, x, 0, 0, 0, FFT_SIZE, FFT_HISTORY_SIZE, IMAGE_WIDTH, FFT_SIZE);
+
+        stbi_image_free(image_data);
+
         x += WIDTH_STEP;
     }
+
+    printf("Adding markers...\n");
 
     int banner_y = FFT_HISTORY_SIZE;
     int banner_bottom = image_height;
     for (int i = 0; i < 10; i++) {
-        img_hline(buffer, image_width, 0, banner_y++, image_width, LINE_COLOR);
-        img_hline(buffer, image_width, 0, banner_bottom--, image_width, LINE_COLOR);
+        img_hline(buffer, IMAGE_WIDTH, 0, banner_y++, IMAGE_WIDTH, LINE_COLOR);
+        img_hline(buffer, IMAGE_WIDTH, 0, banner_bottom--, IMAGE_WIDTH, LINE_COLOR);
     }
     banner_bottom++;
 
-    for (double x = 0; x < image_width; x += MINOR_TICK_SIZE) {
-        img_vline(buffer, image_width, x, banner_y, banner_y + 50, LINE_COLOR);
-        img_vline(buffer, image_width, x, banner_bottom - 50, banner_bottom, LINE_COLOR);
+    for (double x = 0; x < IMAGE_WIDTH; x += MINOR_TICK_SIZE) {
+        img_vline(buffer, IMAGE_WIDTH, x, banner_y, banner_y + 50, LINE_COLOR);
+        img_vline(buffer, IMAGE_WIDTH, x, banner_bottom - 50, banner_bottom, LINE_COLOR);
     }
 
     int freq = FREQUENCY_START - (SAMPLE_RATE / 2) + (MAJOR_TICK_RATE / 2);
     double start_x = FFT_SIZE / (double) SAMPLE_RATE * (MAJOR_TICK_RATE / 2);
-    for (double x = start_x; x < image_width; x += MAJOR_TICK_SIZE) {
-        img_vline(buffer, image_width, x, banner_y, banner_y + 100, LINE_COLOR);
-        img_vline(buffer, image_width, x, banner_bottom - 100, banner_bottom, LINE_COLOR);
+    for (double x = start_x; x < IMAGE_WIDTH; x += MAJOR_TICK_SIZE) {
+        img_vline(buffer, IMAGE_WIDTH, x, banner_y, banner_y + 100, LINE_COLOR);
+        img_vline(buffer, IMAGE_WIDTH, x, banner_bottom - 100, banner_bottom, LINE_COLOR);
         if (freq >= 0 && freq < FREQUENCY_END + (SAMPLE_RATE / 2)) {
             char text[200];
             snprintf(text, 200, "%.2f", (freq / (double) 1e6));
-            ntt_font_draw(font, buffer, image_width, text, x, MARKERS_Y, FONT_SIZE_PX);
+            ntt_font_draw(font, buffer, IMAGE_WIDTH, text, x, MARKERS_Y, FONT_SIZE_PX);
         }
         freq += MAJOR_TICK_RATE;
     }
 
+
     char out_file_name[100];
     snprintf(out_file_name, 100, "fft-stitched-%.4f-%.4f.png", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
-    write_gray_png(out_file_name, image_width, image_height, buffer);
+    printf("Saving %s...\n", out_file_name);
+
+    write_gray_png(out_file_name, IMAGE_WIDTH, image_height, buffer);
     exit(0);
 }
 
