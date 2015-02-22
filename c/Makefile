@@ -1,3 +1,6 @@
+add-markers: add-markers.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o add-markers add-markers.c -lpng
+
 reader: reader.c
 	gcc -I /usr/local/include -L /usr/local/lib -l hackrf -o reader reader.c
 

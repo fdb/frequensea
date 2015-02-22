@@ -1,6 +1,7 @@
 *.dSYM
 *.png
 /build
+/c/add-markers
 /c/batch
 /c/demod-fm
 /c/demod-fm-streaming
