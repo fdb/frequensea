@@ -132,6 +132,15 @@ ngl_shader *ngl_shader_new_from_file(GLenum draw_mode, const char *vertex_fname,
     return shader;
 }
 
+void ngl_shader_uniform_set_float(ngl_shader *shader, const char *uniform_name, GLfloat value) {
+    glUseProgram(shader->program);
+    int loc = glGetUniformLocation(shader->program, uniform_name);
+    NGL_CHECK_ERROR();
+    glUniform1f(loc, value);
+    NGL_CHECK_ERROR();
+    glUseProgram(0);
+}
+
 void ngl_shader_free(ngl_shader *shader) {
     glDeleteShader(shader->vertex_shader);
     glDeleteShader(shader->fragment_shader);

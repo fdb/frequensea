@@ -65,6 +65,7 @@ void ngl_check_compile_error(GLuint shader);
 void ngl_check_link_error(GLuint program);
 ngl_shader *ngl_shader_new(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source);
 ngl_shader *ngl_shader_new_from_file(GLenum draw_mode, const char *vertex_fname, const char *fragment_fname);
+void ngl_shader_uniform_set_float(ngl_shader *shader, const char *uniform_name, GLfloat value);
 void ngl_shader_free(ngl_shader *shader);
 ngl_texture *ngl_texture_new(ngl_shader *shader, const char *uniform_name);
 ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader, const char *uniform_name);

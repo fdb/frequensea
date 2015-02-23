@@ -228,6 +228,14 @@ static int l_ngl_shader_new_from_file(lua_State *L) {
     return 1;
 }
 
+static int l_ngl_shader_uniform_set_float(lua_State *L) {
+    ngl_shader *shader = l_to_ngl_shader(L, 1);
+    const char *uniform_name = lua_tostring(L, 2);
+    float value = luaL_checknumber(L, 3);
+    ngl_shader_uniform_set_float(shader, uniform_name, value);
+    return 0;
+}
+
 static int l_ngl_shader_free(lua_State *L) {
     ngl_shader *shader = l_to_ngl_shader(L, 1);
     ngl_shader_free(shader);
@@ -890,6 +898,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
     l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
+    l_register_function(L, "ngl_shader_uniform_set_float", l_ngl_shader_uniform_set_float);
     l_register_function(L, "ngl_texture_new", l_ngl_texture_new);
     l_register_function(L, "ngl_texture_new_from_file", l_ngl_texture_new_from_file);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
