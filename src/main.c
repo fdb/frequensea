@@ -129,6 +129,13 @@ static int l_push_nul_buffer(lua_State *L, nul_buffer *buffer) {
     return 1;
 }
 
+static int l_nul_buffer_append(lua_State *L) {
+    nul_buffer *dst = l_to_nul_buffer(L, 1);
+    nul_buffer *src = l_to_nul_buffer(L, 2);
+    nul_buffer_append(dst, src);
+    return 0;
+}
+
 static int l_nul_buffer_reduce(lua_State *L) {
     nul_buffer *buffer = l_to_nul_buffer(L, 1);
     double percentage = luaL_checknumber(L, 2);
@@ -874,6 +881,7 @@ static lua_State *l_init() {
     l_register_type(L, "nrf_signal_detector", l_nrf_signal_detector_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
+    l_register_function(L, "nul_buffer_append", l_nul_buffer_append);
     l_register_function(L, "nul_buffer_reduce", l_nul_buffer_reduce);
     l_register_function(L, "nul_buffer_convert", l_nul_buffer_convert);
     l_register_function(L, "nul_buffer_save", l_nul_buffer_save);

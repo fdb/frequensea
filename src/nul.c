@@ -64,6 +64,31 @@ void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src) {
     }
 }
 
+void nul_buffer_append(nul_buffer *dst, nul_buffer *src) {
+    assert(dst != NULL);
+    assert(src != NULL);
+    assert(dst->type == src->type);
+    int dst_size = dst->length * dst->channels;
+    int src_size = src->length * src->channels;
+    int new_size = dst_size + src_size;
+    if (dst->type == NUL_BUFFER_U8) {
+        uint8_t *new_data = calloc(new_size, sizeof(uint8_t));
+        memcpy(new_data, dst->data.u8, dst->size_bytes);
+        memcpy(new_data + dst_size, src->data.u8, src->size_bytes);
+        free(dst->data.u8);
+        dst->data.u8 = new_data;
+        dst->size_bytes = new_size * sizeof(uint8_t);
+    } else {
+        double *new_data = calloc(new_size, sizeof(double));
+        memcpy(new_data, dst->data.f64, dst->size_bytes);
+        memcpy(new_data + dst_size, src->data.f64, src->size_bytes);
+        free(dst->data.f64);
+        dst->data.f64 = new_data;
+        dst->size_bytes = new_size * sizeof(double);
+    }
+    dst->length = dst->length + src->length;
+}
+
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
     if (buffer->type == NUL_BUFFER_U8) {
         return buffer->data.u8[offset];

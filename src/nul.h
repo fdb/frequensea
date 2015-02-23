@@ -30,6 +30,7 @@ nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data);
 nul_buffer *nul_buffer_copy(nul_buffer *buffer);
 nul_buffer *nul_buffer_reduce(nul_buffer *buffer, double percentage);
 void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src);
+void nul_buffer_append(nul_buffer *dst, nul_buffer *src);
 uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset);
 double nul_buffer_get_f64(nul_buffer *buffer, int offset);
 void nul_buffer_set_u8(nul_buffer *buffer, int offset, uint8_t value);
