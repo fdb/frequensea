@@ -580,7 +580,6 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
 
 void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     int size = buffer->length * buffer->channels;
-    assert(size == NRF_BUFFER_SIZE_BYTES);
     int ii = 0;
     for (int i = 0; i < size; i += 2) {
         fftw_complex *p = fft->fft_in;
