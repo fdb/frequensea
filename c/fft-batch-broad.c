@@ -14,7 +14,7 @@
 const uint32_t FFT_SIZE = 256;
 const uint32_t FFT_HISTORY_SIZE = 4096;
 const uint32_t SAMPLES_SIZE = 131072;
-const uint64_t FREQUENCY_START = 10.00001e6;
+const uint64_t FREQUENCY_START = 660.00001e6;
 const uint64_t FREQUENCY_END = 3010.00001e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
@@ -127,7 +127,7 @@ static void setup_hackrf() {
     status = hackrf_set_lna_gain(device, 32);
     HACKRF_CHECK_STATUS(status, "hackrf_set_lna_gain");
 
-    status = hackrf_set_vga_gain(device, 36);
+    status = hackrf_set_vga_gain(device, 40);
     HACKRF_CHECK_STATUS(status, "hackrf_set_lna_gain");
 
     status = hackrf_start_rx(device, receive_sample_block, NULL);
