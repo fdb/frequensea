@@ -831,8 +831,8 @@ void nrf_freq_shifter_process(nrf_freq_shifter *shifter, nul_buffer *buffer) {
     for (int i = 0; i < size; i += 2) {
         double vi = nul_buffer_get_f64(buffer, i);
         double vq = nul_buffer_get_f64(buffer, i + 1);
-        out_samples[i] = vi * cosine - vq * sine;
-        out_samples[i + 1] = vi * sine + vq * cosine;
+        out_samples[i] = vi * cosine - vq * sine + 0.5;
+        out_samples[i + 1] = vi * sine + vq * cosine + 0.5;
         double new_sine = cosine * delta_sin + sine * delta_cos;
         double new_cosine = cosine * delta_cos - sine * delta_sin;
         sine = new_sine;
