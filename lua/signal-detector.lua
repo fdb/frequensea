@@ -25,7 +25,7 @@ if NWM_OPENGL_TYPE == NWM_OPENGL then
     uniform sampler2D uTexture;
     layout (location = 0) out vec4 fragColor;
     void main() {
-        float r = texture(uTexture, texCoord).r * 100;
+        float r = texture(uTexture, texCoord).r * 80;
         fragColor = vec4(r, r, r, 1);
     }
     ]]
@@ -70,9 +70,9 @@ function setup()
     filter = nrf_iq_filter_new(device.sample_rate, 200e3, 97)
 
     detector = nrf_signal_detector_new()
-    signal_threshold = 40
+    signal_threshold = 100
     state = STATE_DETECTING
-    buffers = {}
+    draw_buffer = nil
     have_signal = false
     buffer_index = 1
 
@@ -93,8 +93,7 @@ function draw()
         if sd > signal_threshold then
             state = STATE_CAPTURING
             nrf_iq_filter_process(filter, samples_buffer)
-            filter_buffer = nrf_iq_filter_get_buffer(filter)
-            table.insert(buffers, filter_buffer)
+            draw_buffer = nrf_iq_filter_get_buffer(filter)
         end
     elseif state == STATE_CAPTURING then
         samples_buffer = nrf_device_get_samples_buffer(device)
@@ -103,28 +102,23 @@ function draw()
         if sd > signal_threshold then
             nrf_iq_filter_process(filter, samples_buffer)
             filter_buffer = nrf_iq_filter_get_buffer(filter)
-            table.insert(buffers, filter_buffer)
+            nul_buffer_append(draw_buffer, filter_buffer)
         else
             state = STATE_DRAWING
-            buffer_index = 1
             percentage_drawn = 0
         end
     elseif state == STATE_DRAWING then
-        current_buffer = buffers[buffer_index]
-        iq_buffer = nrf_buffer_to_iq_lines(current_buffer, 4, percentage_drawn)
+        iq_buffer = nrf_buffer_to_iq_lines(draw_buffer, 4, percentage_drawn)
 
         ngl_texture_update(texture, iq_buffer, 1024, 1024)
         ngl_draw_model(camera, model, shader)
 
-        percentage_drawn = percentage_drawn + 0.01
+        percentage_drawn = percentage_drawn + 0.001
 
         if percentage_drawn >= 1 then
-            buffer_index = buffer_index + 1
+            state = STATE_DETECTING
+            draw_buffer = nil
             percentage_drawn = 0
-            if buffer_index > #buffers then
-                state = STATE_DETECTING
-                buffers = {}
-            end
         end
     end
 end
