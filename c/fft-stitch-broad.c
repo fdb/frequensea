@@ -16,7 +16,7 @@
 const uint32_t FFT_SIZE = 256;
 const uint32_t FFT_HISTORY_SIZE = 4096;
 const uint64_t FREQUENCY_START = 10e6;
-const uint64_t FREQUENCY_END = 60e6;
+const uint64_t FREQUENCY_END = 475e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 
