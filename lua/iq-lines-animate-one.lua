@@ -56,6 +56,12 @@ function draw()
         ngl_texture_update(texture, iq_buffer, 1024, 1024)
         ngl_draw_model(camera, model, shader)
 
-        percentage = percentage + 0.0001
+        percentage = percentage + 0.001
+    end
+end
+
+function on_key(key, mods)
+    if key == KEY_E then
+        nul_buffer_save(nul_buffer_convert(buffer, 1), "out.raw")
     end
 end

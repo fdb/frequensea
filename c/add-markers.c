@@ -35,7 +35,7 @@ const uint32_t MAJOR_TICK_RATE = 50e6;
 const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MAJOR_TICK_RATE;
 const uint32_t MAJOR_TICK_HEIGHT = 60;
 const uint8_t LINE_COLOR = 255;
-const char* FONT_FILE = "../fonts/RobotoCondensed-Regular.ttf";
+const char* FONT_FILE = "../fonts/RobotoCondensed-Bold.ttf";
 const uint16_t FONT_SIZE_PX = 48;
 
 // Utility //////////////////////////////////////////////////////////////////

@@ -1,41 +1,55 @@
--- Visualize IQ data from the HackRF, animate through the spectrum
+-- Visualize IQ data as lines, animating through the spectrum
 
 VERTEX_SHADER = [[
 #version 400
 layout (location = 0) in vec3 vp;
 layout (location = 1) in vec3 vn;
+layout (location = 2) in vec2 vt;
 out vec3 color;
+out vec2 texCoord;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 void main() {
     color = vec3(1.0, 1.0, 1.0);
-    vec2 pt = vec2((vp.x - 0.5) * 1.8, (vp.y - 0.5) * 1.8);
-    gl_Position = vec4(pt.x, pt.y, 0.0, 1.0);
+    texCoord = vt;
+    gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
 }
 ]]
 
 FRAGMENT_SHADER = [[
 #version 400
 in vec3 color;
+in vec2 texCoord;
+uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    fragColor = vec4(color, 0.95);
+    float r = texture(uTexture, texCoord).r * 20;
+    fragColor = vec4(r, r, r, 1);
 }
 ]]
 
 function setup()
-    freq = 200
+    freq = 100
+    line_percentage = 0.01
     device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
-    camera = ngl_camera_new_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
-    shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
+    filter = nrf_iq_filter_new(device.sample_rate, 100e3, 51)
+
+    camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
+    shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
+    texture = ngl_texture_new(shader, "uTexture")
+    model = ngl_model_new_grid_triangles(2, 2, 1, 1)
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_iq_filter_process(filter, samples_buffer)
+    filter_buffer = nrf_iq_filter_get_buffer(filter)
+    iq_buffer = nrf_buffer_to_iq_lines(filter_buffer, 4, 0.3)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_samples_buffer(device)
-    model = ngl_model_new(buffer.channels, buffer.width * buffer.height, buffer.data)
+    ngl_texture_update(texture, iq_buffer, 1024, 1024)
     ngl_draw_model(camera, model, shader)
 
-    freq = freq + 0.01
+    freq = freq + 0.0001
     nrf_device_set_frequency(device, freq)
 end
