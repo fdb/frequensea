@@ -60,6 +60,10 @@ else
 
 end
 
+STATE_DETECTING = 1
+STATE_CAPTURING = 2
+STATE_DRAWING = 3
+
 function setup()
     freq = 433
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
@@ -67,7 +71,10 @@ function setup()
 
     detector = nrf_signal_detector_new()
     signal_threshold = 40
+    state = STATE_DETECTING
+    buffers = {}
     have_signal = false
+    buffer_index = 1
 
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -77,31 +84,47 @@ function setup()
 end
 
 function draw()
-    if not have_signal then
+    ngl_clear(0.2, 0.2, 0.2, 1.0)
+
+    if state == STATE_DETECTING then
         samples_buffer = nrf_device_get_samples_buffer(device)
         nrf_signal_detector_process(detector, samples_buffer)
         sd = nrf_signal_detector_get_standard_deviation(detector)
-        print(sd)
         if sd > signal_threshold then
-            have_signal = true
-            percentage_drawn = 0
-
-        nrf_iq_filter_process(filter, samples_buffer)
-        filter_buffer = nrf_iq_filter_get_buffer(filter)
-
+            state = STATE_CAPTURING
+            nrf_iq_filter_process(filter, samples_buffer)
+            filter_buffer = nrf_iq_filter_get_buffer(filter)
+            table.insert(buffers, filter_buffer)
         end
+    elseif state == STATE_CAPTURING then
+        samples_buffer = nrf_device_get_samples_buffer(device)
+        nrf_signal_detector_process(detector, samples_buffer)
+        sd = nrf_signal_detector_get_standard_deviation(detector)
+        if sd > signal_threshold then
+            nrf_iq_filter_process(filter, samples_buffer)
+            filter_buffer = nrf_iq_filter_get_buffer(filter)
+            table.insert(buffers, filter_buffer)
+        else
+            state = STATE_DRAWING
+            buffer_index = 1
+            percentage_drawn = 0
+        end
+    elseif state == STATE_DRAWING then
+        current_buffer = buffers[buffer_index]
+        iq_buffer = nrf_buffer_to_iq_lines(current_buffer, 4, percentage_drawn)
 
-        ngl_clear(0.2, 0.2, 0.2, 1.0)
-    else
-        iq_buffer = nrf_buffer_to_iq_lines(filter_buffer, 4, percentage_drawn)
-
-        ngl_clear(0.2, 0.2, 0.2, 1.0)
         ngl_texture_update(texture, iq_buffer, 1024, 1024)
         ngl_draw_model(camera, model, shader)
 
-        percentage_drawn = percentage_drawn + 0.001
+        percentage_drawn = percentage_drawn + 0.01
+
         if percentage_drawn >= 1 then
-            have_signal = false
+            buffer_index = buffer_index + 1
+            percentage_drawn = 0
+            if buffer_index > #buffers then
+                state = STATE_DETECTING
+                buffers = {}
+            end
         end
     end
 end
