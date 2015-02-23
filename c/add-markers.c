@@ -14,11 +14,11 @@
 #include "easypng.h"
 
 const uint32_t HEADER_HEIGHT = 200;
-const uint32_t FOOTER_HEIGHT = 600;
+const uint32_t FOOTER_HEIGHT = 300;
 
-const uint32_t FFT_SIZE = 256;
+const uint32_t FFT_SIZE = 128;
 const uint64_t FREQUENCY_START = 10e6;
-const uint64_t FREQUENCY_END = 1655e6;
+const uint64_t FREQUENCY_END = 475e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 
@@ -205,7 +205,7 @@ int main() {
         if (x > 0 && x < out_width) {
             for (int dx = -1; dx <= 1; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
-                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom + 1, LINE_COLOR);
             }
         }
     }
@@ -215,9 +215,9 @@ int main() {
     for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MAJOR_TICK_RATE) {
         int x = frequency_to_x(out_width, freq);
         if (x > 0 && x < out_width) {
-            for (int dx = -1; dx <= 1; dx += 1) {
+            for (int dx = -2; dx <= 2; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
-                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom + 1, LINE_COLOR);
             }
             if (freq > FREQUENCY_REAL_START && freq < FREQUENCY_REAL_END) {
                 char text[200];
