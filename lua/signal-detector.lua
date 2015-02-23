@@ -23,10 +23,11 @@ if NWM_OPENGL_TYPE == NWM_OPENGL then
     in vec3 color;
     in vec2 texCoord;
     uniform sampler2D uTexture;
+    uniform float uAlpha;
     layout (location = 0) out vec4 fragColor;
     void main() {
         float r = texture(uTexture, texCoord).r * 80;
-        fragColor = vec4(r, r, r, 1);
+        fragColor = vec4(r, r, r, uAlpha);
     }
     ]]
 
@@ -52,9 +53,10 @@ else
     varying vec3 color;
     varying vec2 texCoord;
     uniform sampler2D uTexture;
+    uniform float uAlpha;
     void main() {
         float r = texture2D(uTexture, texCoord).a * 100;
-        gl_FragColor = vec4(r, r, r, 1.0);
+        gl_FragColor = vec4(r, r, r, uAlpha);
     }
     ]]
 
@@ -75,6 +77,7 @@ function setup()
     draw_buffer = nil
     have_signal = false
     buffer_index = 1
+    alpha = 1
 
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -84,7 +87,7 @@ function setup()
 end
 
 function draw()
-    ngl_clear(0.2, 0.2, 0.2, 1.0)
+    ngl_clear(0.0, 0.0, 0.0, 1.0)
 
     if state == STATE_DETECTING then
         samples_buffer = nrf_device_get_samples_buffer(device)
@@ -106,14 +109,20 @@ function draw()
         else
             state = STATE_DRAWING
             percentage_drawn = 0
+            alpha = 1
         end
     elseif state == STATE_DRAWING then
         iq_buffer = nrf_buffer_to_iq_lines(draw_buffer, 4, percentage_drawn)
 
         ngl_texture_update(texture, iq_buffer, 1024, 1024)
+        ngl_shader_uniform_set_float(shader, "uAlpha", alpha)
         ngl_draw_model(camera, model, shader)
 
         percentage_drawn = percentage_drawn + 0.001
+
+        if percentage_drawn >= 0.9 then
+            alpha = alpha - 0.01
+        end
 
         if percentage_drawn >= 1 then
             state = STATE_DETECTING
