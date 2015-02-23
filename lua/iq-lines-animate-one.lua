@@ -1,32 +1,64 @@
 -- Visualize a single sample
 
-VERTEX_SHADER = [[
-#version 400
-layout (location = 0) in vec3 vp;
-layout (location = 1) in vec3 vn;
-layout (location = 2) in vec2 vt;
-out vec3 color;
-out vec2 texCoord;
-uniform mat4 uViewMatrix, uProjectionMatrix;
-uniform float uTime;
-void main() {
-    color = vec3(1.0, 1.0, 1.0);
-    texCoord = vt;
-    gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
-}
-]]
+if NWM_OPENGL_TYPE == NWM_OPENGL then
 
-FRAGMENT_SHADER = [[
-#version 400
-in vec3 color;
-in vec2 texCoord;
-uniform sampler2D uTexture;
-layout (location = 0) out vec4 fragColor;
-void main() {
-    float r = texture(uTexture, texCoord).r * 100;
-    fragColor = vec4(r, r, r, 1);
-}
-]]
+    VERTEX_SHADER = [[
+    #version 400
+    layout (location = 0) in vec3 vp;
+    layout (location = 1) in vec3 vn;
+    layout (location = 2) in vec2 vt;
+    out vec3 color;
+    out vec2 texCoord;
+    uniform mat4 uViewMatrix, uProjectionMatrix;
+    uniform float uTime;
+    void main() {
+        color = vec3(1.0, 1.0, 1.0);
+        texCoord = vt;
+        gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
+    }
+    ]]
+
+    FRAGMENT_SHADER = [[
+    #version 400
+    in vec3 color;
+    in vec2 texCoord;
+    uniform sampler2D uTexture;
+    layout (location = 0) out vec4 fragColor;
+    void main() {
+        float r = texture(uTexture, texCoord).r * 100;
+        fragColor = vec4(r, r, r, 1);
+    }
+    ]]
+
+else
+
+    VERTEX_SHADER = [[
+    attribute vec3 vp;
+    attribute vec3 vn;
+    attribute vec2 vt;
+    varying vec3 color;
+    varying vec2 texCoord;
+    uniform mat4 uViewMatrix, uProjectionMatrix;
+    uniform float uTime;
+    void main() {
+        color = vec3(1.0, 1.0, 1.0);
+        texCoord = vt;
+        gl_Position = vec4(vp.x*2, vp.z*2, 0, 1.0);
+    }
+    ]]
+
+    FRAGMENT_SHADER = [[
+    precision mediump float;
+    varying vec3 color;
+    varying vec2 texCoord;
+    uniform sampler2D uTexture;
+    void main() {
+        float r = texture2D(uTexture, texCoord).a * 100;
+        gl_FragColor = vec4(r, r, r, 1.0);
+    }
+    ]]
+
+end
 
 function setup()
     countdown = 10
