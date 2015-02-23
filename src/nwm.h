@@ -19,6 +19,34 @@
 
 #include <GLFW/glfw3native.h>
 
+#define NWM_WIN32 1
+#define NWM_OSX 2
+#define NWM_LINUX 3
+#define NWM_OPENGL 1
+#define NWM_OPENGL_ES 2
+
+#if defined( __WIN32__ ) || defined( _WIN32 )
+    #define NWM_USE_WIN32
+    #define NWM_USE_OPENGL
+    #define NWM_PLATFORM NWM_WIN32
+    #define NWM_OPENGL_TYPE NWM_OPENGL
+#elif defined( __APPLE_CC__)
+    #define NWM_USE_OSX
+    #define NWM_USE_OPENGL
+    #define NWM_PLATFORM NWM_OSX
+    #define NWM_OPENGL_TYPE NWM_OPENGL
+#elif defined(__ARMEL__)
+    #define NWM_USE_LINUX
+    #define NWM_USE_OPENGL_ES
+    #define NWM_PLATFORM NWM_LINUX
+    #define NWM_OPENGL_TYPE NWM_OPENGL_ES
+#else
+    #define NWM_USE_LINUX
+    #define NWM_USE_OPENGL
+    #define NWM_PLATFORM NWM_PLATFORM_LINUX
+    #define NWM_OPENGL_TYPE NWM_OPENGL
+#endif
+
 typedef GLFWwindow nwm_window;
 
 typedef void (*nwm_key_cb_fn)(nwm_window *window, int key, int scancode, int action, int mods);

@@ -887,6 +887,13 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 
+    l_register_constant(L, "NWM_PLATFORM", NWM_PLATFORM);
+    l_register_constant(L, "NWM_OPENGL_TYPE", NWM_OPENGL_TYPE);
+    l_register_constant(L, "NWM_WIN32", NWM_WIN32);
+    l_register_constant(L, "NWM_OSX", NWM_OSX);
+    l_register_constant(L, "NWM_LINUX", NWM_LINUX);
+    l_register_constant(L, "NWM_OPENGL", NWM_OPENGL);
+    l_register_constant(L, "NWM_OPENGL_ES", NWM_OPENGL_ES);
     l_register_constant(L, "NRF_SAMPLES_LENGTH", NRF_SAMPLES_LENGTH);
     l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);
     l_register_constant(L, "NRF_DEMODULATE_WBFM", NRF_DEMODULATE_WBFM);
