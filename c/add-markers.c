@@ -1,3 +1,5 @@
+// Add markers
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,23 +13,26 @@
 
 #include "easypng.h"
 
-// Stitch FFT sweeps PNG
-
-const uint32_t HEADER_HEIGHT = 600;
+const uint32_t HEADER_HEIGHT = 200;
 const uint32_t FOOTER_HEIGHT = 600;
 
 const uint32_t FFT_SIZE = 256;
 const uint64_t FREQUENCY_START = 10e6;
-const uint64_t FREQUENCY_END = 70e6;
+const uint64_t FREQUENCY_END = 1655e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 
+// The FREQUENCY_START is the center frequency of each file. The real start of the file is the start - sample_rate / 2.
+const uint64_t FREQUENCY_REAL_START = FREQUENCY_START - (SAMPLE_RATE / 2);
+const uint64_t FREQUENCY_REAL_END = FREQUENCY_END + (SAMPLE_RATE / 2);
+const uint64_t FREQUENCY_REAL_RANGE = FREQUENCY_REAL_END - FREQUENCY_REAL_START;
+
 const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
 const uint32_t MINOR_TICK_RATE = 1e6;
-const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MINOR_TICK_RATE;
+const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MINOR_TICK_RATE;
 const uint32_t MINOR_TICK_HEIGHT = 30;
-const uint32_t MAJOR_TICK_RATE = 10e6;
-const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MAJOR_TICK_RATE;
+const uint32_t MAJOR_TICK_RATE = 50e6;
+const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MAJOR_TICK_RATE;
 const uint32_t MAJOR_TICK_HEIGHT = 60;
 const uint8_t LINE_COLOR = 255;
 const char* FONT_FILE = "../fonts/RobotoCondensed-Regular.ttf";
@@ -58,6 +63,7 @@ void img_pixel_put(uint8_t *buffer, uint32_t stride, uint32_t x, uint32_t y, uin
 }
 
 void img_vline(uint8_t *buffer, uint32_t stride, uint32_t x1, uint32_t y1, uint32_t y2, uint8_t v) {
+    if (x1 > stride) return;
     for (int y = y1; y < y2; y++) {
         img_pixel_put(buffer, stride, x1, y, v);
     }
@@ -154,6 +160,11 @@ void ntt_font_draw(const ntt_font *font, uint8_t *img, const uint32_t img_stride
 
 // Main /////////////////////////////////////////////////////////////////////
 
+int frequency_to_x(const int image_width, const uint64_t freq) {
+    const uint64_t real_freq = freq - FREQUENCY_REAL_START;
+    return round(real_freq / (double) FREQUENCY_REAL_RANGE * image_width);
+}
+
 int main() {
     ntt_font *font = ntt_font_load(FONT_FILE);
 
@@ -174,38 +185,46 @@ int main() {
 
     printf("Adding markers...\n");
 
-    const uint32_t markers_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
-    //const uint32_t markers_x = FFT_SIZE-SAMPLE_RATE / 2;
-    //uint32_t frequency_range = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
-
+    int header_bottom = HEADER_HEIGHT;
     int footer_top = HEADER_HEIGHT + height;
     int footer_bottom = out_height - 1;
 
-    // Add white lines at footer top/bottom.
+    // Add white lines at header bottom + footer top/bottom.
     const int border_height = 10;
     for (int i = 0; i < border_height; i++) {
+        img_hline(out_buffer, out_width, 0, header_bottom - i, out_width, LINE_COLOR);
         img_hline(out_buffer, out_width, 0, footer_top + i, out_width, LINE_COLOR);
         img_hline(out_buffer, out_width, 0, footer_bottom - i, out_width, LINE_COLOR);
     }
     footer_top += border_height;
     footer_bottom -= border_height;
 
-    for (double x = 0; x < out_width; x += MINOR_TICK_SIZE) {
-        img_vline(out_buffer, out_width, x, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
-        img_vline(out_buffer, out_width, x, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+    // Add minor ticks.
+    for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MINOR_TICK_RATE) {
+        int x = frequency_to_x(out_width, freq);
+        if (x > 0 && x < out_width) {
+            for (int dx = -1; dx <= 1; dx += 1) {
+                img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+            }
+        }
     }
 
-    int freq = FREQUENCY_START - (SAMPLE_RATE / 2) + (MAJOR_TICK_RATE / 2);
-    double start_x = FFT_SIZE / (double) SAMPLE_RATE * (MAJOR_TICK_RATE / 2);
-    for (double x = start_x; x < out_width; x += MAJOR_TICK_SIZE) {
-        img_vline(out_buffer, out_width, x, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
-        img_vline(out_buffer, out_width, x, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
-        if (freq >= 0 && freq < FREQUENCY_END + (SAMPLE_RATE / 2)) {
-            char text[200];
-            snprintf(text, 200, "%.2f", (freq / (double) 1e6));
-            ntt_font_draw(font, out_buffer, out_width, text, x, markers_y, FONT_SIZE_PX);
+    // Add major ticks + text.
+    const uint32_t labels_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
+    for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MAJOR_TICK_RATE) {
+        int x = frequency_to_x(out_width, freq);
+        if (x > 0 && x < out_width) {
+            for (int dx = -1; dx <= 1; dx += 1) {
+                img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+            }
+            if (freq > FREQUENCY_REAL_START && freq < FREQUENCY_REAL_END) {
+                char text[200];
+                snprintf(text, 200, "%.2f", (freq / (double) 1e6));
+                ntt_font_draw(font, out_buffer, out_width, text, x, labels_y, FONT_SIZE_PX);
+            }
         }
-        freq += MAJOR_TICK_RATE;
     }
 
     printf("Writing %s...\n", out_file_name);
