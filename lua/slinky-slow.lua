@@ -33,10 +33,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    position_buffer = nrf_buffer_add_position_channel(samples_buffer)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
-    buffer = nrf_device_get_samples_buffer(device)
-    model = ngl_model_new(buffer.channels, buffer.width * buffer.height, buffer.data)
+    model = ngl_model_new_with_buffer(position_buffer)
     ngl_draw_model(camera, model, shader)
 end
 

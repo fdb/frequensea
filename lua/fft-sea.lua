@@ -78,7 +78,7 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0005)
-    ngl_model_translate(model, -0.01, -0.02, 0)
+    ngl_model_translate(model, -0.01, -0.04, 0)
 end
 
 function draw()
