@@ -106,6 +106,59 @@ static int l_call_function(lua_State *L, const char *name) {
     }
 }
 
+// Lua NUL wrappers /////////////////////////////////////////////////////////
+
+// nul_buffer
+
+static nul_buffer* l_to_nul_buffer(lua_State *L, int index) {
+    return (nul_buffer*) l_from_table(L, "nul_buffer", index);
+}
+
+static int l_push_nul_buffer(lua_State *L, nul_buffer *buffer) {
+    l_to_table(L, "nul_buffer", buffer);
+
+    lua_pushliteral(L, "length");
+    lua_pushinteger(L, buffer->length);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "channels");
+    lua_pushinteger(L, buffer->channels);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "size_bytes");
+    lua_pushinteger(L, buffer->size_bytes);
+    lua_settable(L, -3);
+
+    return 1;
+}
+
+static int l_nul_buffer_reduce(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    double percentage = luaL_checknumber(L, 2);
+    nul_buffer *result = nul_buffer_reduce(buffer, percentage);
+    return l_push_nul_buffer(L, result);
+}
+
+static int l_nul_buffer_convert(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    int new_type = luaL_checkinteger(L, 2);
+    nul_buffer *result = nul_buffer_convert(buffer, new_type);
+    return l_push_nul_buffer(L, result);
+}
+
+static int l_nul_buffer_save(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    const char *fname = lua_tostring(L, 2);
+    nul_buffer_save(buffer, fname);
+    return 0;
+}
+
+static int l_nul_buffer_free(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer_free(buffer);
+    return 0;
+}
+
 // Lua NWM wrappers /////////////////////////////////////////////////////////
 
 static int l_nwm_get_time(lua_State *L) {
@@ -202,15 +255,10 @@ static int l_ngl_texture_new_from_file(lua_State *L) {
 
 static int l_ngl_texture_update(lua_State *L) {
     ngl_texture *texture = l_to_ngl_texture(L, 1);
-    int width = luaL_checkinteger(L, 2);
-    int height = luaL_checkinteger(L, 3);
-    int channels = luaL_checkinteger(L, 4);
-    float *data = NULL;
-    if (!lua_isnoneornil(L, 5)) {
-        luaL_checkany(L, 5);
-        data = (float *) lua_touserdata(L, 5);
-    }
-    ngl_texture_update(texture, width, height, channels, data);
+    nul_buffer *buffer = l_to_nul_buffer(L, 2);
+    int width = luaL_checkinteger(L, 3);
+    int height = luaL_checkinteger(L, 4);
+    ngl_texture_update(texture, buffer, width, height);
     return 0;
 }
 
@@ -245,6 +293,13 @@ static int l_ngl_model_new(lua_State *L) {
         uvs = (float *) lua_touserdata(L, 5);
     }
     ngl_model *model = ngl_model_new(component_count, point_count, positions, normals, uvs);
+    l_to_table(L, "ngl_model", model);
+    return  1;
+}
+
+static int l_ngl_model_new_with_buffer(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    ngl_model *model = ngl_model_new_with_buffer(buffer);
     l_to_table(L, "ngl_model", model);
     return  1;
 }
@@ -347,15 +402,22 @@ static int l_ngl_draw_model(lua_State *L) {
 
 // Lua NRF wrappers /////////////////////////////////////////////////////////
 
-// nrf_buffer
+// nrf_block
 
-static nrf_buffer* l_to_nrf_buffer(lua_State *L, int index) {
-    return (nrf_buffer*) l_from_table(L, "nrf_buffer", index);
+static nrf_block* l_to_nrf_block(lua_State *L, int index) {
+    // Since this is a base type, we can't use l_from_table.
+    luaL_checktype(L, index, LUA_TTABLE);
+    lua_pushliteral(L, "__ptr__");
+    lua_gettable(L, index);
+    nrf_block *block = (nrf_block*) lua_touserdata(L, -1);
+    assert(block->type == NRF_BLOCK_SOURCE || block->type == NRF_BLOCK_GENERIC || block->type == NRF_BLOCK_SINK);
+    return block;
 }
 
-static int l_nrf_buffer_free(lua_State *L) {
-    nrf_buffer *buffer = l_to_nrf_buffer(L, 1);
-    nrf_buffer_free(buffer);
+static int l_nrf_block_connect(lua_State *L) {
+    nrf_block* input = l_to_nrf_block(L, 1);
+    nrf_block* output = l_to_nrf_block(L, 2);
+    nrf_block_connect(input, output);
     return 0;
 }
 
@@ -368,16 +430,8 @@ static nrf_device* l_to_nrf_device(lua_State *L, int index) {
 static int _l_to_nrf_device_table(lua_State *L, nrf_device* device) {
     l_to_table(L, "nrf_device", device);
 
-    lua_pushliteral(L, "samples");
-    lua_pushlightuserdata(L, device->samples);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "iq");
-    lua_pushlightuserdata(L, device->iq);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "fft");
-    lua_pushlightuserdata(L, device->fft);
+    lua_pushliteral(L, "sample_rate");
+    lua_pushinteger(L, device->sample_rate);
     lua_settable(L, -3);
 
     return 1;
@@ -386,13 +440,7 @@ static int _l_to_nrf_device_table(lua_State *L, nrf_device* device) {
 static int l_nrf_device_new(lua_State *L) {
     double freq_mhz = luaL_checknumber(L, 1);
     const char *file_name = lua_tostring(L, 2);
-    double interpolate_step;
-    if (!lua_isnoneornil(L, 3)) {
-        interpolate_step = luaL_checknumber(L, 3);
-    } else {
-        interpolate_step = 1;
-    }
-    nrf_device *device = nrf_device_new(freq_mhz, file_name, interpolate_step);
+    nrf_device *device = nrf_device_new(freq_mhz, file_name);
     return _l_to_nrf_device_table(L, device);
 }
 
@@ -400,12 +448,9 @@ static int l_nrf_device_new_with_config(lua_State *L) {
     nrf_device_config config;
     memset(&config, 0, sizeof(nrf_device_config));
     if (lua_istable(L, 1)) {
+        config.sample_rate = l_table_integer(L, 1, "sample_rate", 0);
         config.freq_mhz = l_table_double(L, 1, "freq_mhz", 0);
         config.data_file = l_table_string(L, 1, "data_file", NULL);
-        config.interpolate_step = l_table_double(L, 1, "interpolate_step", 1);
-        config.sample_rate = l_table_integer(L, 1, "sample_rate", 0);
-        config.fft_size = l_table_integer(L, 1, "fft_size", 0);
-        config.fft_history_size = l_table_integer(L, 1, "fft_history_size", 0);
     }
     nrf_device *device = nrf_device_new_with_config(config);
     return _l_to_nrf_device_table(L, device);
@@ -442,56 +487,178 @@ static int l_nrf_device_step(lua_State *L) {
     return 0;
 }
 
-static int _l_nrf_push_buffer(lua_State *L, nrf_buffer *buffer) {
-    l_to_table(L, "nrf_buffer", buffer);
-
-    lua_pushliteral(L, "width");
-    lua_pushinteger(L, buffer->width);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "height");
-    lua_pushinteger(L, buffer->height);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "channels");
-    lua_pushinteger(L, buffer->channels);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "size_bytes");
-    lua_pushinteger(L, buffer->size_bytes);
-    lua_settable(L, -3);
-
-    lua_pushliteral(L, "data");
-    lua_pushlightuserdata(L, buffer->data);
-    lua_settable(L, -3);
-
-    return 1;
-}
-
 static int l_nrf_device_get_samples_buffer(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_buffer* buffer = nrf_device_get_samples_buffer(device);
-    return _l_nrf_push_buffer(L, buffer);
+    nul_buffer* buffer = nrf_device_get_samples_buffer(device);
+    return l_push_nul_buffer(L, buffer);
 }
 
 static int l_nrf_device_get_iq_buffer(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_buffer* buffer = nrf_device_get_iq_buffer(device);
-    return _l_nrf_push_buffer(L, buffer);
+    nul_buffer* buffer = nrf_device_get_iq_buffer(device);
+    return l_push_nul_buffer(L, buffer);
 }
 
 static int l_nrf_device_get_iq_lines(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
     int size_multiplier = luaL_checkinteger(L, 2);
     float line_percentage = luaL_checknumber(L, 3);
-    nrf_buffer* buffer = nrf_device_get_iq_lines(device, size_multiplier, line_percentage);
-    return _l_nrf_push_buffer(L, buffer);
+    nul_buffer* buffer = nrf_device_get_iq_lines(device, size_multiplier, line_percentage);
+    return l_push_nul_buffer(L, buffer);
 }
 
-static int l_nrf_device_get_fft_buffer(lua_State *L) {
-    nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_buffer* buffer = nrf_device_get_fft_buffer(device);
-    return _l_nrf_push_buffer(L, buffer);
+// nrf_interpolator
+
+static nrf_interpolator* l_to_nrf_interpolator(lua_State *L, int index) {
+    return (nrf_interpolator*) l_from_table(L, "nrf_interpolator", index);
+}
+
+static int l_nrf_interpolator_new(lua_State *L) {
+    double interpolate_step = luaL_checknumber(L, 1);
+    nrf_interpolator* interpolator = nrf_interpolator_new(interpolate_step);
+    l_to_table(L, "nrf_interpolator", interpolator);
+    return 1;
+}
+
+static int l_nrf_interpolator_process(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nul_buffer* buffer = l_to_nul_buffer(L, 2);
+    nrf_interpolator_process(interpolator, buffer);
+    return 0;
+}
+
+static int l_nrf_interpolator_get_buffer(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nul_buffer* buffer = nrf_interpolator_get_buffer(interpolator);
+    return l_push_nul_buffer(L, buffer);
+}
+
+static int l_nrf_interpolator_free(lua_State *L) {
+    nrf_interpolator* interpolator = l_to_nrf_interpolator(L, 1);
+    nrf_interpolator_free(interpolator);
+    return 0;
+}
+
+// iq drawing
+
+static int l_nrf_buffer_add_position_channel(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer *result = nrf_buffer_add_position_channel(buffer);
+    return l_push_nul_buffer(L, result);
+}
+
+static int l_nrf_buffer_to_iq_points(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    nul_buffer *img = nrf_buffer_to_iq_points(buffer);
+    return l_push_nul_buffer(L, img);
+}
+
+static int l_nrf_buffer_to_iq_lines(lua_State *L) {
+    nul_buffer *buffer = l_to_nul_buffer(L, 1);
+    int size_multiplier = luaL_checkinteger(L, 2);
+    float line_percentage = luaL_checknumber(L, 3);
+    nul_buffer *img = nrf_buffer_to_iq_lines(buffer, size_multiplier, line_percentage);
+    return l_push_nul_buffer(L, img);
+}
+
+// nrf_fft
+
+static nrf_fft* l_to_nrf_fft(lua_State *L, int index) {
+    return (nrf_fft*) l_from_table(L, "nrf_fft", index);
+}
+
+static int l_nrf_fft_new(lua_State *L) {
+    int fft_size = luaL_checkinteger(L, 1);
+    int fft_history_size = luaL_checkinteger(L, 2);
+    nrf_fft* fft = nrf_fft_new(fft_size, fft_history_size);
+    l_to_table(L, "nrf_fft", fft);
+    return 1;
+}
+
+static int l_nrf_fft_process(lua_State *L) {
+    nrf_fft* fft = l_to_nrf_fft(L, 1);
+    nul_buffer* buffer = l_to_nul_buffer(L, 2);
+    nrf_fft_process(fft, buffer);
+    return 0;
+}
+
+static int l_nrf_fft_get_buffer(lua_State *L) {
+    nrf_fft* fft = l_to_nrf_fft(L, 1);
+    nul_buffer* buffer = nrf_fft_get_buffer(fft);
+    return l_push_nul_buffer(L, buffer);
+}
+
+static int l_nrf_fft_free(lua_State *L) {
+    nrf_fft* fft = l_to_nrf_fft(L, 1);
+    nrf_fft_free(fft);
+    return 0;
+}
+
+// nrf_iq_filter
+
+static nrf_iq_filter* l_to_nrf_iq_filter(lua_State *L, int index) {
+    return (nrf_iq_filter*) l_from_table(L, "nrf_iq_filter", index);
+}
+
+static int l_nrf_iq_filter_new(lua_State *L) {
+    int sample_rate = luaL_checkinteger(L, 1);
+    int filter_freq = luaL_checkinteger(L, 2);
+    int kernel_length = luaL_checkinteger(L, 3);
+    nrf_iq_filter *filter = nrf_iq_filter_new(sample_rate, filter_freq, kernel_length);
+    l_to_table(L, "nrf_iq_filter", filter);
+    return 1;
+}
+
+static int l_nrf_iq_filter_process(lua_State *L) {
+    nrf_iq_filter *filter = l_to_nrf_iq_filter(L, 1);
+    nul_buffer *buffer = l_to_nul_buffer(L, 2);
+    nrf_iq_filter_process(filter, buffer);
+    return 0;
+}
+
+static int l_nrf_iq_filter_get_buffer(lua_State *L) {
+    nrf_iq_filter* filter = l_to_nrf_iq_filter(L, 1);
+    nul_buffer* buffer = nrf_iq_filter_get_buffer(filter);
+    return l_push_nul_buffer(L, buffer);
+}
+
+static int l_nrf_iq_filter_free(lua_State *L) {
+    nrf_iq_filter* filter = l_to_nrf_iq_filter(L, 1);
+    nrf_iq_filter_free(filter);
+    return 0;
+}
+
+// nrf_freq_shifter
+
+static nrf_freq_shifter* l_to_nrf_freq_shifter(lua_State *L, int index) {
+    return (nrf_freq_shifter*) l_from_table(L, "nrf_freq_shifter", index);
+}
+
+static int l_nrf_freq_shifter_new(lua_State *L) {
+    int freq_offset = luaL_checkinteger(L, 1);
+    int sample_rate = luaL_checkinteger(L, 2);
+    nrf_freq_shifter *shifter = nrf_freq_shifter_new(freq_offset, sample_rate);
+    l_to_table(L, "nrf_freq_shifter", shifter);
+    return 1;
+}
+
+static int l_nrf_freq_shifter_process(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nul_buffer *buffer = l_to_nul_buffer(L, 2);
+    nrf_freq_shifter_process(shifter, buffer);
+    return 0;
+}
+
+static int l_nrf_freq_shifter_get_buffer(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nul_buffer* buffer = nrf_freq_shifter_get_buffer(shifter);
+    return l_push_nul_buffer(L, buffer);
+}
+
+static int l_nrf_freq_shifter_free(lua_State *L) {
+    nrf_freq_shifter* shifter = l_to_nrf_freq_shifter(L, 1);
+    nrf_freq_shifter_free(shifter);
+    return 0;
 }
 
 // nrf_player
@@ -626,15 +793,24 @@ static lua_State *l_init() {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
+    l_register_type(L, "nul_buffer", l_nul_buffer_free);
     l_register_type(L, "ngl_camera", l_ngl_camera_free);
     l_register_type(L, "ngl_model", l_ngl_model_free);
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
-    l_register_type(L, "nrf_buffer", l_nrf_buffer_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
+    l_register_type(L, "nrf_interpolator", l_nrf_interpolator_free);
+    l_register_type(L, "nrf_fft", l_nrf_fft_free);
+    l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
+    l_register_type(L, "nrf_freq_shifter", l_nrf_freq_shifter_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
 
+
+
+    l_register_function(L, "nul_buffer_reduce", l_nul_buffer_reduce);
+    l_register_function(L, "nul_buffer_convert", l_nul_buffer_convert);
+    l_register_function(L, "nul_buffer_save", l_nul_buffer_save);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
     l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
@@ -644,6 +820,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_texture_new_from_file", l_ngl_texture_new_from_file);
     l_register_function(L, "ngl_texture_update", l_ngl_texture_update);
     l_register_function(L, "ngl_model_new", l_ngl_model_new);
+    l_register_function(L, "ngl_model_new_with_buffer", l_ngl_model_new_with_buffer);
     l_register_function(L, "ngl_model_new_grid_points", l_ngl_model_new_grid_points);
     l_register_function(L, "ngl_model_new_grid_triangles", l_ngl_model_new_grid_triangles);
     l_register_function(L, "ngl_model_new_with_height_map", l_ngl_model_new_with_height_map);
@@ -652,20 +829,35 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "nrf_block_connect", l_nrf_block_connect);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
-    l_register_function(L, "nrf_device_free", l_nrf_device_free);
     l_register_function(L, "nrf_device_set_frequency", l_nrf_device_set_frequency);
     l_register_function(L, "nrf_device_set_paused", l_nrf_device_set_paused);
     l_register_function(L, "nrf_device_step", l_nrf_device_step);
     l_register_function(L, "nrf_device_get_samples_buffer", l_nrf_device_get_samples_buffer);
     l_register_function(L, "nrf_device_get_iq_buffer", l_nrf_device_get_iq_buffer);
     l_register_function(L, "nrf_device_get_iq_lines", l_nrf_device_get_iq_lines);
-    l_register_function(L, "nrf_device_get_fft_buffer", l_nrf_device_get_fft_buffer);
+    l_register_function(L, "nrf_interpolator_new", l_nrf_interpolator_new);
+    l_register_function(L, "nrf_interpolator_process", l_nrf_interpolator_process);
+    l_register_function(L, "nrf_interpolator_get_buffer", l_nrf_interpolator_get_buffer);
+    l_register_function(L, "nrf_buffer_add_position_channel", l_nrf_buffer_add_position_channel);
+    l_register_function(L, "nrf_buffer_to_iq_points", l_nrf_buffer_to_iq_points);
+    l_register_function(L, "nrf_buffer_to_iq_lines", l_nrf_buffer_to_iq_lines);
+    l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
+    l_register_function(L, "nrf_fft_process", l_nrf_fft_process);
+    l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
+    l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
+    l_register_function(L, "nrf_iq_filter_process", l_nrf_iq_filter_process);
+    l_register_function(L, "nrf_iq_filter_get_buffer", l_nrf_iq_filter_get_buffer);
+    l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);
+    l_register_function(L, "nrf_freq_shifter_new", l_nrf_freq_shifter_new);
+    l_register_function(L, "nrf_freq_shifter_process", l_nrf_freq_shifter_process);
+    l_register_function(L, "nrf_freq_shifter_get_buffer", l_nrf_freq_shifter_get_buffer);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 
-    l_register_constant(L, "NRF_SAMPLES_SIZE", NRF_SAMPLES_SIZE);
+    l_register_constant(L, "NRF_SAMPLES_LENGTH", NRF_SAMPLES_LENGTH);
     l_register_constant(L, "NRF_DEMODULATE_RAW", NRF_DEMODULATE_RAW);
     l_register_constant(L, "NRF_DEMODULATE_WBFM", NRF_DEMODULATE_WBFM);
     l_register_constant(L, "GL_POINTS", GL_POINTS);

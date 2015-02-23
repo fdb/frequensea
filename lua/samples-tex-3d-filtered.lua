@@ -15,7 +15,7 @@ void main() {
     float l = 1.0 - ((vp.x * vp.x + vp.z * vp.z) * 0.04);
     color = vec4(l, l, l, l);
     texCoord = vt;
-    float r = texture(uTexture, vt).r * 1;
+    float r = texture(uTexture, vt).r * 1.5;
 
     vec3 pt = vec3(vp.x, r, vp.z);
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(pt, 1.0);
@@ -33,8 +33,10 @@ void main() {
 ]]
 
 function setup()
-    freq = 199.9
+    freq = 97.5
     device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
+    filter = nrf_iq_filter_new(device.sample_rate, 10e3, 23)
+
     camera = ngl_camera_new_look_at(0, 2, 4)
     shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -42,9 +44,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_iq_filter_process(filter, samples_buffer)
+    filter_buffer = nrf_iq_filter_get_buffer(filter)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_samples_buffer(device)
-    ngl_texture_update(texture, buffer, 512, 256)
+    ngl_texture_update(texture, filter_buffer, 512, 256)
     ngl_draw_model(camera, model, shader)
 end
 

@@ -34,7 +34,9 @@ time_to_switch = 400
 function setup()
     freq = 1.0
     freq_time = 0
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.01)
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+    interpolator = nrf_interpolator_new(0.01)
+
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -42,9 +44,12 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_interpolator_process(interpolator, samples_buffer)
+    interpolator_buffer = nrf_interpolator_get_buffer(interpolator)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_samples_buffer(device)
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
+    ngl_texture_update(texture, interpolator_buffer, 512, 256)
     ngl_draw_model(camera, model, shader)
     freq_time = freq_time + 1
     if freq_time >= time_to_switch then

@@ -24,7 +24,7 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 0.02;
+    float r = texture(uTexture, texCoord).r * 10;
     fragColor = vec4(r, r, r, 0.95);
 }
 ]]
@@ -33,7 +33,10 @@ function setup()
     freq = 97.6
     freq_offset = 100000
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+    shifter = nrf_freq_shifter_new(freq_offset, device.sample_rate)
+    filter = nrf_iq_filter_new(device.sample_rate, 10e3, 51)
     player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
+
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -41,9 +44,16 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_freq_shifter_process(shifter, samples_buffer)
+    shifter_buffer = nrf_freq_shifter_get_buffer(shifter)
+    nrf_iq_filter_process(filter, shifter_buffer)
+    filter_buffer = nrf_iq_filter_get_buffer(filter)
+    iq_buffer = nrf_buffer_to_iq_points(filter_buffer)
+
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_iq_buffer(device);
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data);
+    ngl_texture_update(texture, iq_buffer, 256, 256)
     ngl_draw_model(camera, model, shader)
 end
 

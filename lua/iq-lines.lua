@@ -27,14 +27,17 @@ function setup()
     freq = 143.2
     line_percentage = 0.04
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+
     camera = ngl_camera_new_look_at(0, 0, 0) -- Shader ignores camera position, but camera object is required for ngl_draw_model
     shader = ngl_shader_new(GL_LINE_STRIP, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    reduced_buffer = nul_buffer_reduce(samples_buffer, line_percentage)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_samples_buffer(device)
-    model = ngl_model_new(buffer.channels, math.floor(buffer.width * buffer.height * line_percentage), buffer.data)
+    model = ngl_model_new_with_buffer(reduced_buffer)
     ngl_draw_model(camera, model, shader)
 end
 

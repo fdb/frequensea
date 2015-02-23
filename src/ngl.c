@@ -183,36 +183,43 @@ ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader
 
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
-void ngl_texture_update(ngl_texture *texture, GLsizei width, GLsizei height, int channels, const float *data) {
+void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer, int width, int height) {
     GLint format;
-    if (channels == 1) {
-        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
+    if (buffer->channels == 1) {
+        format = GL_ALPHA;
+    } else if (buffer->channels == 2) {
+        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", buffer->channels);
         exit(1);
-    } else if (channels == 2) {
-        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
-        exit(1);
-    } else if (channels == 3) {
+    } else if (buffer->channels == 3) {
         format = GL_RGB;
-    } else if (channels == 4) {
+    } else if (buffer->channels == 4) {
         format = GL_RGBA;
     } else {
-        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", channels);
+        fprintf(stderr, "ERROR OpenGL: Invalid texture channels %d\n", buffer->channels);
         exit(1);
     }
+
     glActiveTexture(GL_TEXTURE0);
     NGL_CHECK_ERROR();
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
     NGL_CHECK_ERROR();
 
-    // rewrite buffer to unsigned byte (OpenGLES can't handle GL_RGB GL_FLOAT buffer..)
-    //
-    for(int i=0; i<(channels * width * height); i++){
-       float e_f = *( (float *) data + i);
-       uint8_t e_i = 16.0*e_f;
-       *( (uint8_t *) data + i) = e_i;
+    if (width * height > buffer->length) {
+        fprintf(stderr, "ERROR ngl_texture_update: Invalid width / height (%d x %d) for buffer length %d\n", width, height, buffer->length);
+        exit(1);
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    if (buffer->type == NUL_BUFFER_U8) {
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
+    } else {
+        const int size = width * height * buffer->channels;
+        float *tex = calloc(size, sizeof(float));
+        for (int i = 0; i < size; i++) {
+            tex[i] = (float) buffer->data.f64[i];
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, tex);
+        free(tex);
+    }
     NGL_CHECK_ERROR();
 }
 
@@ -278,6 +285,17 @@ ngl_model* ngl_model_new(int component_count, int point_count, float* positions,
         NGL_CHECK_ERROR();
     }
 
+    return model;
+}
+
+ngl_model* ngl_model_new_with_buffer(nul_buffer *buffer) {
+    int size = buffer->channels * buffer->length;
+    float *positions = calloc(size, sizeof(float));
+    for (int i = 0; i < size; i++) {
+        positions[i] = nul_buffer_get_f64(buffer, i);
+    }
+    ngl_model *model = ngl_model_new(buffer->channels, buffer->length, positions, NULL, NULL);
+    free(positions);
     return model;
 }
 

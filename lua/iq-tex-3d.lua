@@ -13,7 +13,7 @@ uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
     float offset = 0.0;
-    float power = 0.01;
+    float power = 1;
     float t1 = offset + texture(uTexture, vt).r * power;
     float t2 = offset + texture(uTexture, vt + vec2(0.01, 0)).r * power;
     float t3 = offset + texture(uTexture, vt + vec2(0, 0.01)).r * power;
@@ -55,7 +55,8 @@ camera_z = 1
 
 function setup()
     freq = 201.2
-    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw",0.01)
+    device = nrf_device_new(freq, "../rfdata/rf-202.500-2.raw")
+
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(256, 256, 0.005, 0.005)
@@ -63,10 +64,11 @@ function setup()
 end
 
 function draw()
+    iq_buffer = nrf_device_get_iq_buffer(device)
+
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z)
-    buffer = nrf_device_get_iq_buffer(device);
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data);
+    ngl_texture_update(texture, iq_buffer, 256, 256)
     ngl_draw_model(camera, model, shader)
 end
 

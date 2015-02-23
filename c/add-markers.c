@@ -1,3 +1,5 @@
+// Add markers
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,29 +13,30 @@
 
 #include "easypng.h"
 
-// Stitch FFT sweeps PNG
-
-const uint32_t IMAGE_HEIGHT = 11811;
+const uint32_t HEADER_HEIGHT = 200;
 const uint32_t FOOTER_HEIGHT = 600;
-const uint32_t FFT_SIZE = 1024;
-const uint32_t FFT_HISTORY_SIZE = IMAGE_HEIGHT - FOOTER_HEIGHT;
-const uint64_t FREQUENCY_START = 1802e6;
-const uint64_t FREQUENCY_END = 2400e6;
-const uint32_t FREQUENCY_STEP = 2e6;
 
+const uint32_t FFT_SIZE = 256;
+const uint64_t FREQUENCY_START = 10e6;
+const uint64_t FREQUENCY_END = 1655e6;
+const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
+
+// The FREQUENCY_START is the center frequency of each file. The real start of the file is the start - sample_rate / 2.
+const uint64_t FREQUENCY_REAL_START = FREQUENCY_START - (SAMPLE_RATE / 2);
+const uint64_t FREQUENCY_REAL_END = FREQUENCY_END + (SAMPLE_RATE / 2);
+const uint64_t FREQUENCY_REAL_RANGE = FREQUENCY_REAL_END - FREQUENCY_REAL_START;
+
 const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
-const uint32_t FREQUENCY_RANGE = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
-const uint32_t IMAGE_WIDTH = FFT_SIZE + (FREQUENCY_RANGE) * WIDTH_STEP;
-const uint32_t MINOR_TICK_RATE = 0.1e6;
-const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MINOR_TICK_RATE;
-const uint32_t MAJOR_TICK_RATE = 1e6;
-const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP / 2) * MAJOR_TICK_RATE;
+const uint32_t MINOR_TICK_RATE = 1e6;
+const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MINOR_TICK_RATE;
+const uint32_t MINOR_TICK_HEIGHT = 30;
+const uint32_t MAJOR_TICK_RATE = 50e6;
+const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MAJOR_TICK_RATE;
+const uint32_t MAJOR_TICK_HEIGHT = 60;
 const uint8_t LINE_COLOR = 255;
 const char* FONT_FILE = "../fonts/RobotoCondensed-Regular.ttf";
 const uint16_t FONT_SIZE_PX = 48;
-const uint32_t MARKERS_Y = FFT_HISTORY_SIZE + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
-const uint32_t MARKERS_X = FFT_SIZE-SAMPLE_RATE / 2;
 
 // Utility //////////////////////////////////////////////////////////////////
 
@@ -60,6 +63,7 @@ void img_pixel_put(uint8_t *buffer, uint32_t stride, uint32_t x, uint32_t y, uin
 }
 
 void img_vline(uint8_t *buffer, uint32_t stride, uint32_t x1, uint32_t y1, uint32_t y2, uint8_t v) {
+    if (x1 > stride) return;
     for (int y = y1; y < y2; y++) {
         img_pixel_put(buffer, stride, x1, y, v);
     }
@@ -92,7 +96,6 @@ ntt_font *ntt_font_load(const char *font_file) {
     stbtt_InitFont(&font->font, font->buffer, stbtt_GetFontOffsetForIndex(font->buffer, 0));
     return font;
 }
-
 
 void ntt_font_measure(const ntt_font *font, const char *text, const int x, const int y, const int font_size, int *width, int *height) {
     float font_scale = stbtt_ScaleForPixelHeight(&font->font, font_size);
@@ -157,71 +160,76 @@ void ntt_font_draw(const ntt_font *font, uint8_t *img, const uint32_t img_stride
 
 // Main /////////////////////////////////////////////////////////////////////
 
+int frequency_to_x(const int image_width, const uint64_t freq) {
+    const uint64_t real_freq = freq - FREQUENCY_REAL_START;
+    return round(real_freq / (double) FREQUENCY_REAL_RANGE * image_width);
+}
+
 int main() {
     ntt_font *font = ntt_font_load(FONT_FILE);
-    uint32_t image_height = IMAGE_HEIGHT;
-    printf("Image size: %d x %d\n", IMAGE_WIDTH, image_height);
-    uint8_t *buffer = calloc(IMAGE_WIDTH * image_height, sizeof(uint8_t));
-    //memset(buffer, 128, IMAGE_WIDTH * image_height);
-    uint32_t x = 0;
-    for (uint32_t frequency = FREQUENCY_START; frequency <= FREQUENCY_END; frequency += FREQUENCY_STEP) {
-        char file_name[100];
-        snprintf(file_name, 100, "fft-%.4f.png", frequency / 1.0e6);
-        printf("Composing %s...\n", file_name);
 
-        int width, height, n;
-        unsigned char *image_data = stbi_load(file_name, &width, &height, &n, 1);
-        if (!image_data) {
-            fprintf (stderr, "ERROR: could not load %s\n", file_name);
-            exit(1);
-        }
-        if (width != FFT_SIZE || height < FFT_HISTORY_SIZE) {
-            fprintf (stderr, "ERROR: bad image size %s\n", file_name);
-            exit(1);
-        }
+    char in_file_name[100];
+    snprintf(in_file_name, 100, "broad-stitched-%.0f-%.0f.png", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
+    char out_file_name[100];
+    snprintf(out_file_name, 100, "broad-stitched-%.0f-%.0f-markers.png", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
 
-        // Compose image into buffer
-        img_gray_copy(buffer, image_data, x, 0, 0, 0, FFT_SIZE, FFT_HISTORY_SIZE, IMAGE_WIDTH, FFT_SIZE);
+    int width, height, n;
+    printf("Reading %s...\n", in_file_name);
+    uint8_t *in_buffer = stbi_load(in_file_name, &width, &height, &n, 1);
+    int out_width = width;
+    int out_height = height + HEADER_HEIGHT + FOOTER_HEIGHT;
+    uint8_t *out_buffer = calloc(out_width * out_height, sizeof(uint8_t));
 
-        stbi_image_free(image_data);
-
-        x += WIDTH_STEP;
-    }
+    printf("Composing...\n");
+    img_gray_copy(out_buffer, in_buffer, 0, HEADER_HEIGHT, 0, 0, width, height, out_width, width);
 
     printf("Adding markers...\n");
 
-    int banner_y = FFT_HISTORY_SIZE;
-    int banner_bottom = image_height;
-    for (int i = 0; i < 10; i++) {
-        img_hline(buffer, IMAGE_WIDTH, 0, banner_y++, IMAGE_WIDTH, LINE_COLOR);
-        img_hline(buffer, IMAGE_WIDTH, 0, banner_bottom--, IMAGE_WIDTH, LINE_COLOR);
-    }
-    banner_bottom++;
+    int header_bottom = HEADER_HEIGHT;
+    int footer_top = HEADER_HEIGHT + height;
+    int footer_bottom = out_height - 1;
 
-    for (double x = 0; x < IMAGE_WIDTH; x += MINOR_TICK_SIZE) {
-        img_vline(buffer, IMAGE_WIDTH, x, banner_y, banner_y + 50, LINE_COLOR);
-        img_vline(buffer, IMAGE_WIDTH, x, banner_bottom - 50, banner_bottom, LINE_COLOR);
+    // Add white lines at header bottom + footer top/bottom.
+    const int border_height = 10;
+    for (int i = 0; i < border_height; i++) {
+        img_hline(out_buffer, out_width, 0, header_bottom - i, out_width, LINE_COLOR);
+        img_hline(out_buffer, out_width, 0, footer_top + i, out_width, LINE_COLOR);
+        img_hline(out_buffer, out_width, 0, footer_bottom - i, out_width, LINE_COLOR);
     }
+    footer_top += border_height;
+    footer_bottom -= border_height;
 
-    int freq = FREQUENCY_START - (SAMPLE_RATE / 2) + (MAJOR_TICK_RATE / 2);
-    double start_x = FFT_SIZE / (double) SAMPLE_RATE * (MAJOR_TICK_RATE / 2);
-    for (double x = start_x; x < IMAGE_WIDTH; x += MAJOR_TICK_SIZE) {
-        img_vline(buffer, IMAGE_WIDTH, x, banner_y, banner_y + 100, LINE_COLOR);
-        img_vline(buffer, IMAGE_WIDTH, x, banner_bottom - 100, banner_bottom, LINE_COLOR);
-        if (freq >= 0 && freq < FREQUENCY_END + (SAMPLE_RATE / 2)) {
-            char text[200];
-            snprintf(text, 200, "%.2f", (freq / (double) 1e6));
-            ntt_font_draw(font, buffer, IMAGE_WIDTH, text, x, MARKERS_Y, FONT_SIZE_PX);
+    // Add minor ticks.
+    for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MINOR_TICK_RATE) {
+        int x = frequency_to_x(out_width, freq);
+        if (x > 0 && x < out_width) {
+            for (int dx = -1; dx <= 1; dx += 1) {
+                img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+            }
         }
-        freq += MAJOR_TICK_RATE;
     }
 
+    // Add major ticks + text.
+    const uint32_t labels_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
+    for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MAJOR_TICK_RATE) {
+        int x = frequency_to_x(out_width, freq);
+        if (x > 0 && x < out_width) {
+            for (int dx = -1; dx <= 1; dx += 1) {
+                img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom, LINE_COLOR);
+            }
+            if (freq > FREQUENCY_REAL_START && freq < FREQUENCY_REAL_END) {
+                char text[200];
+                snprintf(text, 200, "%.2f", (freq / (double) 1e6));
+                ntt_font_draw(font, out_buffer, out_width, text, x, labels_y, FONT_SIZE_PX);
+            }
+        }
+    }
 
-    char out_file_name[100];
-    snprintf(out_file_name, 100, "fft-stitched-%.4f-%.4f.png", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
-    printf("Saving %s...\n", out_file_name);
+    printf("Writing %s...\n", out_file_name);
+    write_gray_png(out_file_name, out_width, out_height, out_buffer);
 
-    write_gray_png(out_file_name, IMAGE_WIDTH, image_height, buffer);
     exit(0);
 }
 

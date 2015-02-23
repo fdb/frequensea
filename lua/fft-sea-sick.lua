@@ -156,8 +156,10 @@ void main() {
 
 
 function setup()
-    freq = 2437
-    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw", 0.1)
+    freq = 97
+    device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
+    fft = nrf_fft_new(128, 128)
+
     camera = ngl_camera_new_look_at(0, 0.01, 0.2)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -166,13 +168,15 @@ function setup()
 end
 
 function draw()
+    samples_buffer = nrf_device_get_samples_buffer(device)
+    nrf_fft_process(fft, samples_buffer)
+    fft_buffer = nrf_fft_get_buffer(fft)
 
     camera_y = 0.01+ .020 *math.abs(math.sin(nwm_get_time() * 0.03))
     camera = ngl_camera_new_look_at(0, camera_y, 0.2)
 
     ngl_clear(0.2, 0.2, 0.2, 1.0)
-    buffer = nrf_device_get_fft_buffer(device)
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
+    ngl_texture_update(texture, fft_buffer, 128, 128)
     ngl_draw_model(camera, model, shader)
 end
 

@@ -11,12 +11,12 @@
 
 #include "easypng.h"
 
-const uint32_t FFT_SIZE = 1024;
-const uint32_t FFT_HISTORY_SIZE = 16384;
+const uint32_t FFT_SIZE = 256;
+const uint32_t FFT_HISTORY_SIZE = 4096;
 const uint32_t SAMPLES_SIZE = 131072;
-const uint64_t FREQUENCY_START = 2e6;
-const uint64_t FREQUENCY_END = 148e6;
-const uint32_t FREQUENCY_STEP = 2e6;
+const uint64_t FREQUENCY_START = 10.00001e6;
+const uint64_t FREQUENCY_END = 3010.00001e6;
+const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 const uint32_t SAMPLE_BLOCKS_TO_SKIP = 10;
 
@@ -29,6 +29,7 @@ int history_rows = 0;
 fftw_plan fft_plan;
 hackrf_device *device;
 int skip = SAMPLE_BLOCKS_TO_SKIP;
+time_t start_time, end_time;
 
 // Utility ////////////////////////////////////////////////////////////////////
 
@@ -87,14 +88,18 @@ int receive_sample_block(hackrf_transfer *transfer) {
                 double pwr = ci * ci + cq * cq;
                 //double pwr_dbfs = 10.0 * log2(pwr + 1.0e-20) / log2(2.7182818284);
                 double pwr_dbfs = 10.0 * log10(pwr + 1.0e-20);
-                pwr_dbfs = pwr_dbfs * 10;
+                pwr_dbfs = pwr_dbfs * 5;
                 uint8_t v = clamp_u8(pwr_dbfs, 0, 255);
+                if (x == FFT_SIZE / 2) {
+                    v = buffer[y * FFT_SIZE + x - 1];
+                }
                 buffer[y * FFT_SIZE + x] = v;
             }
         }
         char file_name[100];
-        snprintf(file_name, 100, "fft-%.4f.png", local_frequency / 1.0e6);
+        snprintf(file_name, 100, "broad-%.0f.png", local_frequency / 1.0e6);
         write_gray_png(file_name, FFT_SIZE, FFT_HISTORY_SIZE, buffer);
+
         free(buffer);
     }
 
@@ -122,7 +127,7 @@ static void setup_hackrf() {
     status = hackrf_set_lna_gain(device, 32);
     HACKRF_CHECK_STATUS(status, "hackrf_set_lna_gain");
 
-    status = hackrf_set_vga_gain(device, 30);
+    status = hackrf_set_vga_gain(device, 36);
     HACKRF_CHECK_STATUS(status, "hackrf_set_lna_gain");
 
     status = hackrf_start_rx(device, receive_sample_block, NULL);
@@ -157,11 +162,15 @@ int main(int argc, char **argv) {
     setup_fftw();
     setup_hackrf();
     printf("Frequency: %.4f MHz\n", frequency / 1.0e6);
+    time(&start_time);
 
     while (frequency <= FREQUENCY_END) {
         while (history_rows < FFT_HISTORY_SIZE) {
             sleep(1);
         }
+
+        time(&end_time);
+        printf("Elapsed: %.0f seconds.\n", difftime(end_time, start_time));
 
         frequency = frequency + FREQUENCY_STEP;
         if (frequency > FREQUENCY_END) {
@@ -174,6 +183,7 @@ int main(int argc, char **argv) {
         skip = SAMPLE_BLOCKS_TO_SKIP;
         history_rows = 0;
         printf("Frequency: %.4f MHz\n", frequency / 1.0e6);
+        time(&start_time);
     }
 
     teardown_hackrf();

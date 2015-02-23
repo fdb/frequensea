@@ -25,7 +25,7 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r * 0.05;
+    float r = texture(uTexture, texCoord).r * 5;
     fragColor = vec4(r, r, r, 0.95);
 }
 ]]
@@ -43,7 +43,7 @@ end
 function draw()
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     buffer = nrf_device_get_iq_buffer(device);
-    ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data);
+    ngl_texture_update(texture, buffer, 256, 256);
     ngl_draw_model(camera, model, shader)
 end
 

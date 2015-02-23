@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(frequensea)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99  -g ")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99  -O3 -w")
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(OPENAL REQUIRED openal)
@@ -51,6 +51,7 @@ set(SOURCE_FILES
     src/nim.c
     src/noise.c
     src/nrf.c
+    src/nul.c
     src/nwm.c
     src/obj.c
     src/vec.c)

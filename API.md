@@ -92,10 +92,8 @@ Here's a basic example:
     end
     nrf_device_free(device)
 
-## nrf_device_new(freq_mhz, data_file, interpolate_step)
-Tune the SDR device to the given frequency (in MHz) and start receiving data. We can receive data from RTL-SDR, HackRF, or fall back to a data file. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_SIZE three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
-
-The interpolate_step will decimate the data and smoothly interpolate between two steps. An interpolate step of 0.1 will decimate the data by 10. The default is 1, meaning no interpolation / decimation is performed.
+## nrf_device_new(freq_mhz, data_file)
+Tune the SDR device to the given frequency (in MHz) and start receiving data. We can receive data from RTL-SDR, HackRF, or fall back to a data file. The function returns a device object. The device object has a member, `samples`, that contains a list of NRF_SAMPLES_LENGTH three-component floating-point values, containing (i, q, t) where t is a value between 0.0 (beginning of the sample data) to 1.0 (end of the sample data).
 
 ### nrf_device_set_frequency(device, freq_mhz)
 Change the frequency device to the given frequency (in MHz). The `device` is a device object as returned by `nrf_device_new`.
@@ -106,23 +104,23 @@ If `paused` is 1, stop receiving new blocks; instead just keep working on the cu
 ### nrf_device_step(device)
 Advance one block. This is only works if the device is paused using `nrf_device_set_paused(device, true)`
 
-### nrf_buffer *nrf_device_get_samples_buffer(device)
+### nrf_device_get_samples_buffer(device)
 Get the raw samples buffer. This returns a buffer object that can be used with ngl_texture_update, e.g.:
 
     buffer = nrf_device_get_samples_buffer(device)
     ngl_texture_update(texture, buffer.width, buffer.height, buffer.channels, buffer.data)
 
-### nrf_buffer *nrf_device_get_iq_buffer(device)
+### nrf_device_get_iq_buffer(device)
 Get the IQ values plotted as points. This returns a buffer object that can be used with ngl_texture_update.
 
-### nrf_buffer *nrf_device_get_iq_lines(device, int size_multiplier, float line_percentage)
+### nrf_device_get_iq_lines(device, int size_multiplier, float line_percentage)
 Get the IQ values plotted as lines. This returns a buffer object that can be used with ngl_texture_update. `size_multiplier` specifies the multiplication factor with regards to the IQ data resolution (so 256 * size_multiplier). The line_percentage is a value between 0-1 that specifies how much of the sample buffer to draw.
 
 The buffer will have one color channel, which maps to the red channel in the fragment shader.
 
 Note that lines can overlap, and the buffer values can be higher than 1.0. It is a good idea to scale the colors down in the shader.
 
-### nrf_buffer *nrf_device_get_fft_buffer(device)
+### nrf_device_get_fft_buffer(device)
 Get the FFT data as a buffer. This returns a buffer object that can be used with ngl_texture_update. The size is controlled by fft_size (the buffer width) and fft_history_size (the buffer_height). Both can be set when initializing the device, for example:
 
     device = nrf_device_new_with_config({freq_mhz=100.0, fft_width=1024, fft_history_size=2048})

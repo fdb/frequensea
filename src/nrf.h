@@ -14,35 +14,49 @@
 #endif // __APPLE__
 
 #include "vec.h"
+#include "nul.h"
 
-#define NRF_BUFFER_LENGTH (16 * 16384)
-#define NRF_SAMPLES_SIZE 131072
+#define NRF_BUFFER_SIZE_BYTES (16 * 16384)
+#define NRF_SAMPLES_LENGTH 131072
 #define NRF_IQ_RESOLUTION 256
 #define DEFAULT_FFT_SIZE 128
 #define DEFAULT_FFT_HISTORY_SIZE 128
 
-// Buffer
+// Block
 
-typedef struct {
-    int width;
-    int height;
-    int channels;
-    int size_bytes;
-    float *data;
-} nrf_buffer;
+#define NRF_BLOCK_MAX_OUTPUTS 10
 
-nrf_buffer *nrf_buffer_new(int width, int height, int channels, const float *data);
-void nrf_buffer_free(nrf_buffer *buffer);
+typedef enum {
+    NRF_BLOCK_SOURCE = 1,
+    NRF_BLOCK_GENERIC,
+    NRF_BLOCK_SINK
+} nrf_block_type;
+
+typedef struct nrf_block nrf_block;
+
+typedef void (*nrf_block_process_fn)(nrf_block *block, nul_buffer *buffer);
+typedef nul_buffer* (*nrf_block_result_fn)(void *block);
+
+struct nrf_block {
+    nrf_block_type type;
+    nrf_block_process_fn process_fn;
+    nrf_block_result_fn result_fn;
+    int n_outputs;
+    void* outputs[NRF_BLOCK_MAX_OUTPUTS];
+};
+
+void nrf_block_init(nrf_block* block, nrf_block_type type, nrf_block_process_fn process_fn, nrf_block_result_fn result_fn);
+void nrf_block_connect(nrf_block* input, nrf_block* output);
+void nrf_block_process(nrf_block* block, nul_buffer* buffer);
+
+#define NRF_BLOCK nrf_block block
 
 // Device
 
 typedef struct {
+    int sample_rate;
     double freq_mhz;
     const char* data_file;
-    float interpolate_step;
-    int sample_rate;
-    int fft_size;
-    int fft_history_size;
 } nrf_device_config;
 
 typedef enum {
@@ -56,6 +70,7 @@ typedef struct nrf_device nrf_device;
 typedef void (*nrf_device_decode_cb_fn)(nrf_device *device, void *ctx);
 
 struct nrf_device {
+    NRF_BLOCK;
     nrf_device_type device_type;
     void *device;
     int sample_rate;
@@ -72,33 +87,58 @@ struct nrf_device {
     int dummy_block_length;
     int dummy_block_index;
 
-    uint8_t *a_buffer;
-    uint8_t *b_buffer;
-    float t;
-    float t_step;
-
-    float samples[NRF_SAMPLES_SIZE * 3];
-    float iq[256 * 256];
-
-    int fft_size;
-    int fft_history_size;
-    vec3 *fft;
-    fftw_complex *fft_in;
-    fftw_complex *fft_out;
-    fftw_plan fft_plan;
+    uint8_t samples[NRF_BUFFER_SIZE_BYTES];
 };
 
-nrf_device *nrf_device_new(double freq_mhz, const char* data_file, float interpolate_step);
+nrf_device *nrf_device_new(double freq_mhz, const char* data_file);
 nrf_device *nrf_device_new_with_config(nrf_device_config config);
 double nrf_device_set_frequency(nrf_device *device, double freq_mhz);
 void nrf_device_set_decode_handler(nrf_device *device, nrf_device_decode_cb_fn fn, void *ctx);
 void nrf_device_set_paused(nrf_device *device, int paused);
 void nrf_device_step(nrf_device *device);
-nrf_buffer *nrf_device_get_samples_buffer(nrf_device *device);
-nrf_buffer *nrf_device_get_iq_buffer(nrf_device *device);
-nrf_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage);
-nrf_buffer *nrf_device_get_fft_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_samples_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_iq_buffer(nrf_device *device);
+nul_buffer *nrf_device_get_iq_lines(nrf_device *device, int size_multiplier, float line_percentage);
+nul_buffer *nrf_device_get_fft_buffer(nrf_device *device);
 void nrf_device_free(nrf_device *device);
+
+// Interpolator
+
+typedef struct {
+    NRF_BLOCK;
+    double interpolate_step;
+    double t;
+    nul_buffer *buffer_a;
+    nul_buffer *buffer_b;
+} nrf_interpolator;
+
+nrf_interpolator *nrf_interpolator_new(double interpolate_step);
+void nrf_interpolator_process(nrf_interpolator *interpolator, nul_buffer *buffer);
+nul_buffer *nrf_interpolator_get_buffer(nrf_interpolator *interpolator);
+void nrf_interpolator_free(nrf_interpolator *interpolator);
+
+// IQ Drawing
+
+nul_buffer *nrf_buffer_add_position_channel(nul_buffer *buffer);
+nul_buffer *nrf_buffer_to_iq_points(nul_buffer *buffer);
+nul_buffer *nrf_buffer_to_iq_lines(nul_buffer *buffer, int size_multiplier, float line_percentage);
+
+// FFT Analysis
+
+typedef struct {
+    NRF_BLOCK;
+    int fft_size;
+    int fft_history_size;
+    double *buffer;
+    fftw_complex *fft_in;
+    fftw_complex *fft_out;
+    fftw_plan fft_plan;
+} nrf_fft;
+
+nrf_fft *nrf_fft_new(int fft_size, int fft_history_size);
+void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer);
+nul_buffer *nrf_fft_get_buffer(nrf_fft *fft);
+void nrf_fft_free(nrf_fft *fft);
 
 // Finite Impulse Response (FIR) Filter
 
@@ -116,6 +156,22 @@ nrf_fir_filter *nrf_fir_filter_new(int sample_rate, int half_ampl_freq, int leng
 void nrf_fir_filter_load(nrf_fir_filter *filter, double *samples, int length);
 double nrf_fir_filter_get(nrf_fir_filter *filter, int index);
 void nrf_fir_filter_free(nrf_fir_filter *filter);
+
+// IQ Filter, based on FIR filter
+
+typedef struct {
+    NRF_BLOCK;
+    nrf_fir_filter *filter_i;
+    nrf_fir_filter *filter_q;
+    int samples_length;
+    double *samples_i;
+    double *samples_q;
+} nrf_iq_filter;
+
+nrf_iq_filter *nrf_iq_filter_new(int sample_rate, int half_ampl_freq, int kernel_length);
+void nrf_iq_filter_process(nrf_iq_filter *filter, nul_buffer *buffer);
+nul_buffer *nrf_iq_filter_get_buffer(nrf_iq_filter *f);
+void nrf_iq_filter_free(nrf_iq_filter *filter);
 
 // Downsampler
 
@@ -135,14 +191,18 @@ void nrf_downsampler_free(nrf_downsampler *d);
 // Frequency shifter
 
 typedef struct {
+    NRF_BLOCK;
     int freq_offset;
     int sample_rate;
     double cosine;
     double sine;
+    nul_buffer *buffer;
 } nrf_freq_shifter;
 
 nrf_freq_shifter *nrf_freq_shifter_new(int freq_offset, int sample_rate);
-void nrf_freq_shifter_process(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
+void nrf_freq_shifter_process_samples(nrf_freq_shifter *shifter, double *samples_i, double *samples_q, int length);
+void nrf_freq_shifter_process(nrf_freq_shifter *shifter, nul_buffer *buffer);
+nul_buffer *nrf_freq_shifter_get_buffer(nrf_freq_shifter *shifter);
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 
 // RAW Demodulator
@@ -181,9 +241,6 @@ nrf_fm_demodulator *nrf_fm_demodulator_new(int in_sample_rate, int out_sample_ra
 void nrf_fm_demodulator_process(nrf_fm_demodulator *demodulator, double *samples_i, double *samples_q, int length);
 void nrf_fm_demodulator_free(nrf_fm_demodulator *demodulator);
 
-
-
-
 // Decoder
 
 typedef enum {
@@ -213,7 +270,7 @@ typedef struct {
     int size;
     int capacity;
     ALuint *values;
-} _nrf_buffer_queue;
+} _nul_buffer_queue;
 
 typedef struct {
     nrf_demodulate_type demodulate_type;
@@ -222,7 +279,7 @@ typedef struct {
     ALCcontext *audio_context;
     ALCdevice *audio_device;
     ALuint audio_source;
-    _nrf_buffer_queue *audio_buffer_queue;
+    _nul_buffer_queue *audio_buffer_queue;
     int is_playing;
     int shutting_down;
 } nrf_player;

@@ -1,13 +1,16 @@
 *.dSYM
 *.png
 /build
+/c/add-markers
 /c/batch
 /c/demod-fm
 /c/demod-fm-streaming
 /c/export
 /c/fft
 /c/fft-batch
+/c/fft-batch-broad
 /c/fft-stitch
+/c/fft-stitch-broad
 /c/gridvis
 /c/iq-lines
 /c/iqvis
