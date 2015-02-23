@@ -658,6 +658,43 @@ static int l_nrf_freq_shifter_free(lua_State *L) {
     return 0;
 }
 
+// nrf_signal_detector
+
+static nrf_signal_detector* l_to_nrf_signal_detector(lua_State *L, int index) {
+    return (nrf_signal_detector*) l_from_table(L, "nrf_signal_detector", index);
+}
+
+static int l_nrf_signal_detector_new(lua_State *L) {
+    nrf_signal_detector* detector = nrf_signal_detector_new();
+    l_to_table(L, "nrf_signal_detector", detector);
+    return 1;
+}
+
+static int l_nrf_signal_detector_process(lua_State *L) {
+    nrf_signal_detector* detector = l_to_nrf_signal_detector(L, 1);
+    nul_buffer* buffer = l_to_nul_buffer(L, 2);
+    nrf_signal_detector_process(detector, buffer);
+    return 0;
+}
+
+static int l_nrf_signal_detector_get_mean(lua_State *L) {
+    nrf_signal_detector* detector = l_to_nrf_signal_detector(L, 1);
+    lua_pushnumber(L, detector->mean);
+    return 1;
+}
+
+static int l_nrf_signal_detector_get_standard_deviation(lua_State *L) {
+    nrf_signal_detector* detector = l_to_nrf_signal_detector(L, 1);
+    lua_pushnumber(L, detector->standard_deviation);
+    return 1;
+}
+
+static int l_nrf_signal_detector_free(lua_State *L) {
+    nrf_signal_detector* signal_detector = l_to_nrf_signal_detector(L, 1);
+    nrf_signal_detector_free(signal_detector);
+    return 0;
+}
+
 // nrf_player
 
 static nrf_player* l_to_nrf_player(lua_State *L, int index) {
@@ -834,9 +871,8 @@ static lua_State *l_init() {
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
     l_register_type(L, "nrf_iq_filter", l_nrf_iq_filter_free);
     l_register_type(L, "nrf_freq_shifter", l_nrf_freq_shifter_free);
+    l_register_type(L, "nrf_signal_detector", l_nrf_signal_detector_free);
     l_register_type(L, "nrf_player", l_nrf_player_free);
-
-
 
     l_register_function(L, "nul_buffer_reduce", l_nul_buffer_reduce);
     l_register_function(L, "nul_buffer_convert", l_nul_buffer_convert);
@@ -884,6 +920,10 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_freq_shifter_new", l_nrf_freq_shifter_new);
     l_register_function(L, "nrf_freq_shifter_process", l_nrf_freq_shifter_process);
     l_register_function(L, "nrf_freq_shifter_get_buffer", l_nrf_freq_shifter_get_buffer);
+    l_register_function(L, "nrf_signal_detector_new", l_nrf_signal_detector_new);
+    l_register_function(L, "nrf_signal_detector_process", l_nrf_signal_detector_process);
+    l_register_function(L, "nrf_signal_detector_get_mean", l_nrf_signal_detector_get_mean);
+    l_register_function(L, "nrf_signal_detector_get_standard_deviation", l_nrf_signal_detector_get_standard_deviation);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
 

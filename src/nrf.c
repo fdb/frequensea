@@ -851,6 +851,34 @@ void nrf_freq_shifter_free(nrf_freq_shifter *shifter) {
     free(shifter);
 }
 
+// Signal Detector
+
+nrf_signal_detector *nrf_signal_detector_new() {
+    nrf_signal_detector *detector = calloc(1, sizeof(nrf_signal_detector));
+    return detector;
+}
+
+void nrf_signal_detector_process(nrf_signal_detector *detector, nul_buffer *buffer) {
+    int size = buffer->length * buffer->channels;
+    double total = 0;
+    for (int i = 0; i < size; i += 2) {
+        total += nul_buffer_get_f64(buffer, i);
+    }
+
+    double mean = total / (double) size * 2;
+    double diffs_total = 0;
+    for (int i = 0; i < size; i++) {
+        double diff = nul_buffer_get_f64(buffer, i) - mean;
+        diffs_total += diff * diff;
+    }
+    detector->mean = mean;
+    detector->standard_deviation = sqrt(diffs_total / mean);
+}
+
+void nrf_signal_detector_free(nrf_signal_detector *detector) {
+    free(detector);
+}
+
 // RAW Demodulator
 
 nrf_raw_demodulator *nrf_raw_demodulator_new(int in_sample_rate, int out_sample_rate) {

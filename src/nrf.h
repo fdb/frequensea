@@ -205,6 +205,17 @@ void nrf_freq_shifter_process(nrf_freq_shifter *shifter, nul_buffer *buffer);
 nul_buffer *nrf_freq_shifter_get_buffer(nrf_freq_shifter *shifter);
 void nrf_freq_shifter_free(nrf_freq_shifter *shifter);
 
+// Signal detector
+
+typedef struct {
+    double mean;
+    double standard_deviation;
+} nrf_signal_detector;
+
+nrf_signal_detector *nrf_signal_detector_new();
+void nrf_signal_detector_process(nrf_signal_detector *detector, nul_buffer *buffer);
+void nrf_signal_detector_free(nrf_signal_detector *detector);
+
 // RAW Demodulator
 
 typedef struct {
