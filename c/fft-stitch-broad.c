@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,8 +16,8 @@
 
 const uint32_t FFT_SIZE = 256;
 const uint32_t FFT_HISTORY_SIZE = 4096;
-const uint64_t FREQUENCY_START = 10e6;
-const uint64_t FREQUENCY_END = 475e6;
+const uint64_t FREQUENCY_START = 2785e6;
+const uint64_t FREQUENCY_END = 3709e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 
@@ -53,6 +54,8 @@ void img_pixel_put(uint8_t *buffer, uint32_t stride, uint32_t x, uint32_t y, uin
 // Main /////////////////////////////////////////////////////////////////////
 
 int main() {
+    assert(IMAGE_WIDTH == 47360);
+    assert(IMAGE_HEIGHT== 4096);
     uint32_t image_height = IMAGE_HEIGHT;
     printf("Image size: %d x %d\n", IMAGE_WIDTH, image_height);
     uint8_t *buffer = calloc(IMAGE_WIDTH * image_height, sizeof(uint8_t));
