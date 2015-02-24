@@ -33,8 +33,8 @@ function setup()
     freq = 502.19
     shift = 0.1e6
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    shifter = nrf_freq_shifter_new(0.1e6, device.sample_rate)
-    filter = nrf_iq_filter_new(device.sample_rate, 20e3, 51)
+    shifter = nrf_freq_shifter_new(shift, device.sample_rate)
+    filter = nrf_iq_filter_new(device.sample_rate, 60e3, 97)
 
     camera = ngl_camera_new_look_at(0, 0, 0) -- Camera is unnecessary but ngl_draw_model requires it
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -61,11 +61,11 @@ function on_key(key, mods)
         nul_buffer_save(nul_buffer_convert(buffer, 1), "out.raw")
     end
     if key == KEY_LEFT_BRACKET then
-        shift = shift - 1e3
+        shift = shift - 0.01e3
         shifter = nrf_freq_shifter_new(shift, device.sample_rate)
         print("Shift: " .. shift)
     elseif key == KEY_RIGHT_BRACKET then
-        shift = shift + 1e3
+        shift = shift + 0.01e3
         shifter = nrf_freq_shifter_new(shift, device.sample_rate)
         print("Shift: " .. shift)
     end
