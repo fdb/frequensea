@@ -19,6 +19,7 @@ const uint64_t FREQUENCY_END = 3010.00001e6;
 const uint32_t FREQUENCY_STEP = 5e6;
 const uint32_t SAMPLE_RATE = 5e6;
 const uint32_t SAMPLE_BLOCKS_TO_SKIP = 10;
+const uint32_t EVALUATE_ROWS = 100;
 
 uint64_t frequency = FREQUENCY_START;
 
@@ -75,6 +76,27 @@ int receive_sample_block(hackrf_transfer *transfer) {
     memcpy(fft_history, fft_out, FFT_SIZE * sizeof(fftw_complex));
 
     history_rows++;
+
+    // Verify that there actually is some data before continuing.
+    if (history_rows == EVALUATE_ROWS) {
+        double total = 0;
+        int size = history_rows * FFT_SIZE;
+        for (int i = 0; i < size; i ++) {
+            double ci = fft_history[i][0];
+            double cq = fft_history[i][1];
+            double pwr = sqrt(ci * ci + cq * cq);
+            total += pwr;
+        }
+        double avg_pwr = total / (double) size;
+        printf("\n(Average power: %.2f)\n", avg_pwr);
+        if (avg_pwr < 1.1) {
+            printf("Not interesting. Skipping...\n");
+            // Trigger exit condition.
+            history_rows = FFT_HISTORY_SIZE;
+            return 0;
+        }
+    }
+
     printf("\r%.f%%", history_rows / (float)FFT_HISTORY_SIZE * 100);
     fflush(stdout);
     if (history_rows >= FFT_HISTORY_SIZE) {
