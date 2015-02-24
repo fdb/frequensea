@@ -52,4 +52,7 @@ end
 
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
+    if key == KEY_E then
+        nul_buffer_save(nul_buffer_convert(filter_buffer, 1), "out.raw")
+    end
 end
