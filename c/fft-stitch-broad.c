@@ -14,17 +14,7 @@
 
 // Stitch FFT sweeps PNG
 
-const uint32_t FFT_SIZE = 256;
-const uint32_t FFT_HISTORY_SIZE = 4096;
-const uint64_t FREQUENCY_START = 2785e6;
-const uint64_t FREQUENCY_END = 3709e6;
-const uint32_t FREQUENCY_STEP = 5e6;
-const uint32_t SAMPLE_RATE = 5e6;
 
-const uint32_t FREQUENCY_RANGE = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
-const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
-const uint32_t IMAGE_WIDTH = FFT_SIZE + (FREQUENCY_RANGE) * WIDTH_STEP;
-const uint32_t IMAGE_HEIGHT = FFT_HISTORY_SIZE;
 
 
 // Utility //////////////////////////////////////////////////////////////////
@@ -53,10 +43,23 @@ void img_pixel_put(uint8_t *buffer, uint32_t stride, uint32_t x, uint32_t y, uin
 
 // Main /////////////////////////////////////////////////////////////////////
 
-int main() {
-    assert(IMAGE_WIDTH == 47360);
-    assert(IMAGE_HEIGHT== 4096);
+int main(int argc, char **argv) {
+    assert(argc == 3);
+
+    const uint32_t FFT_SIZE = 256;
+    const uint32_t FFT_HISTORY_SIZE = 4096;
+    const uint64_t FREQUENCY_START = atoi(argv[1]) * 1e6;
+    const uint64_t FREQUENCY_END = atoi(argv[2]) * 1e6;
+    const uint32_t FREQUENCY_STEP = 5e6;
+    const uint32_t SAMPLE_RATE = 5e6;
+
+    const uint32_t FREQUENCY_RANGE = (FREQUENCY_END - FREQUENCY_START) / FREQUENCY_STEP;
+    const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
+    const uint32_t IMAGE_WIDTH = FFT_SIZE + (FREQUENCY_RANGE) * WIDTH_STEP;
+    const uint32_t IMAGE_HEIGHT = FFT_HISTORY_SIZE;
+
     uint32_t image_height = IMAGE_HEIGHT;
+    printf("Frequency range: %.0f MHz - %.0f MHz\n", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
     printf("Image size: %d x %d\n", IMAGE_WIDTH, image_height);
     uint8_t *buffer = calloc(IMAGE_WIDTH * image_height, sizeof(uint8_t));
     uint32_t x = 0;
