@@ -13,31 +13,6 @@
 
 #include "easypng.h"
 
-const uint32_t HEADER_HEIGHT = 200;
-const uint32_t FOOTER_HEIGHT = 300;
-
-const uint32_t FFT_SIZE = 128;
-const uint64_t FREQUENCY_START = 10e6;
-const uint64_t FREQUENCY_END = 475e6;
-const uint32_t FREQUENCY_STEP = 5e6;
-const uint32_t SAMPLE_RATE = 5e6;
-
-// The FREQUENCY_START is the center frequency of each file. The real start of the file is the start - sample_rate / 2.
-const uint64_t FREQUENCY_REAL_START = FREQUENCY_START - (SAMPLE_RATE / 2);
-const uint64_t FREQUENCY_REAL_END = FREQUENCY_END + (SAMPLE_RATE / 2);
-const uint64_t FREQUENCY_REAL_RANGE = FREQUENCY_REAL_END - FREQUENCY_REAL_START;
-
-const uint32_t WIDTH_STEP = FFT_SIZE / (SAMPLE_RATE / FREQUENCY_STEP);
-const uint32_t MINOR_TICK_RATE = 1e6;
-const double MINOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MINOR_TICK_RATE;
-const uint32_t MINOR_TICK_HEIGHT = 30;
-const uint32_t MAJOR_TICK_RATE = 50e6;
-const double MAJOR_TICK_SIZE = (FFT_SIZE / (double) FREQUENCY_STEP) * MAJOR_TICK_RATE;
-const uint32_t MAJOR_TICK_HEIGHT = 60;
-const uint8_t LINE_COLOR = 255;
-const char* FONT_FILE = "../fonts/RobotoCondensed-Bold.ttf";
-const uint16_t FONT_SIZE_PX = 48;
-
 // Utility //////////////////////////////////////////////////////////////////
 
 uint8_t max_u8(uint8_t a, uint8_t b) {
@@ -160,12 +135,42 @@ void ntt_font_draw(const ntt_font *font, uint8_t *img, const uint32_t img_stride
 
 // Main /////////////////////////////////////////////////////////////////////
 
-int frequency_to_x(const int image_width, const uint64_t freq) {
-    const uint64_t real_freq = freq - FREQUENCY_REAL_START;
-    return round(real_freq / (double) FREQUENCY_REAL_RANGE * image_width);
+int frequency_to_x(const int image_width, const uint64_t frequency_real_start, const uint64_t frequency_real_range, const uint64_t freq) {
+    const uint64_t real_freq = freq - frequency_real_start;
+    return round(real_freq / (double) frequency_real_range * image_width);
 }
 
-int main() {
+int main(int argc, char **argv) {
+    assert(argc == 3);
+
+    const uint32_t HEADER_HEIGHT = 200;
+    const uint32_t FOOTER_HEIGHT = 300;
+
+    const uint32_t TARGET_WIDTH = 23693;
+    const uint32_t TARGET_HEIGHT = 7157;
+
+    const uint32_t SOURCE_WIDTH = TARGET_WIDTH;
+    const uint32_t SOURCE_HEIGHT = TARGET_HEIGHT - HEADER_HEIGHT - FOOTER_HEIGHT;
+
+    const uint64_t FREQUENCY_START = atoi(argv[1]) * 1e6;
+    const uint64_t FREQUENCY_END = atoi(argv[2]) * 1e6;
+    const uint32_t SAMPLE_RATE = 5e6;
+
+    // The FREQUENCY_START is the center frequency of each file. The real start of the file is the start - sample_rate / 2.
+    const uint64_t FREQUENCY_REAL_START = FREQUENCY_START - (SAMPLE_RATE / 2);
+    const uint64_t FREQUENCY_REAL_END = FREQUENCY_END + (SAMPLE_RATE / 2);
+    const uint64_t FREQUENCY_REAL_RANGE = FREQUENCY_REAL_END - FREQUENCY_REAL_START;
+
+    const uint32_t MINOR_TICK_RATE = 1e6;
+    const uint32_t MINOR_TICK_HEIGHT = 30;
+    const uint32_t MAJOR_TICK_RATE = 50e6;
+    const uint32_t MAJOR_TICK_HEIGHT = 60;
+    const uint8_t LINE_COLOR = 255;
+    const char* FONT_FILE = "../fonts/RobotoCondensed-Bold.ttf";
+    const uint16_t FONT_SIZE_PX = 64;
+
+    printf("Frequency range: %.0f MHz - %.0f MHz\n", FREQUENCY_START / 1e6, FREQUENCY_END / 1e6);
+
     ntt_font *font = ntt_font_load(FONT_FILE);
 
     char in_file_name[100];
@@ -176,8 +181,12 @@ int main() {
     int width, height, n;
     printf("Reading %s...\n", in_file_name);
     uint8_t *in_buffer = stbi_load(in_file_name, &width, &height, &n, 1);
+    assert(width == SOURCE_WIDTH);
+    assert(height == SOURCE_HEIGHT);
     int out_width = width;
     int out_height = height + HEADER_HEIGHT + FOOTER_HEIGHT;
+    assert(out_width == TARGET_WIDTH);
+    assert(out_height == TARGET_HEIGHT);
     uint8_t *out_buffer = calloc(out_width * out_height, sizeof(uint8_t));
 
     printf("Composing...\n");
@@ -194,14 +203,20 @@ int main() {
     for (int i = 0; i < border_height; i++) {
         img_hline(out_buffer, out_width, 0, header_bottom - i, out_width, LINE_COLOR);
         img_hline(out_buffer, out_width, 0, footer_top + i, out_width, LINE_COLOR);
-        img_hline(out_buffer, out_width, 0, footer_bottom - i, out_width, LINE_COLOR);
     }
     footer_top += border_height;
-    footer_bottom -= border_height;
+
+    // Higher to compensate for bleed
+    const int footer_border_height = 35;
+    for (int i = 0; i < footer_border_height; i++) {
+        img_hline(out_buffer, out_width, 0, footer_bottom - i, out_width, LINE_COLOR);
+    }
+
+    footer_bottom -= footer_border_height;
 
     // Add minor ticks.
     for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MINOR_TICK_RATE) {
-        int x = frequency_to_x(out_width, freq);
+        int x = frequency_to_x(out_width, FREQUENCY_REAL_START, FREQUENCY_REAL_RANGE, freq);
         if (x > 0 && x < out_width) {
             for (int dx = -1; dx <= 1; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
@@ -213,7 +228,7 @@ int main() {
     // Add major ticks + text.
     const uint32_t labels_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
     for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MAJOR_TICK_RATE) {
-        int x = frequency_to_x(out_width, freq);
+        int x = frequency_to_x(out_width, FREQUENCY_REAL_START, FREQUENCY_REAL_RANGE, freq);
         if (x > 0 && x < out_width) {
             for (int dx = -2; dx <= 2; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
