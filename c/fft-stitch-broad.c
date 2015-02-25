@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     printf("Image size: %d x %d\n", IMAGE_WIDTH, image_height);
     uint8_t *buffer = calloc(IMAGE_WIDTH * image_height, sizeof(uint8_t));
     uint32_t x = 0;
-    for (uint32_t frequency = FREQUENCY_START; frequency <= FREQUENCY_END; frequency += FREQUENCY_STEP) {
+    for (uint64_t frequency = FREQUENCY_START; frequency <= FREQUENCY_END; frequency += FREQUENCY_STEP) {
         char file_name[100];
         snprintf(file_name, 100, "broad-%.0f.png", frequency / 1.0e6);
         printf("Composing %s...\n", file_name);
