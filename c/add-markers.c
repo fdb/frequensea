@@ -143,7 +143,7 @@ int frequency_to_x(const int image_width, const uint64_t frequency_real_start, c
 int main(int argc, char **argv) {
     assert(argc == 3);
 
-    const uint32_t HEADER_HEIGHT = 200;
+    const uint32_t HEADER_HEIGHT = 300;
     const uint32_t FOOTER_HEIGHT = 300;
 
     const uint32_t TARGET_WIDTH = 23693;
