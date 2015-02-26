@@ -19,6 +19,11 @@ const int IQ_HEIGHT = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IMAGE_OFFSET_X = (IMAGE_WIDTH - IQ_WIDTH) / 2;
 const int IMAGE_OFFSET_Y = (IMAGE_HEIGHT - IQ_HEIGHT) / 2;
 const int PIXEL_INC = 4;
+const int FADE_OUT_FRAMES = 30;
+
+uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
+    return (uint8_t) (v < min ? min : v > max ? max : v);
+}
 
 void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
     int offset = y * IQ_WIDTH + x;
@@ -61,6 +66,12 @@ void draw_line(uint8_t *image_buffer, int x1, int y1, int x2, int y2, int color)
   }
 }
 
+void write_image(uint8_t *image_buffer, int fname_index) {
+    char fname[100];
+    snprintf(fname, 100, "_export/sample-%d.png", fname_index);
+    write_gray_png(fname, IMAGE_WIDTH, IMAGE_HEIGHT, image_buffer);
+}
+
 int main() {
     FILE *fp = fopen("../rfdata/rf-612.004-1.raw", "r");
     assert(fp != NULL);
@@ -87,16 +98,22 @@ int main() {
             }
             x1 = x2;
             y1 = y2;
-            //printf("%d, %d\n", x, y);
-            //pixel_inc(image_buffer, x, y);
         }
-        char fname[100];
-        snprintf(fname, 100, "_export/sample-%d.png", fname_index);
-        write_gray_png(fname, IMAGE_WIDTH, IMAGE_HEIGHT, image_buffer);
+        write_image(image_buffer, fname_index);
         fname_index++;
     }
 
-
+    const int FADE_PER_FRAME = ceil(255 / FADE_OUT_FRAMES);
+    for (int i = 0; i < FADE_OUT_FRAMES; i++) {
+        for (int j = 0; j < IMAGE_WIDTH * IMAGE_HEIGHT; ++j) {
+            int v = image_buffer[j];
+            v -= FADE_PER_FRAME;
+            v = clamp_u8(v, 0, 255);
+            image_buffer[j] = v;
+        }
+        write_image(image_buffer, fname_index);
+        fname_index++;
+    }
 
     return 0;
 }
