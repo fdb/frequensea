@@ -52,6 +52,9 @@ demod-fm: demod-fm.c
 demod-fm-streaming: demod-fm-streaming.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l hackrf -framework OpenAL -o demod-fm-streaming demod-fm-streaming.c
 
+osc-server: osc-server.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -o osc-server osc-server.c
+
 play: play.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -l sndfile -framework OpenAL -o play play.c
 
