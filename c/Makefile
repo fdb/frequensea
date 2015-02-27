@@ -13,6 +13,9 @@ tv-sender: tv-sender.c
 vis: vis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o vis vis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
+gradual-noise: gradual-noise.c
+	gcc --std=c99 -g -Wall -Werror -pedantic -I /usr/local/include -L /usr/local/lib -o gradual-noise gradual-noise.c -lpng
+
 gridvis: gridvis.c
 	gcc -I /usr/local/include -L /usr/local/lib -o gridvis gridvis.c -l glfw3 -l hackrf -lpng -framework OpenGL
 
