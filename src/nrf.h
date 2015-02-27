@@ -136,6 +136,7 @@ typedef struct {
 } nrf_fft;
 
 nrf_fft *nrf_fft_new(int fft_size, int fft_history_size);
+void nrf_fft_shift(nrf_fft *fft, double d);
 void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer);
 nul_buffer *nrf_fft_get_buffer(nrf_fft *fft);
 void nrf_fft_free(nrf_fft *fft);

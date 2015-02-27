@@ -154,10 +154,16 @@ function keys_frequency_handler(key, mods)
     if key == KEY_RIGHT then
         freq = freq + d
         freq = nrf_device_set_frequency(device, freq)
+        if fft then
+            nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
+        end
         print("Frequency: " .. freq)
     elseif key == KEY_LEFT then
         freq = freq - d
         freq = nrf_device_set_frequency(device, freq)
+        if fft then
+            nrf_fft_shift(fft, -((device.sample_rate / 1e6) / d))
+        end
         print("Frequency: " .. freq)
     end
 end

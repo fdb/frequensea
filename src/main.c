@@ -623,6 +623,13 @@ static int l_nrf_fft_new(lua_State *L) {
     return 1;
 }
 
+static int l_nrf_fft_shift(lua_State *L) {
+    nrf_fft* fft = l_to_nrf_fft(L, 1);
+    float d = luaL_checknumber(L, 2);
+    nrf_fft_shift(fft, d);
+    return 0;
+}
+
 static int l_nrf_fft_process(lua_State *L) {
     nrf_fft* fft = l_to_nrf_fft(L, 1);
     nul_buffer* buffer = l_to_nul_buffer(L, 2);
@@ -969,6 +976,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_buffer_to_iq_points", l_nrf_buffer_to_iq_points);
     l_register_function(L, "nrf_buffer_to_iq_lines", l_nrf_buffer_to_iq_lines);
     l_register_function(L, "nrf_fft_new", l_nrf_fft_new);
+    l_register_function(L, "nrf_fft_shift", l_nrf_fft_shift);
     l_register_function(L, "nrf_fft_process", l_nrf_fft_process);
     l_register_function(L, "nrf_fft_get_buffer", l_nrf_fft_get_buffer);
     l_register_function(L, "nrf_iq_filter_new", l_nrf_iq_filter_new);

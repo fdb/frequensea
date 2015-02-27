@@ -578,6 +578,38 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     return fft;
 }
 
+
+
+void nrf_fft_shift(nrf_fft *fft, double d) {
+    int shift_pixels = round(fft->fft_size / d);
+    if (shift_pixels == 0) {
+        // Don't do anything.
+    } else if (abs(shift_pixels) >= fft->fft_size) {
+        // If we shifted so far that we're out of the range, start over.
+        memset(fft->buffer, 0, fft->fft_size * fft->fft_history_size * sizeof(double));
+    } else {
+        int stride = fft->fft_size;
+        for (int y = 0; y < fft->fft_history_size; y++) {
+            if (shift_pixels > 0) {
+                for (int x = 0; x < fft->fft_size - shift_pixels; x++) {
+                    fft->buffer[y * stride + x] = fft->buffer[y * stride + x + shift_pixels];
+                }
+                for (int x = fft->fft_size - shift_pixels; x < fft->fft_size; x++) {
+                    fft->buffer[y * stride + x] = 0;
+                }
+            } else {
+                for (int x = fft->fft_size - 1; x > shift_pixels; x--) {
+                    fft->buffer[y * stride + x] = fft->buffer[y * stride + x + shift_pixels];
+                }
+                for (int x = fft->fft_size + shift_pixels; x < fft->fft_size; x++) {
+                    fft->buffer[y * stride + x] = 0;
+                }
+            }
+        }
+        printf("nrf_fft_shift %d\n", shift_pixels);
+    }
+}
+
 void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     int size = buffer->length * buffer->channels;
     int ii = 0;

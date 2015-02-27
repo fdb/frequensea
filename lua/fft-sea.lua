@@ -18,33 +18,15 @@ void main() {
     if (tp.y < 0) {
         tp.y = 1-tp.y;
     }
-    float r1 = texture(uTexture, tp).r;
-    float g1 = texture(uTexture, tp).g;
-    float r2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
-    float g2 = texture(uTexture, tp + vec2(cell_size, 0)).g;
-    float r3 = texture(uTexture, tp + vec2(0, cell_size)).r;
-    float g3 = texture(uTexture, tp + vec2(0, cell_size)).g;
-    float t1 = sqrt(r1 * r1 + g1 * g1);
-    float t2 = sqrt(r2 * r2 + g2 * g2);
-    float t3 = sqrt(r3 * r3 + g3 * g3);
-    if (r1 > 1) {
-        t1 = 0.0;
-    }
-    if (r2 > 1) {
-        t2 = 0.0;
-    }
-    if (r3 > 1) {
-        t3 = 0.0;
-    }
-    t1 = abs(t1);
-    t2 = abs(t2);
-    t3 = abs(t3);
-    t1 *= d;
-    t2 *= d;
-    t3 *= d;
-    vec3 v1 = vec3(vp.x, t1, vp.z);
-    vec3 v2 = vec3(vp.x + cell_size, t2, vp.z);
-    vec3 v3 = vec3(vp.x, t3, vp.z + cell_size);
+    float y1 = texture(uTexture, tp).r;
+    float y2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
+    float y3 = texture(uTexture, tp + vec2(0, cell_size)).r;
+    y1 *= d;
+    y2 *= d;
+    y3 *= d;
+    vec3 v1 = vec3(vp.x, y1, vp.z);
+    vec3 v2 = vec3(vp.x + cell_size, y2, vp.z);
+    vec3 v3 = vec3(vp.x, y3, vp.z + cell_size);
 
     vec3 u = v2 - v1;
     vec3 v = v3 - v1;
