@@ -12,8 +12,8 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.02;
-    float cell_size = 0.0005;
+    float d = 0.0004;
+    float cell_size = 0.0001;
     vec2 tp = vec2(vt.x, vt.y - 0.5);
     if (tp.y < 0) {
         tp.y = 1-tp.y;
@@ -21,6 +21,9 @@ void main() {
     float y1 = texture(uTexture, tp).r;
     float y2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
     float y3 = texture(uTexture, tp + vec2(0, cell_size)).r;
+    y1 = log2(y1) + 0.1;
+    y2 = log2(y2) + 0.1;
+    y3 = log2(y3) + 0.1;
     y1 *= d;
     y2 *= d;
     y3 *= d;
@@ -35,8 +38,9 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    color = vec4(1.0, 1.0, 1.0, 0.95) * dot(normalize(v1), normalize(n)) * 0.9;
-    color += vec4(0.2, 0.2, 0.1, 1.0);
+    color = vec4(0.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 0.9;
+    color += vec4(1.0, 0.0, 0.0, 1.0) * 0.9;
+    color.a = 0.9;
 
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
@@ -56,26 +60,30 @@ void main() {
 
 
 function setup()
-    freq = 433
+    freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    fft = nrf_fft_new(128, 128)
+    fft = nrf_fft_new(256, 256)
     camera = ngl_camera_new()
-    ngl_camera_translate(camera, 0, -0.05, 0)
-    ngl_camera_rotate_x(camera, -2)
+    ngl_camera_translate(camera, 0, 0, 0)
+    ngl_camera_rotate_x(camera, -20)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
+    shader2 = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(256, 256, 0.01, 0.003)
-    ngl_model_translate(model, -0.01, -0.04, 0)
+    model = ngl_model_new_grid_triangles(512, 512, 0.0001, 0.0001)
+    ngl_model_translate(model, 0, -0.005, 0)
 end
 
 function draw()
+    --ngl_camera_rotate_y(camera, 0.1)
+
     samples_buffer = nrf_device_get_samples_buffer(device)
     nrf_fft_process(fft, samples_buffer)
     fft_buffer = nrf_fft_get_buffer(fft)
 
-    ngl_clear(0.2, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, fft_buffer, 128, 128)
+    ngl_clear(0.0, 0.2, 0.2, 1.0)
+    ngl_texture_update(texture, fft_buffer, 256, 256)
     ngl_draw_model(camera, model, shader)
+    ngl_draw_model(camera, model, shader2)
 end
 
 function on_key(key, mods)
