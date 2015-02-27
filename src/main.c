@@ -187,6 +187,12 @@ static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
     return (ngl_camera*) l_from_table(L, "ngl_camera", index);
 }
 
+static int l_ngl_camera_new(lua_State *L) {
+    ngl_camera *camera = ngl_camera_new();
+    l_to_table(L, "ngl_camera", camera);
+    return 1;
+}
+
 static int l_ngl_camera_new_look_at(lua_State *L) {
     float camera_x = luaL_checknumber(L, 1);
     float camera_y = luaL_checknumber(L, 2);
@@ -194,6 +200,36 @@ static int l_ngl_camera_new_look_at(lua_State *L) {
     ngl_camera *camera = ngl_camera_new_look_at(camera_x, camera_y, camera_z);
     l_to_table(L, "ngl_camera", camera);
     return 1;
+}
+
+static int l_ngl_camera_translate(lua_State *L) {
+    ngl_camera *camera = l_to_ngl_camera(L, 1);
+    float tx = luaL_checknumber(L, 2);
+    float ty = luaL_checknumber(L, 3);
+    float tz = luaL_checknumber(L, 4);
+    ngl_camera_translate(camera, tx, ty, tz);
+    return 0;
+}
+
+static int l_ngl_camera_rotate_x(lua_State *L) {
+    ngl_camera *camera = l_to_ngl_camera(L, 1);
+    float deg = luaL_checknumber(L, 2);
+    ngl_camera_rotate_x(camera, deg);
+    return 0;
+}
+
+static int l_ngl_camera_rotate_y(lua_State *L) {
+    ngl_camera *camera = l_to_ngl_camera(L, 1);
+    float deg = luaL_checknumber(L, 2);
+    ngl_camera_rotate_y(camera, deg);
+    return 0;
+}
+
+static int l_ngl_camera_rotate_z(lua_State *L) {
+    ngl_camera *camera = l_to_ngl_camera(L, 1);
+    float deg = luaL_checknumber(L, 2);
+    ngl_camera_rotate_z(camera, deg);
+    return 0;
 }
 
 static int l_ngl_camera_free(lua_State *L) {
@@ -895,7 +931,12 @@ static lua_State *l_init() {
     l_register_function(L, "nul_buffer_save", l_nul_buffer_save);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
+    l_register_function(L, "ngl_camera_new", l_ngl_camera_new);
     l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
+    l_register_function(L, "ngl_camera_translate", l_ngl_camera_translate);
+    l_register_function(L, "ngl_camera_rotate_x", l_ngl_camera_rotate_x);
+    l_register_function(L, "ngl_camera_rotate_y", l_ngl_camera_rotate_y);
+    l_register_function(L, "ngl_camera_rotate_z", l_ngl_camera_rotate_z);
     l_register_function(L, "ngl_shader_new", l_ngl_shader_new);
     l_register_function(L, "ngl_shader_new_from_file", l_ngl_shader_new_from_file);
     l_register_function(L, "ngl_shader_uniform_set_float", l_ngl_shader_uniform_set_float);

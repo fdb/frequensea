@@ -79,7 +79,12 @@ ngl_model* ngl_model_new_with_height_map(int row_count, int column_count, float 
 ngl_model* ngl_model_load_obj(const char* fname);
 void ngl_model_translate(ngl_model *model, float tx, float ty, float tz);
 void ngl_model_free(ngl_model *model);
+ngl_camera* ngl_camera_new();
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z);
+void ngl_camera_translate(ngl_camera *camera, float tx, float ty, float tz);
+void ngl_camera_rotate_x(ngl_camera *camera, float r);
+void ngl_camera_rotate_y(ngl_camera *camera, float r);
+void ngl_camera_rotate_z(ngl_camera *camera, float r);
 void ngl_camera_free(ngl_camera *camera);
 ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top, const char *bottom, const char *left, const char *right);
 void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera);

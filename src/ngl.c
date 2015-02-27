@@ -492,6 +492,14 @@ void ngl_model_free(ngl_model *model) {
 
 // Camera ////////////////////////////////////////////////////////////////////
 
+ngl_camera* ngl_camera_new() {
+    ngl_camera *camera = calloc(1, sizeof(ngl_camera));
+    camera->view = mat4_init_identity();
+    camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
+    camera->background = ngl_color_init_rgba(0, 0, 1, 1);
+    return camera;
+}
+
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
     ngl_camera *camera = calloc(1, sizeof(ngl_camera));
     vec3 loc = vec3_init(x, y, z);
@@ -501,6 +509,26 @@ ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
     camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
     return camera;
+}
+
+void ngl_camera_translate(ngl_camera *camera, float tx, float ty, float tz) {
+    mat4 m = mat4_init_translate(tx, ty, tz);
+    camera->view = mat4_mul(&camera->view, &m);
+}
+
+void ngl_camera_rotate_x(ngl_camera *camera, float deg) {
+    mat4 m = mat4_init_rotation_x(deg);
+    camera->view = mat4_mul(&camera->view, &m);
+}
+
+void ngl_camera_rotate_y(ngl_camera *camera, float deg) {
+    mat4 m = mat4_init_rotation_y(deg);
+    camera->view = mat4_mul(&camera->view, &m);
+}
+
+void ngl_camera_rotate_z(ngl_camera *camera, float deg) {
+    mat4 m = mat4_init_rotation_z(deg);
+    camera->view = mat4_mul(&camera->view, &m);
 }
 
 void ngl_camera_free(ngl_camera* camera) {
