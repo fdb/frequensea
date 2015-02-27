@@ -15,7 +15,7 @@ GLuint texture_id;
 GLuint program;
 uint8_t buffer[512 * 512];
 hackrf_device *device;
-double freq_mhz = 2.5;
+double freq_mhz = 1.05;
 int paused = 0;
 
 #define HACKRF_CHECK_STATUS(status, message) \
@@ -47,7 +47,7 @@ static void setup_hackrf() {
     status = hackrf_set_freq(device, freq_mhz * 1e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_freq");
 
-    status = hackrf_set_sample_rate(device, 10e6);
+    status = hackrf_set_sample_rate(device, 5e6);
     HACKRF_CHECK_STATUS(status, "hackrf_set_sample_rate");
 
     status = hackrf_set_amp_enable(device, 0);
