@@ -73,8 +73,9 @@ function setup()
     freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 128)
-
-    camera = ngl_camera_new_look_at(0, 0.01, 0.1)
+    camera = ngl_camera_new()
+    ngl_camera_translate(camera, 0, -0.001, 0)
+    ngl_camera_rotate_x(camera, -10)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0005)
