@@ -1,13 +1,15 @@
-#include <libhackrf/hackrf.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-const long NRF_SAMPLES_LENGTH = 262144;
-const long BUFFER_SIZE = NRF_SAMPLES_LENGTH * 1;
-const int CENTER_FREQ = 433e6;
-const int SAMPLE_RATE = 10e6;
-uint8_t buffer[BUFFER_SIZE];
+#include <libhackrf/hackrf.h>
+
+const uint64_t NRF_SAMPLES_LENGTH = 262144;
+uint64_t BUFFER_SIZE = 0;
+uint64_t FREQUENCY = 1e6;
+const uint32_t SAMPLE_RATE = 5e6;
+uint8_t *buffer;
 long buffer_pos = 0;
 
 int skip = 10;
@@ -34,7 +36,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
     }
     if (buffer_pos >= BUFFER_SIZE) {
         char fname[100];
-        snprintf(fname, 100, "../rfdata/rf-%.3f.raw", CENTER_FREQ / 1.0e6);
+        snprintf(fname, 100, "../rfdata/rf-%.3f-big.raw", FREQUENCY / 1.0e6);
         FILE *fp = fopen(fname, "wb");
         if (fp) {
             fwrite(buffer, BUFFER_SIZE, 1, fp);
@@ -47,6 +49,12 @@ int receive_sample_block(hackrf_transfer *transfer) {
 }
 
 int main(int argc, char **argv) {
+    assert(argc == 3);
+    double freq_mhz = atof(argv[1]);
+    FREQUENCY = freq_mhz * 1e6;
+    int count = atoi(argv[2]);
+    BUFFER_SIZE = NRF_SAMPLES_LENGTH * count;
+    buffer = calloc(BUFFER_SIZE, 1);
 
     int status;
     hackrf_device *device;
@@ -57,7 +65,7 @@ int main(int argc, char **argv) {
     status = hackrf_open(&device);
     CHECK_STATUS(status, "hackrf_open");
 
-    status = hackrf_set_freq(device, CENTER_FREQ);
+    status = hackrf_set_freq(device, FREQUENCY);
     CHECK_STATUS(status, "hackrf_set_freq");
 
     status = hackrf_set_sample_rate(device, SAMPLE_RATE);
