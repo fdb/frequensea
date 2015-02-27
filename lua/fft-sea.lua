@@ -12,7 +12,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.0004;
+    float d = 0.001;
     float cell_size = 0.0001;
     vec2 tp = vec2(vt.x, vt.y - 0.5);
     if (tp.y < 0) {
@@ -21,9 +21,6 @@ void main() {
     float y1 = texture(uTexture, tp).r;
     float y2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
     float y3 = texture(uTexture, tp + vec2(0, cell_size)).r;
-    y1 = log2(y1) + 0.1;
-    y2 = log2(y2) + 0.1;
-    y3 = log2(y3) + 0.1;
     y1 *= d;
     y2 *= d;
     y3 *= d;
@@ -38,8 +35,8 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    color = vec4(0.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 0.9;
-    color += vec4(1.0, 0.0, 0.0, 1.0) * 0.9;
+    color = vec4(0.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 1.9;
+    color += vec4(1.0, 0.0, 0.0, 1.0) * 0.2;
     color.a = 0.9;
 
     texCoord = vt;
@@ -62,7 +59,7 @@ void main() {
 function setup()
     freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    fft = nrf_fft_new(256, 256)
+    fft = nrf_fft_new(128, 512)
     camera = ngl_camera_new()
     ngl_camera_translate(camera, 0, 0, 0)
     ngl_camera_rotate_x(camera, -20)
@@ -70,18 +67,18 @@ function setup()
     shader2 = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 512, 0.0001, 0.0001)
-    ngl_model_translate(model, 0, -0.005, 0)
+    ngl_model_translate(model, 0, -0.005, 0.005)
 end
 
 function draw()
-    --ngl_camera_rotate_y(camera, 0.1)
+    --ngl_camera_rotate_y(camera, 0.3)
 
     samples_buffer = nrf_device_get_samples_buffer(device)
     nrf_fft_process(fft, samples_buffer)
     fft_buffer = nrf_fft_get_buffer(fft)
 
-    ngl_clear(0.0, 0.2, 0.2, 1.0)
-    ngl_texture_update(texture, fft_buffer, 256, 256)
+    ngl_clear(0.0, 0.0, 0.0, 1.0)
+    ngl_texture_update(texture, fft_buffer, 128, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, shader2)
 end
