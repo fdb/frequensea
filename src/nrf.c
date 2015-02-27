@@ -631,12 +631,17 @@ void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     memcpy(fft->buffer + fft->fft_size, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * sizeof(double));
     // Set the first line
     for (int i = 0; i < fft->fft_size; i++) {
-        fftw_complex *out = fft->fft_out;
-        double fi = out[i][0];
-        double fq = out[i][1];
-        double pwr = fi * fi + fq * fq;
-        float pwr_dbfs = log10(pwr + 1.0e-20);
-        fft->buffer[i] = pwr_dbfs;
+        // DC compensation
+        if (i == fft->fft_size / 2) {
+            fft->buffer[i] = fft->buffer[i - 1];
+        } else {
+            fftw_complex *out = fft->fft_out;
+            double fi = out[i][0];
+            double fq = out[i][1];
+            double pwr = fi * fi + fq * fq;
+            float pwr_dbfs = log10(pwr + 1.0e-20);
+            fft->buffer[i] = pwr_dbfs;
+        }
     }
 }
 
