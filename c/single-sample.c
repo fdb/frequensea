@@ -19,7 +19,6 @@ const int IQ_HEIGHT = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IMAGE_OFFSET_X = (IMAGE_WIDTH - IQ_WIDTH) / 2;
 const int IMAGE_OFFSET_Y = (IMAGE_HEIGHT - IQ_HEIGHT) / 2;
 const int PIXEL_INC = 4;
-const int FADE_OUT_FRAMES = 30;
 
 uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
     return (uint8_t) (v < min ? min : v > max ? max : v);
@@ -98,18 +97,6 @@ int main() {
             }
             x1 = x2;
             y1 = y2;
-        }
-        write_image(image_buffer, fname_index);
-        fname_index++;
-    }
-
-    const int FADE_PER_FRAME = ceil(255 / FADE_OUT_FRAMES);
-    for (int i = 0; i < FADE_OUT_FRAMES; i++) {
-        for (int j = 0; j < IMAGE_WIDTH * IMAGE_HEIGHT; ++j) {
-            int v = image_buffer[j];
-            v -= FADE_PER_FRAME;
-            v = clamp_u8(v, 0, 255);
-            image_buffer[j] = v;
         }
         write_image(image_buffer, fname_index);
         fname_index++;
