@@ -256,7 +256,7 @@ static int _nrf_hackrf_start(nrf_device *device, double freq_mhz, int sample_rat
     status = hackrf_set_lna_gain(dev, 32);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_lna_gain");
 
-    status = hackrf_set_vga_gain(dev, 40);
+    status = hackrf_set_vga_gain(dev, 34);
     _NRF_HACKRF_CHECK_STATUS(device, status, "hackrf_set_lna_gain");
 
     device->receiving = 1;
@@ -577,8 +577,6 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     fft->buffer = calloc(fft_size * fft_history_size, sizeof(double));
     return fft;
 }
-
-
 
 void nrf_fft_shift(nrf_fft *fft, double d) {
     int shift_pixels = round(fft->fft_size / d);
