@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
 
     const uint32_t HEADER_HEIGHT = 300;
     const uint32_t FOOTER_HEIGHT = 300;
+    const uint32_t FOOTER_BLEED = 35;
 
     const uint32_t TARGET_WIDTH = 23693;
     const uint32_t TARGET_HEIGHT = 7157;
@@ -206,33 +207,25 @@ int main(int argc, char **argv) {
     }
     footer_top += border_height;
 
-    // Higher to compensate for bleed
-    const int footer_border_height = 35;
-    for (int i = 0; i < footer_border_height; i++) {
-        img_hline(out_buffer, out_width, 0, footer_bottom - i, out_width, LINE_COLOR);
-    }
-
-    footer_bottom -= footer_border_height;
-
     // Add minor ticks.
     for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MINOR_TICK_RATE) {
         int x = frequency_to_x(out_width, FREQUENCY_REAL_START, FREQUENCY_REAL_RANGE, freq);
         if (x > 0 && x < out_width) {
             for (int dx = -1; dx <= 1; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MINOR_TICK_HEIGHT, LINE_COLOR);
-                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT, footer_bottom + 1, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MINOR_TICK_HEIGHT - FOOTER_BLEED, footer_bottom + 1, LINE_COLOR);
             }
         }
     }
 
     // Add major ticks + text.
-    const uint32_t labels_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2);
+    const uint32_t labels_y = height + HEADER_HEIGHT + (FOOTER_HEIGHT / 2 - FONT_SIZE_PX / 2 - FOOTER_BLEED / 2);
     for (uint64_t freq = 0; freq < FREQUENCY_REAL_END; freq += MAJOR_TICK_RATE) {
         int x = frequency_to_x(out_width, FREQUENCY_REAL_START, FREQUENCY_REAL_RANGE, freq);
         if (x > 0 && x < out_width) {
             for (int dx = -2; dx <= 2; dx += 1) {
                 img_vline(out_buffer, out_width, x + dx, footer_top, footer_top + MAJOR_TICK_HEIGHT, LINE_COLOR);
-                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT, footer_bottom + 1, LINE_COLOR);
+                img_vline(out_buffer, out_width, x + dx, footer_bottom - MAJOR_TICK_HEIGHT - FOOTER_BLEED, footer_bottom + 1, LINE_COLOR);
             }
             if (freq > FREQUENCY_REAL_START && freq < FREQUENCY_REAL_END) {
                 char text[200];
