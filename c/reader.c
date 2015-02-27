@@ -5,8 +5,7 @@
 
 const long NRF_SAMPLES_LENGTH = 262144;
 const long BUFFER_SIZE = NRF_SAMPLES_LENGTH * 1;
-const int DESIRED_FREQ = 1278e6;
-const int CENTER_FREQ = DESIRED_FREQ + 0;
+const int CENTER_FREQ = 433e6;
 const int SAMPLE_RATE = 10e6;
 uint8_t buffer[BUFFER_SIZE];
 long buffer_pos = 0;
@@ -35,7 +34,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
     }
     if (buffer_pos >= BUFFER_SIZE) {
         char fname[100];
-        snprintf(fname, 100, "rf-%.3f-1.raw", DESIRED_FREQ / 1.0e6);
+        snprintf(fname, 100, "../rfdata/rf-%.3f.raw", CENTER_FREQ / 1.0e6);
         FILE *fp = fopen(fname, "wb");
         if (fp) {
             fwrite(buffer, BUFFER_SIZE, 1, fp);
@@ -63,6 +62,15 @@ int main(int argc, char **argv) {
 
     status = hackrf_set_sample_rate(device, SAMPLE_RATE);
     CHECK_STATUS(status, "hackrf_set_sample_rate");
+
+    status = hackrf_set_amp_enable(device, 0);
+    CHECK_STATUS(status, "hackrf_set_amp_enable");
+
+    status = hackrf_set_lna_gain(device, 32);
+    CHECK_STATUS(status, "hackrf_set_lna_gain");
+
+    status = hackrf_set_vga_gain(device, 34);
+    CHECK_STATUS(status, "hackrf_set_vga_gain");
 
     status = hackrf_start_rx(device, receive_sample_block, NULL);
     CHECK_STATUS(status, "hackrf_start_rx");
