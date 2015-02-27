@@ -12,7 +12,7 @@ uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
 void main() {
-    float d = 0.01;
+    float d = 0.02;
     float cell_size = 0.0005;
     vec2 tp = vec2(vt.x, vt.y - 0.5);
     if (tp.y < 0) {
@@ -56,15 +56,15 @@ void main() {
 
 
 function setup()
-    freq = 97
+    freq = 433
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 128)
     camera = ngl_camera_new()
-    ngl_camera_translate(camera, 0, -0.001, 0)
-    ngl_camera_rotate_x(camera, -10)
+    ngl_camera_translate(camera, 0, -0.05, 0)
+    ngl_camera_rotate_x(camera, -2)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0005)
+    model = ngl_model_new_grid_triangles(256, 256, 0.01, 0.003)
     ngl_model_translate(model, -0.01, -0.04, 0)
 end
 
