@@ -606,7 +606,6 @@ void nrf_fft_shift(nrf_fft *fft, double d) {
                 }
             }
         }
-        printf("nrf_fft_shift %d\n", shift_pixels);
     }
 }
 
