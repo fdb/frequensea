@@ -574,7 +574,7 @@ nrf_fft *nrf_fft_new(int fft_size, int fft_history_size) {
     fft->fft_in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
     fft->fft_out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NRF_SAMPLES_LENGTH);
     fft->fft_plan = fftw_plan_dft_1d(fft_size, fft->fft_in, fft->fft_out, FFTW_FORWARD, FFTW_MEASURE);
-    fft->buffer = calloc(fft_size * fft_history_size * 2, sizeof(double));
+    fft->buffer = calloc(fft_size * fft_history_size, sizeof(double));
     return fft;
 }
 
@@ -597,18 +597,20 @@ void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
     }
     fftw_execute(fft->fft_plan);
     // Move the previous lines down
-    memcpy(fft->buffer + fft->fft_size * 2, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * 2 * sizeof(double));
+    memcpy(fft->buffer + fft->fft_size, fft->buffer, fft->fft_size * (fft->fft_history_size - 1) * sizeof(double));
     // Set the first line
-    int j = 0;
     for (int i = 0; i < fft->fft_size; i++) {
         fftw_complex *out = fft->fft_out;
-        fft->buffer[j++] = out[i][0];
-        fft->buffer[j++] = out[i][1];
+        double fi = out[i][0];
+        double fq = out[i][1];
+        double pwr = fi * fi + fq * fq;
+        float pwr_dbfs = log10(pwr + 1.0e-20);
+        fft->buffer[i] = pwr_dbfs;
     }
 }
 
 nul_buffer *nrf_fft_get_buffer(nrf_fft *fft) {
-    return nul_buffer_new_f64(fft->fft_size * fft->fft_history_size, 2, (double *) fft->buffer);
+    return nul_buffer_new_f64(fft->fft_size * fft->fft_history_size, 1, (double *) fft->buffer);
 }
 
 void nrf_fft_free(nrf_fft *fft) {

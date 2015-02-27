@@ -24,18 +24,12 @@ uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
     float r = texture(uTexture, texCoord).r;
-    float g = texture(uTexture, texCoord).g;
-    float pwr = r * r + g * g;
-    float pwr_dbfs = 10.0 * log2(pwr + 1.0e-20) / log2(2.7182818284);
-
-    //float v = sqrt(r * r + g * g) * 0.1;
-    float v = pwr_dbfs * 0.02;
-    fragColor = vec4(v, v, v, 0.95);
+    fragColor = vec4(r, r, r, 0.95);
 }
 ]]
 
 function setup()
-    freq = 97
+    freq = 433
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(1024, 1024)
 
