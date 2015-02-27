@@ -18,7 +18,8 @@ const int IQ_WIDTH = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IQ_HEIGHT = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IMAGE_OFFSET_X = (IMAGE_WIDTH - IQ_WIDTH) / 2;
 const int IMAGE_OFFSET_Y = (IMAGE_HEIGHT - IQ_HEIGHT) / 2;
-const int PIXEL_INC = 4;
+const int PIXEL_INC = 100;
+const int FADE_PER_FRAME = 10;
 
 uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
     return (uint8_t) (v < min ? min : v > max ? max : v);
@@ -72,7 +73,7 @@ void write_image(uint8_t *image_buffer, int fname_index) {
 }
 
 int main() {
-    FILE *fp = fopen("../rfdata/rf-612.004-1.raw", "r");
+    FILE *fp = fopen("../rfdata/rf-433.000-short.raw", "r");
     assert(fp != NULL);
     fseek(fp, 0L, SEEK_END);
     long size = ftell(fp);
@@ -89,6 +90,13 @@ int main() {
 
     int fname_index = 1;
     for (int j = 0; j < size; j += SAMPLES_STEP) {
+        for (int i = 0; i < IMAGE_WIDTH * IMAGE_HEIGHT; ++i) {
+            int v = image_buffer[i];
+            v -= FADE_PER_FRAME;
+            v = clamp_u8(v, 0, 255);
+            image_buffer[i] = v;
+        }
+
         for (int i = 0; i < SAMPLES_STEP; i += 2) {
             int x2 = (sample_buffer[j + i] + 128) % 256;
             int y2 = (sample_buffer[j + i + 1] + 128) % 256;
