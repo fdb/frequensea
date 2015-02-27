@@ -14,12 +14,16 @@ uniform sampler2D uTexture;
 void main() {
     float d = 0.01;
     float cell_size = 0.0005;
-    float r1 = texture(uTexture, vt).r;
-    float g1 = texture(uTexture, vt).g;
-    float r2 = texture(uTexture, vt + vec2(cell_size, 0)).r;
-    float g2 = texture(uTexture, vt + vec2(cell_size, 0)).g;
-    float r3 = texture(uTexture, vt + vec2(0, cell_size)).r;
-    float g3 = texture(uTexture, vt + vec2(0, cell_size)).g;
+    vec2 tp = vec2(vt.x, vt.y - 0.5);
+    if (tp.y < 0) {
+        tp.y = 1-tp.y;
+    }
+    float r1 = texture(uTexture, tp).r;
+    float g1 = texture(uTexture, tp).g;
+    float r2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
+    float g2 = texture(uTexture, tp + vec2(cell_size, 0)).g;
+    float r3 = texture(uTexture, tp + vec2(0, cell_size)).r;
+    float g3 = texture(uTexture, tp + vec2(0, cell_size)).g;
     float t1 = sqrt(r1 * r1 + g1 * g1);
     float t2 = sqrt(r2 * r2 + g2 * g2);
     float t3 = sqrt(r3 * r3 + g3 * g3);
