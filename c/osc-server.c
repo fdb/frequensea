@@ -28,6 +28,24 @@ static void warn(const char * format, ...) {
     fprintf(stderr, ".\n");
 }
 
+#if defined( __BIG_ENDIAN__ )
+    static inline void swap32(void *v) { }
+#elif defined( __LITTLE_ENDIAN__ )
+    static inline void swap(char *a, char *b){
+        char t = *a;
+        *a = *b;
+        *b = t;
+    }
+
+    static inline void swap32(void *v) {
+        char *b = (char *) v;
+        swap(b  , b+3);
+        swap(b+1, b+2);
+    }
+#else
+    #error Either __BIG_ENDIAN__ or __LITTLE_ENDIAN__ must be defined.
+#endif
+
 void check_arg(int cond, const char *format, ...) {
     if (!cond) {
         va_list vargs;
@@ -127,11 +145,8 @@ int32_t parse_int32(parser *p) {
     assert(p->remaining >= 4);
 
     char *pos = p->pos;
-    uint32_t v = *pos;
-
-    v = (v << 8) + *(pos + 1);
-    v = (v << 8) + *(pos + 2);
-    v = (v << 8) + *(pos + 3);
+    swap32(pos);
+    uint32_t v = *(int32_t *)pos;
 
     printf("parse_int32 %d\n", v);
     p->pos += 4;
