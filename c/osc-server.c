@@ -1,6 +1,7 @@
 // A simple OSC listening server.
 // Can be used to receive messages from OSCulator.
 
+#include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -70,8 +71,8 @@ ssize_t get_string(void *data, ssize_t size) {
 
 typedef union osc_arg {
     char *s;
-    int *i;
-    float *f;
+    int32_t i;
+    float f;
 } osc_arg;
 
 typedef struct {
@@ -86,6 +87,59 @@ const char *osc_message_get_string_arg(const osc_message *msg, int index) {
     return msg->args[index].s;
 }
 
+int32_t osc_message_get_int32_arg(const osc_message *msg, int index) {
+    char arg_type = msg->types[index];
+    check_arg(arg_type == 'i', "OSC argument %d is not an int32.", index);
+    return msg->args[index].i;
+}
+
+typedef struct {
+    char *pos;
+    int remaining;
+} parser;
+
+char *parse_string(parser *p) {
+    assert(p != NULL);
+    assert(p->pos != NULL);
+    assert(p->remaining > 0);
+
+    // The string starts where the parser is.
+    char *start = p->pos;
+
+    // Now let's find the end
+    char *end = p->pos;
+    end += 3;
+    while (*end) {
+        end += 4;
+    }
+    end++;
+
+    printf("parse_string %s len %ld\n", start, end - start);
+    p->pos = end;
+    p->remaining = end - start;
+
+    return start;
+}
+
+int32_t parse_int32(parser *p) {
+    assert(p != NULL);
+    assert(p->pos != NULL);
+    assert(p->remaining >= 4);
+
+    char *pos = p->pos;
+    uint32_t v = *pos;
+
+    v = (v << 8) + *(pos + 1);
+    v = (v << 8) + *(pos + 2);
+    v = (v << 8) + *(pos + 3);
+
+    printf("parse_int32 %d\n", v);
+    p->pos += 4;
+    p->remaining -= 4;
+
+    return v;
+}
+
 
 void handle_datagram(char *data, size_t size) {
     printf("Size: %ld\n", size);
@@ -97,39 +151,55 @@ void handle_datagram(char *data, size_t size) {
 
     osc_message *msg = calloc(1, sizeof(osc_message));
 
-    //int pos = 0;
-    int len = 0;
-    int remaining = size;
+    parser p;
+    p.pos = data;
+    p.remaining = size;
 
+
+
+    //int pos = 0;
+    //int len = 0;
+    //int remaining = size;
+
+    //char *p = data;
 
     // Parse the path
-    len = get_string(data, remaining);
-    remaining -= len;
-    strncpy(msg->path, data, MAX_PATH_LENGTH);
+    const char *path = parse_string(&p);
+    strncpy(msg->path, path, MAX_PATH_LENGTH);
 
     // Parse the types
-    char *types_ptr = data + len;
-    check_arg(*types_ptr == ',', "OSC message does not contain type tag string.");
-    types_ptr++;
-    len = get_string(types_ptr, remaining);
-    int types_count = strlen(types_ptr);
-    remaining -= len;
-    strncpy(msg->types, types_ptr, MAX_TYPES_LENGTH);
+    printf("Types: %s\n", p.pos);
+    const char *types = parse_string(&p);
+    check_arg(*types == ',', "OSC message does not contain type tag string.");
+    types++;
+    strncpy(msg->types, types, MAX_TYPES_LENGTH);
+    int types_count = strlen(types);
+    printf("Types in msg: %s\n", msg->types);
+
+    // char *types_ptr = data + len;
+    // types_ptr++;
+    // len = get_string(types_ptr, remaining);
+    // remaining -= len;
+    // strncpy(msg->types, types_ptr, MAX_TYPES_LENGTH);
 
     // Allocate the data structures.
     msg->args = calloc(types_count, sizeof(osc_arg));
 
     // Parse the actual arguments.
-    char *args_ptr = types_ptr + len;
+    //char *args_ptr = types_ptr + len;
     for (int i = 0; i < types_count; i ++) {
-        char arg_type = types_ptr[i];
+        char arg_type = types[i];
         if (arg_type == 's') {
-            len = get_string(args_ptr, remaining);
-            remaining -= len;
-            msg->args[i].s = calloc(len, sizeof(char));
+            const char *str = parse_string(&p);
+            //len = get_string(args_ptr, remaining);
+            //remaining -= len;
+            int len = strlen(str);
+            msg->args[i].s = calloc(len, 1);
             printf("Len %d\n", len);
-            strncpy(msg->args[i].s, args_ptr, len);
-            args_ptr += len;
+            strncpy(msg->args[i].s, str, len);
+        } else if (arg_type == 'i') {
+            int v = parse_int32(&p);
+            msg->args[i].i = v;
         }
 
         printf("Arg %c\n", arg_type);
@@ -139,6 +209,9 @@ void handle_datagram(char *data, size_t size) {
 
     const char *arg0 = osc_message_get_string_arg(msg, 0);
     printf("Arg 0 %s\n", arg0);
+
+    int arg1 = osc_message_get_int32_arg(msg, 1);
+    printf("Arg 1 %d\n", arg1);
 
     free(msg);
 
