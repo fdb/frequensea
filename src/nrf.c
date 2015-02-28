@@ -636,9 +636,8 @@ void nrf_fft_process(nrf_fft *fft, nul_buffer *buffer) {
             fftw_complex *out = fft->fft_out;
             double fi = out[i][0];
             double fq = out[i][1];
-            double pwr = fi * fi + fq * fq;
-            float pwr_dbfs = log10(pwr + 1.0e-20);
-            fft->buffer[i] = pwr_dbfs;
+            double pwr = sqrt(fi * fi + fq * fq);
+            fft->buffer[i] = pwr;
         }
     }
 }
