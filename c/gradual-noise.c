@@ -10,11 +10,11 @@
 #include "easypng.h"
 
 const int BLOCK_SIZE_BYTES = 262144;
-const int IMAGE_WIDTH = 480;
-const int IMAGE_HEIGHT = 270;
+const int IMAGE_WIDTH = 512;
+const int IMAGE_HEIGHT = 512;
 const int RF_BUFFER_SIZE = IMAGE_WIDTH * IMAGE_HEIGHT * 2;
 const int IMAGE_BUFFER_SIZE = IMAGE_WIDTH * IMAGE_HEIGHT;
-const int TOTAL_FRAMES = 1000;
+const int TOTAL_FRAMES = 5000;
 const double INTERPOLATE_STEP = 0.01;
 const double FREQ_MHZ_START = 1.0;
 const double FREQ_MHZ_STEP = 0.01;
@@ -29,7 +29,7 @@ double clamp(double v, double min, double max) {
 
 void read_buffer(uint8_t *dst, double freq_mhz) {
     char fname[100];
-    snprintf(fname, 100, "../rfdata/rf-%.3f-big.raw", freq_mhz);
+    snprintf(fname, 100, "../rftmp/rf-%.3f-big.raw", freq_mhz);
     FILE *fp = fopen(fname, "r");
     fread(dst, RF_BUFFER_SIZE, 1, fp);
     fclose(fp);
@@ -53,12 +53,12 @@ int main() {
         int j = 0;
         for (int i=0; i < RF_BUFFER_SIZE; i += 2) {
             int ai = (rf_buffer_a[i] + 128) % 256;
-            int aq = (rf_buffer_a[i + 1] + 128) % 256;
+            //int aq = (rf_buffer_a[i + 1] + 128) % 256;
             int bi = (rf_buffer_b[i] + 128) % 256;
-            int bq = (rf_buffer_b[i + 1] + 128) % 256;
-            double a_pwr = sqrt(ai * ai + aq * aq) * 0.8;
-            double b_pwr = sqrt(bi * bi + bq * bq) * 0.8;
-            double pwr = lerp(a_pwr, b_pwr, t);
+            //int bq = (rf_buffer_b[i + 1] + 128) % 256;
+            //double a_pwr = sqrt(ai * ai + aq * aq) * 0.8;
+            //double b_pwr = sqrt(bi * bi + bq * bq) * 0.8;
+            double pwr = lerp(ai, bi, t);
             image_buffer[j] = clamp(pwr, 0, 255);
             j++;
         }
