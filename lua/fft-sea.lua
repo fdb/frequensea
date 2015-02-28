@@ -11,6 +11,16 @@ out vec2 texCoord;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
+uniform float uHue;
+uniform float uSaturation;
+uniform float uValue;
+
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
 void main() {
     float d = 0.001;
     float cell_size = 0.0001;
@@ -35,9 +45,11 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    color = vec4(0.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 1.9;
-    color += vec4(1.0, 0.0, 0.0, 1.0) * 0.2;
-    color.a = 0.9;
+    vec3 tint = hsv2rgb(vec3(uHue, uSaturation, uValue));
+
+    color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 2;
+    color += vec4(tint, 0.3);
+    //color.a = 1.0;
 
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
@@ -57,17 +69,18 @@ void main() {
 
 
 function setup()
-    freq = 97
+    freq = 2462
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
     camera = ngl_camera_new()
     ngl_camera_translate(camera, 0, 0, 0)
-    ngl_camera_rotate_x(camera, -20)
+    ngl_camera_rotate_x(camera, -10)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
+    set_colors_for_freq()
     shader2 = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 512, 0.0001, 0.0001)
-    ngl_model_translate(model, 0, -0.005, 0.005)
+    ngl_model_translate(model, 0, -0.01, 0.005)
 end
 
 function draw()
@@ -83,6 +96,16 @@ function draw()
     ngl_draw_model(camera, model, shader2)
 end
 
+function set_colors_for_freq()
+    ngl_shader_uniform_set_float(shader, "uHue", (freq % 2029) / 2029.0)
+    ngl_shader_uniform_set_float(shader, "uValue", 0.1 + (freq % 859) / 859.0)
+    ngl_shader_uniform_set_float(shader, "uSaturation", (freq % 727) / 727.0)
+end
+
 function on_key(key, mods)
+    old_freq = freq
     keys_frequency_handler(key, mods)
+    if old_freq ~= freq then
+        set_colors_for_freq()
+    end
 end
