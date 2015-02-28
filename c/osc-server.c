@@ -105,10 +105,16 @@ const char *osc_message_get_string_arg(const osc_message *msg, int index) {
     return msg->args[index].s;
 }
 
-int32_t osc_message_get_int32_arg(const osc_message *msg, int index) {
+int32_t osc_message_get_int_arg(const osc_message *msg, int index) {
     char arg_type = msg->types[index];
     check_arg(arg_type == 'i', "OSC argument %d is not an int32.", index);
     return msg->args[index].i;
+}
+
+float osc_message_get_float_arg(const osc_message *msg, int index) {
+    char arg_type = msg->types[index];
+    check_arg(arg_type == 'f', "OSC argument %d is not a float.", index);
+    return msg->args[index].f;
 }
 
 typedef struct {
@@ -144,11 +150,25 @@ int32_t parse_int32(parser *p) {
     assert(p->pos != NULL);
     assert(p->remaining >= 4);
 
-    char *pos = p->pos;
-    swap32(pos);
-    uint32_t v = *(int32_t *)pos;
+    swap32(p->pos);
+    uint32_t v = *(int32_t *)p->pos;
 
     printf("parse_int32 %d\n", v);
+    p->pos += 4;
+    p->remaining -= 4;
+
+    return v;
+}
+
+float parse_float(parser *p) {
+    assert(p != NULL);
+    assert(p->pos != NULL);
+    assert(p->remaining >= 4);
+
+    swap32(p->pos);
+    float v = *(float *)p->pos;
+
+    printf("parse_float %.3f\n", v);
     p->pos += 4;
     p->remaining -= 4;
 
@@ -215,6 +235,9 @@ void handle_datagram(char *data, size_t size) {
         } else if (arg_type == 'i') {
             int v = parse_int32(&p);
             msg->args[i].i = v;
+        } else if (arg_type == 'f') {
+            float v = parse_float(&p);
+            msg->args[i].f = v;
         }
 
         printf("Arg %c\n", arg_type);
@@ -225,15 +248,14 @@ void handle_datagram(char *data, size_t size) {
     const char *arg0 = osc_message_get_string_arg(msg, 0);
     printf("Arg 0 %s\n", arg0);
 
-    int arg1 = osc_message_get_int32_arg(msg, 1);
+    int arg1 = osc_message_get_int_arg(msg, 1);
     printf("Arg 1 %d\n", arg1);
 
+    float arg2 = osc_message_get_float_arg(msg, 2);
+    printf("Arg 2 %.3f\n", arg2);
+
     free(msg);
-
-
 }
-
-
 
 int main() {
     const char *hostname = 0;
