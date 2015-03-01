@@ -98,7 +98,7 @@ function setup()
     set_colors_for_freq()
     shader2 = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 512, 0.0001, 0.0001)
+    model = ngl_model_new_grid_triangles(512, 512, 0.0005, 0.0001)
     ngl_model_translate(model, 0, -0.01, 0.005)
 end
 
