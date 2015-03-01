@@ -75,8 +75,8 @@ function handle_message(path, args)
         if math.abs(roll) > 0.2 then
             d = roll * 0.1
             freq = freq + d
-            print("Frequency: " .. freq)
-            freq = nrf_device_set_frequency(device, freq)
+            new_freq = nrf_device_set_frequency(device, freq)
+            print("Frequency: " .. new_freq)
             if fft then
                 nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
             end
