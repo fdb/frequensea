@@ -22,7 +22,7 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main() {
-    float d = 0.001;
+    float d = 0.0004;
     float cell_size = 0.0001;
     vec2 tp = vec2(vt.x, vt.y - 0.5);
     if (tp.y < 0) {
@@ -47,7 +47,7 @@ void main() {
 
     vec3 tint = hsv2rgb(vec3(uHue, uSaturation, uValue));
 
-    color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 2;
+    color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * 0.8;
     color += vec4(tint, 0.3);
     //color.a = 1.0;
 
@@ -102,7 +102,7 @@ end
 function setup()
     freq = 2462
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    fft = nrf_fft_new(128, 512)
+    fft = nrf_fft_new(256, 512)
 
     server = nosc_server_new(2222, handle_message)
 
@@ -113,7 +113,7 @@ function setup()
     set_colors_for_freq()
     shader2 = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 512, 0.0001, 0.0001)
+    model = ngl_model_new_grid_triangles(512, 1024, 0.0001, 0.0001)
     ngl_model_translate(model, 0, -0.01, 0.005)
 end
 
@@ -125,7 +125,7 @@ function draw()
     nosc_server_update(server)
 
     ngl_clear(0.0, 0.0, 0.0, 1.0)
-    ngl_texture_update(texture, fft_buffer, 128, 512)
+    ngl_texture_update(texture, fft_buffer, 256, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, shader2)
 end
