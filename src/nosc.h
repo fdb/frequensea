@@ -33,6 +33,7 @@ typedef void (*nosc_server_handle_message_fn)(nosc_server *server, nosc_message 
 
 struct nosc_server {
     int port;
+    int running;
 
     nosc_server_handle_message_fn handle_message_fn;
     void *handle_message_ctx;

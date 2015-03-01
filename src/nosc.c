@@ -224,7 +224,7 @@ static void _nosc_server_start(nosc_server *server) {
     message.msg_control = 0;
     message.msg_controllen = 0;
 
-    while(1) {
+    while(server->running) {
         ssize_t count = recvmsg(fd, &message, 0);
         if (count == -1) {
             die("%s", strerror(errno));
@@ -243,11 +243,14 @@ static void _nosc_server_start(nosc_server *server) {
             pthread_mutex_unlock(&server->message_mutex);
         }
     }
+
+    close(fd);
 }
 
 nosc_server *nosc_server_new(int port, nosc_server_handle_message_fn fn, void *ctx) {
     nosc_server *server = calloc(1, sizeof(nosc_server));
     server->port = port;
+    server->running = 1;
     server->handle_message_fn = fn;
     server->handle_message_ctx = ctx;
 
@@ -269,7 +272,7 @@ void nosc_server_update(nosc_server *server) {
 }
 
 void nosc_server_free(nosc_server *server) {
-    pthread_kill(server->server_thread, 1);
+    server->running = 0;
     pthread_join(server->server_thread, NULL);
     free(server);
 }
