@@ -7,6 +7,7 @@
 
 #include "ngl.h"
 #include "nim.h"
+#include "nosc.h"
 #include "nrf.h"
 #include "nvr.h"
 #include "nwm.h"
@@ -445,6 +446,95 @@ static int l_ngl_draw_model(lua_State *L) {
     ngl_model* model = l_to_ngl_model(L, 2);
     ngl_shader *shader = l_to_ngl_shader(L, 3);
     ngl_draw_model(camera, model, shader);
+    return 0;
+}
+
+// Lua NOSC wrappers ////////////////////////////////////////////////////////
+
+// nosc_server
+
+static nosc_server* l_to_nosc_server(lua_State *L, int index) {
+    return (nosc_server*) l_from_table(L, "nosc_server", index);
+}
+
+static int _l_to_nosc_server_table(lua_State *L, nosc_server* server) {
+    l_to_table(L, "nosc_server", server);
+
+    lua_pushliteral(L, "port");
+    lua_pushinteger(L, server->port);
+    lua_settable(L, -3);
+
+    return 1;
+}
+
+typedef struct {
+    lua_State *L;
+    int handle_message_fn;
+} l_nosc_message_ctx;
+
+static void l_nosc_handle_message(nosc_server *server, nosc_message *message, void *ctx) {
+    printf("Handling message\n");
+    l_nosc_message_ctx *message_ctx = (ctx);
+    lua_State *L = message_ctx->L;
+
+    // Get the Lua function
+    lua_rawgeti(L, LUA_REGISTRYINDEX, message_ctx->handle_message_fn);
+
+    // Add the message path
+    lua_pushstring(L, message->path);
+
+    // Add the arguments
+    lua_newtable(L);
+
+    for (int i = 0; i < message->arg_count; i++) {
+        // Push argument index
+        lua_pushinteger(L, i + 1);
+
+        // Push argument value
+        char type = message->types[i];
+        if (type == 'i') {
+            int v = nosc_message_get_int(message, i);
+            lua_pushinteger(L, v);
+        } else if (type == 'f') {
+            float v = nosc_message_get_float(message, i);
+            lua_pushnumber(L, v);
+        } else if (type == 's') {
+            const char *v = nosc_message_get_string(message, i);
+            lua_pushstring(L, v);
+        } else {
+            fprintf(stderr, "Warning: unknown OSC arg type %c\n", type);
+            lua_pushnil(L);
+        }
+        lua_settable(L, -3);
+    }
+
+    int error = lua_pcall(L, 2, 0, 0);
+    if (error) {
+        fprintf(stderr, "Error calling OSC message handler: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+}
+
+static int l_nosc_server_new(lua_State *L) {
+    int port = luaL_checkinteger(L, 1);
+    // Pop the port off the stack so the next element is the function.
+    //lua_pop(L, 1);
+    if (!lua_isfunction(L, -1)) {
+        fprintf(stderr, "osc_server_new: argument 2 is not a function:\n");
+        exit(1);
+    }
+    int callback_function = luaL_ref(L, LUA_REGISTRYINDEX);
+    l_nosc_message_ctx *message_ctx = calloc(1, sizeof(l_nosc_message_ctx));
+    message_ctx->L = L;
+    message_ctx->handle_message_fn = callback_function;
+    nosc_server *server = nosc_server_new(port, l_nosc_handle_message, message_ctx);
+    return _l_to_nosc_server_table(L, server);
+}
+
+static int l_nosc_server_free(lua_State *L) {
+    nosc_server* server = l_to_nosc_server(L, 1);
+    free(server->handle_message_ctx);
+    nosc_server_free(server);
     return 0;
 }
 
@@ -924,6 +1014,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
+    l_register_type(L, "nosc_server", l_nosc_server_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_interpolator", l_nrf_interpolator_free);
     l_register_type(L, "nrf_fft", l_nrf_fft_free);
@@ -960,6 +1051,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "nosc_server_new", l_nosc_server_new);
     l_register_function(L, "nrf_block_connect", l_nrf_block_connect);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
