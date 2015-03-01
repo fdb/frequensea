@@ -98,7 +98,6 @@ char *parse_string(parser *p) {
     }
     end++;
 
-    printf("parse_string %s len %ld remaining %d\n", start, end - start, p->remaining);
     p->pos = end;
     p->remaining -= end - start;
 
@@ -113,7 +112,6 @@ int32_t parse_int32(parser *p) {
     swap32(p->pos);
     uint32_t v = *(int32_t *)p->pos;
 
-    printf("parse_int32 %d\n", v);
     p->pos += 4;
     p->remaining -= 4;
 
@@ -128,7 +126,6 @@ float parse_float(parser *p) {
     swap32(p->pos);
     float v = *(float *)p->pos;
 
-    printf("parse_float %.3f remaining %d\n", v, p->remaining);
     p->pos += 4;
     p->remaining -= 4;
 
@@ -136,12 +133,6 @@ float parse_float(parser *p) {
 }
 
 static nosc_message *_nosc_server_parse_message(char *data, size_t size) {
-    printf("NOSC parse message size: %ld\n", size);
-
-    for (int i = 0; i < size; i++) {
-        printf("%4d: %d\n", i, data[i]);
-    }
-
     nosc_message *msg = calloc(1, sizeof(nosc_message));
 
     parser p;
@@ -153,7 +144,6 @@ static nosc_message *_nosc_server_parse_message(char *data, size_t size) {
     strncpy(msg->path, path, NOSC_MAX_PATH_LENGTH);
 
     // Parse the types
-    printf("Types: %s\n", p.pos);
     const char *types = parse_string(&p);
     check_arg(*types == ',', "OSC message does not contain type tag string.");
     types++;
@@ -167,7 +157,6 @@ static nosc_message *_nosc_server_parse_message(char *data, size_t size) {
     // Parse the actual arguments.
     //char *args_ptr = types_ptr + len;
     for (int i = 0; i < types_count; i ++) {
-        printf("Remaining: %d\n", p.remaining);
         char arg_type = types[i];
         if (arg_type == 's') {
             const char *str = parse_string(&p);
@@ -187,8 +176,6 @@ static nosc_message *_nosc_server_parse_message(char *data, size_t size) {
             exit(1);
         }
     }
-
-    printf("Message PATH %s TYPES %s\n", msg->path, msg->types);
 
     return msg;
 }

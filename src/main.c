@@ -473,7 +473,6 @@ typedef struct {
 } l_nosc_message_ctx;
 
 static void l_nosc_handle_message(nosc_server *server, nosc_message *message, void *ctx) {
-    printf("Handling message\n");
     l_nosc_message_ctx *message_ctx = (ctx);
     lua_State *L = message_ctx->L;
 

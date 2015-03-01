@@ -24,9 +24,7 @@ void main() {
 ]]
 
 function handle_message(path, args)
-    print("OSC path: " .. path .. " len: " .. #args .. " 1: " .. args[1])
     if path == "/wii/1/accel/pry" then
-        print("WII!")
         pitch = args[1] - 0.5
         roll = args[2] - 0.5
         yaw = args[3] - 0.5
