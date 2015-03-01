@@ -69,24 +69,38 @@ void main() {
 
 -- Receive OSC events
 
+function set_freq(new_freq)
+    d = new_freq - freq
+    freq = nrf_device_set_frequency(device, new_freq)
+    nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
+    set_colors_for_freq()
+    print("Frequency: " .. new_freq)
+end
+
 function handle_message(path, args)
     if path == "/wii/1/accel/pry" then
+        pitch = args[1] - 0.5
+        if math.abs(pitch) > 0.3 then
+            ngl_model_translate(model, 0.0, -pitch * 0.0005, 0.0)
+        end
         roll = args[2] - 0.5
         if math.abs(roll) > 0.2 then
             d = roll * 0.2
             d = math.floor(d * 100) / 100
-            freq = freq + d
-            new_freq = nrf_device_set_frequency(device, freq)
-            print("Frequency: " .. new_freq)
-            if fft then
-                nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
-            end
+            set_freq(freq + d)
         end
+    elseif path == "/wii/1/button/Up" then
+        print(args[1])
+        ngl_model_translate(model, 0.0, -0.001, 0.0)
+    elseif path == "/wii/1/button/Down" then
+        ngl_model_translate(model, 0.0, 0.001, 0.0)
+    elseif path == "/wii/1/button/A" and args[1] == 1 then
+        set_freq(math.random(4000))
     end
 end
 
 function setup()
-    freq = 97
+    freq = 2462
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
 
