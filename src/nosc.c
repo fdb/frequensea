@@ -266,12 +266,16 @@ nosc_server *nosc_server_new(int port, nosc_server_handle_message_fn fn, void *c
 }
 
 void nosc_server_update(nosc_server *server) {
-    if (server->current_message) {
-        pthread_mutex_lock(&server->message_mutex);
-        nosc_message *msg = server->current_message;
-        server->current_message = NULL;
-        pthread_mutex_unlock(&server->message_mutex);
+    nosc_message *msg = NULL;
 
+    pthread_mutex_lock(&server->message_mutex);
+    if (server->current_message) {
+        msg = server->current_message;
+        server->current_message = NULL;
+    }
+    pthread_mutex_unlock(&server->message_mutex);
+
+    if (msg) {
         server->handle_message_fn(server, msg, server->handle_message_ctx);
         free(msg);
     }
