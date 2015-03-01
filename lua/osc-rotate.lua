@@ -29,7 +29,7 @@ function handle_message(path, args)
         roll = args[2] - 0.5
         yaw = args[3] - 0.5
         accel = args[4] - 0.5
-        camera_y = camera_y + roll
+        camera_y = camera_y - yaw * 5
     end
 end
 
