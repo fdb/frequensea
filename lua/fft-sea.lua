@@ -67,11 +67,30 @@ void main() {
 }
 ]]
 
+-- Receive OSC events
+
+function handle_message(path, args)
+    if path == "/wii/1/accel/pry" then
+        roll = args[2] - 0.5
+        if math.abs(roll) > 0.2 then
+            d = roll * 0.1
+            freq = freq + d
+            print("Frequency: " .. freq)
+            freq = nrf_device_set_frequency(device, freq)
+            if fft then
+                nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
+            end
+        end
+    end
+end
 
 function setup()
     freq = 2462
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
+
+    server = nosc_server_new(2222, handle_message)
+
     camera = ngl_camera_new()
     ngl_camera_translate(camera, 0, 0, 0)
     ngl_camera_rotate_x(camera, -10)
@@ -84,11 +103,11 @@ function setup()
 end
 
 function draw()
-    --ngl_camera_rotate_y(camera, 0.3)
-
     samples_buffer = nrf_device_get_samples_buffer(device)
     nrf_fft_process(fft, samples_buffer)
     fft_buffer = nrf_fft_get_buffer(fft)
+
+    nosc_server_update(server)
 
     ngl_clear(0.0, 0.0, 0.0, 1.0)
     ngl_texture_update(texture, fft_buffer, 128, 512)
