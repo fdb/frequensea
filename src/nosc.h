@@ -26,6 +26,12 @@ const char *nosc_message_get_string(const nosc_message *msg, int index);
 int32_t nosc_message_get_int(const nosc_message *msg, int index);
 float nosc_message_get_float(const nosc_message *msg, int index);
 
+typedef struct nosc_message_item nosc_message_item;
+
+struct nosc_message_item {
+    nosc_message *message;
+    nosc_message_item *next;
+};
 
 typedef struct nosc_server nosc_server;
 
@@ -40,7 +46,8 @@ struct nosc_server {
 
     pthread_t server_thread;
 
-    nosc_message *current_message;
+    nosc_message_item *front;
+    nosc_message_item *rear;
     pthread_mutex_t message_mutex;
 };
 

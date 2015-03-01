@@ -182,6 +182,43 @@ static nosc_message *_nosc_server_parse_message(char *data, size_t size) {
     return msg;
 }
 
+static void _nosc_server_push_message(nosc_server *server, nosc_message *message) {
+    pthread_mutex_lock(&server->message_mutex);
+    nosc_message_item *item = calloc(1, sizeof(nosc_message_item));
+    item->message = message;
+    if (server->rear == NULL) {
+        server->rear = item;
+        server->front = item;
+    } else {
+        server->rear->next = item;
+        server->rear = item;
+    }
+    pthread_mutex_unlock(&server->message_mutex);
+}
+
+static int _nosc_server_has_messages(nosc_server *server) {
+    return server->rear ? 1 : 0;
+}
+
+static nosc_message *_nosc_server_pop_message(nosc_server *server) {
+    nosc_message *msg = NULL;
+    pthread_mutex_lock(&server->message_mutex);
+    if (server->front != NULL) {
+        nosc_message_item *item = server->front;
+        if (server->front == server->rear) {
+            // Queue is empty;
+            server->front = NULL;
+            server->rear = NULL;
+        } else {
+            server->front = server->front->next;
+        }
+        msg = item->message;
+        free(item);
+    }
+    pthread_mutex_unlock(&server->message_mutex);
+    return msg;
+}
+
 static void _nosc_server_start(nosc_server *server) {
     const char *hostname = 0;
     const char *port = "2222";
@@ -238,15 +275,7 @@ static void _nosc_server_start(nosc_server *server) {
             warn("datagram too large for buffer: truncated");
         } else {
             nosc_message *msg = _nosc_server_parse_message(buffer, count);
-            pthread_mutex_lock(&server->message_mutex);
-            if (server->current_message) {
-                // There was an old message and we didn't look at it. Discard it.
-                // FIXME In the future this would be handled by a message queue.
-                free(server->current_message);
-                server->current_message = NULL;
-            }
-            server->current_message = msg;
-            pthread_mutex_unlock(&server->message_mutex);
+            _nosc_server_push_message(server, msg);
         }
     }
 
@@ -266,18 +295,13 @@ nosc_server *nosc_server_new(int port, nosc_server_handle_message_fn fn, void *c
 }
 
 void nosc_server_update(nosc_server *server) {
-    nosc_message *msg = NULL;
-
-    pthread_mutex_lock(&server->message_mutex);
-    if (server->current_message) {
-        msg = server->current_message;
-        server->current_message = NULL;
-    }
-    pthread_mutex_unlock(&server->message_mutex);
-
-    if (msg) {
-        server->handle_message_fn(server, msg, server->handle_message_ctx);
-        free(msg);
+    while (_nosc_server_has_messages(server)) {
+        nosc_message *msg = _nosc_server_pop_message(server);
+        // The check is here to avoid a race condition between has_messages and pop_message
+        if (msg) {
+            server->handle_message_fn(server, msg, server->handle_message_ctx);
+            free(msg);
+        }
     }
 }
 
