@@ -86,7 +86,7 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 2462
+    freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
 
