@@ -73,7 +73,8 @@ function handle_message(path, args)
     if path == "/wii/1/accel/pry" then
         roll = args[2] - 0.5
         if math.abs(roll) > 0.2 then
-            d = roll * 0.1
+            d = roll * 0.2
+            d = math.floor(d * 100) / 100
             freq = freq + d
             new_freq = nrf_device_set_frequency(device, freq)
             print("Frequency: " .. new_freq)
