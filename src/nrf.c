@@ -224,7 +224,7 @@ static int _nrf_rtlsdr_start(nrf_device *device, double freq_mhz, int sample_rat
     return 0;
 }
 
-static const int HACKRF_DEFAULT_SAMPLE_RATE = 5e6;
+static const int HACKRF_DEFAULT_SAMPLE_RATE = 10e6;
 
 static int _nrf_hackrf_start(nrf_device *device, double freq_mhz, int sample_rate) {
     int status;
