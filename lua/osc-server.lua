@@ -9,5 +9,6 @@ function setup()
 end
 
 function draw()
+    nosc_server_update(server)
     ngl_clear(0.2, 0.2, 0.2, 1)
 end

@@ -237,16 +237,23 @@ static void _nosc_server_start(nosc_server *server) {
     message.msg_control = 0;
     message.msg_controllen = 0;
 
-    while (1) {
+    while(1) {
         ssize_t count = recvmsg(fd, &message, 0);
         if (count == -1) {
-                die("%s", strerror(errno));
+            die("%s", strerror(errno));
         } else if (message.msg_flags & MSG_TRUNC) {
-                warn("datagram too large for buffer: truncated");
+            warn("datagram too large for buffer: truncated");
         } else {
             nosc_message *msg = _nosc_server_parse_message(buffer, count);
-            server->handle_message_fn(server, msg, server->handle_message_ctx);
-            free(msg);
+            pthread_mutex_lock(&server->message_mutex);
+            if (server->current_message) {
+                // There was an old message and we didn't look at it. Discard it.
+                // FIXME In the future this would be handled by a message queue.
+                free(server->current_message);
+                server->current_message = NULL;
+            }
+            server->current_message = msg;
+            pthread_mutex_unlock(&server->message_mutex);
         }
     }
 }
@@ -260,6 +267,16 @@ nosc_server *nosc_server_new(int port, nosc_server_handle_message_fn fn, void *c
     pthread_create(&server->server_thread, NULL, (void *(*)(void *))&_nosc_server_start, server);
 
     return server;
+}
+
+void nosc_server_update(nosc_server *server) {
+    if (server->current_message) {
+        pthread_mutex_lock(&server->message_mutex);
+        server->handle_message_fn(server, server->current_message, server->handle_message_ctx);
+        free(server->current_message);
+        server->current_message = NULL;
+        pthread_mutex_unlock(&server->message_mutex);
+    }
 }
 
 void nosc_server_free(nosc_server *server) {

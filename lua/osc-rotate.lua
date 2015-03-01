@@ -47,6 +47,8 @@ function setup()
 end
 
 function draw()
+    nosc_server_update(server)
+
     camera = ngl_camera_new()
     ngl_camera_translate(camera, 10, -2, 10)
     ngl_camera_rotate_y(camera, camera_y)

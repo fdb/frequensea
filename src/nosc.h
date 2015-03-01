@@ -38,10 +38,13 @@ struct nosc_server {
     void *handle_message_ctx;
 
     pthread_t server_thread;
-    pthread_mutex_t data_mutex;
+
+    nosc_message *current_message;
+    pthread_mutex_t message_mutex;
 };
 
 nosc_server *nosc_server_new(int port, nosc_server_handle_message_fn fn, void *ctx);
+void nosc_server_update(nosc_server *server);
 void nosc_server_free(nosc_server *server);
 
 #endif // NOSC_H

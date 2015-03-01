@@ -531,6 +531,12 @@ static int l_nosc_server_new(lua_State *L) {
     return _l_to_nosc_server_table(L, server);
 }
 
+static int l_nosc_server_update(lua_State *L) {
+    nosc_server* server = l_to_nosc_server(L, 1);
+    nosc_server_update(server);
+    return 0;
+}
+
 static int l_nosc_server_free(lua_State *L) {
     nosc_server* server = l_to_nosc_server(L, 1);
     free(server->handle_message_ctx);
@@ -1052,6 +1058,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
     l_register_function(L, "nosc_server_new", l_nosc_server_new);
+    l_register_function(L, "nosc_server_update", l_nosc_server_update);
     l_register_function(L, "nrf_block_connect", l_nrf_block_connect);
     l_register_function(L, "nrf_device_new", l_nrf_device_new);
     l_register_function(L, "nrf_device_new_with_config", l_nrf_device_new_with_config);
