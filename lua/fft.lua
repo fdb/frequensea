@@ -23,13 +23,13 @@ in vec2 texCoord;
 uniform sampler2D uTexture;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    float r = texture(uTexture, texCoord).r;
+    float r = texture(uTexture, texCoord).r * 0.1;
     fragColor = vec4(r, r, r, 0.95);
 }
 ]]
 
 function setup()
-    freq = 433
+    freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(1024, 1024)
 
