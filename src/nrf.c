@@ -596,10 +596,10 @@ void nrf_fft_shift(nrf_fft *fft, double d) {
                     fft->buffer[y * stride + x] = 0;
                 }
             } else {
-                for (int x = fft->fft_size - 1; x > shift_pixels; x--) {
+                for (int x = fft->fft_size - 1; x >= -shift_pixels; x--) {
                     fft->buffer[y * stride + x] = fft->buffer[y * stride + x + shift_pixels];
                 }
-                for (int x = fft->fft_size + shift_pixels; x < fft->fft_size; x++) {
+                for (int x = 0; x < -shift_pixels; x++) {
                     fft->buffer[y * stride + x] = 0;
                 }
             }
