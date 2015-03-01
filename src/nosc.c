@@ -14,6 +14,8 @@
 
 #include "nosc.h"
 
+#define MILLIS_TO_NANOS 1000000
+
 static void die(const char * format, ...)
 {
     va_list vargs;
@@ -225,9 +227,13 @@ static void _nosc_server_start(nosc_server *server) {
     message.msg_controllen = 0;
 
     while(server->running) {
-        ssize_t count = recvmsg(fd, &message, 0);
+        ssize_t count = recvmsg(fd, &message, MSG_DONTWAIT);
         if (count == -1) {
-            die("%s", strerror(errno));
+            if (errno == EAGAIN) {
+                nanosleep((struct timespec[]){{0, 1 * MILLIS_TO_NANOS}}, NULL);
+            } else {
+                die("%s", strerror(errno));
+            }
         } else if (message.msg_flags & MSG_TRUNC) {
             warn("datagram too large for buffer: truncated");
         } else {
