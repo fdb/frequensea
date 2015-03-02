@@ -449,6 +449,35 @@ static int l_ngl_draw_model(lua_State *L) {
     return 0;
 }
 
+// ngl_font
+
+static ngl_font* l_to_ngl_font(lua_State *L, int index) {
+    return (ngl_font*) l_from_table(L, "ngl_font", index);
+}
+
+static int l_ngl_font_new(lua_State *L) {
+    const char *file_name = lua_tostring(L, 1);
+    int font_size = luaL_checkinteger(L, 2);
+    ngl_font *font = ngl_font_new(file_name, font_size);
+    l_to_table(L, "ngl_font", font);
+    return 1;
+}
+
+static int l_ngl_font_draw(lua_State *L) {
+    ngl_font *font = l_to_ngl_font(L, 1);
+    const char *text = lua_tostring(L, 2);
+    int x = luaL_checkinteger(L, 3);
+    int y = luaL_checkinteger(L, 4);
+    ngl_font_draw(font, text, x, y);
+    return 0;
+}
+
+static int l_ngl_font_free(lua_State *L) {
+    ngl_font *font = l_to_ngl_font(L, 1);
+    ngl_font_free(font);
+    return 0;
+}
+
 // Lua NOSC wrappers ////////////////////////////////////////////////////////
 
 // nosc_server
@@ -1019,6 +1048,7 @@ static lua_State *l_init() {
     l_register_type(L, "ngl_shader", l_ngl_shader_free);
     l_register_type(L, "ngl_texture", l_ngl_texture_free);
     l_register_type(L, "ngl_skybox", l_ngl_skybox_free);
+    l_register_type(L, "ngl_font", l_ngl_font_free);
     l_register_type(L, "nosc_server", l_nosc_server_free);
     l_register_type(L, "nrf_device", l_nrf_device_free);
     l_register_type(L, "nrf_interpolator", l_nrf_interpolator_free);
@@ -1056,6 +1086,8 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "ngl_font_new", l_ngl_font_new);
+    l_register_function(L, "ngl_font_draw", l_ngl_font_draw);
     l_register_function(L, "nosc_server_new", l_nosc_server_new);
     l_register_function(L, "nosc_server_update", l_nosc_server_update);
     l_register_function(L, "nrf_block_connect", l_nrf_block_connect);

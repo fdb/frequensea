@@ -12,6 +12,9 @@
 #include "ngl.h"
 #include "nwm.h"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
 // Error checking ////////////////////////////////////////////////////////////
 
 void ngl_check_gl_error(const char *file, int line) {
@@ -690,4 +693,155 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
     glUseProgram(0);
     NGL_CHECK_ERROR();
+}
+
+// Text drawing /////////////////////////////////////////////////////////////
+
+#define NGL_FONT_BITMAP_WIDTH 1024
+#define NGL_FONT_BITMAP_HEIGHT 1024
+
+const char *_ngl_font_vertex_shader = "#version 400\n"
+"layout (location = 0) in vec3 vp;\n"
+"layout (location = 1) in vec3 vn;\n"
+"layout (location = 2) in vec2 vt;\n"
+"out vec3 color;\n"
+"out vec2 texCoord;\n"
+"uniform float uWidth;\n"
+"uniform float uHeight;\n"
+"void main() {\n"
+"    float x = (vp.x / uWidth) * 2 - 1;\n"
+"    float y = (vp.y / uHeight) * -2 + 1;\n"
+"    color = vec3(1.0, 1.0, 1.0);\n"
+"    texCoord = vt;\n"
+"    gl_Position = vec4(x, y, 0, 1.0);\n"
+"}\n";
+
+const char *_ngl_font_fragment_shader = "#version 400\n"
+"in vec3 color;\n"
+"in vec2 texCoord;\n"
+"uniform sampler2D uTexture;\n"
+"layout (location = 0) out vec4 fragColor;\n"
+"void main() {\n"
+"    float v = texture(uTexture, texCoord).r;\n"
+"    fragColor = vec4(v, v, v, 1.0);\n"
+"}\n";
+
+ngl_font *ngl_font_new(const char *file_name, const int font_size) {
+    ngl_font *font = calloc(1, sizeof(ngl_font));
+    font->font_size = font_size;
+    font->bitmap = calloc(NGL_FONT_BITMAP_WIDTH * NGL_FONT_BITMAP_HEIGHT, 1);
+    font->first_char = 32;
+    font->num_chars = 96;
+    font->chars = calloc(font->num_chars, sizeof(stbtt_bakedchar));
+
+    font->shader = ngl_shader_new(GL_TRIANGLES, _ngl_font_vertex_shader, _ngl_font_fragment_shader);
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, (GLint *) &viewport);
+    int width = viewport[2];
+    int height = viewport[3];
+    ngl_shader_uniform_set_float(font->shader, "uWidth", width);
+    ngl_shader_uniform_set_float(font->shader, "uHeight", height);
+
+    FILE *fp = fopen(file_name, "rb");
+    fseek(fp, 0L, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);
+    font->buffer = calloc(file_size, 1);
+    fread(font->buffer, file_size, 1, fp);
+    fclose(fp);
+
+    stbtt_BakeFontBitmap(font->buffer, 0, font_size,
+        font->bitmap, NGL_FONT_BITMAP_WIDTH, NGL_FONT_BITMAP_HEIGHT,
+        font->first_char, font->num_chars, font->chars);
+
+    font->texture = ngl_texture_new(font->shader, "uTexture");
+    glActiveTexture(GL_TEXTURE0);
+    NGL_CHECK_ERROR();
+    glBindTexture(GL_TEXTURE_2D, font->texture->texture_id);
+    NGL_CHECK_ERROR();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, NGL_FONT_BITMAP_WIDTH, NGL_FONT_BITMAP_HEIGHT, 0, GL_RED, GL_UNSIGNED_BYTE, font->bitmap);
+    NGL_CHECK_ERROR();
+
+    return font;
+}
+
+void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
+    assert(font != NULL);
+    assert(text != NULL);
+
+    int len = strlen(text);
+
+    int point_count = len * 6; // Each glyph consists of two triangles.
+
+    float *positions = calloc(point_count * 2, sizeof(float));
+    float *uvs = calloc(point_count * 2, sizeof(float));
+
+    float xpos = x;
+    float ypos = y;
+    int p = 0;
+    int u = 0;
+
+    for (int i = 0; i < len; i++) {
+        stbtt_aligned_quad q;
+        char c = text[i];
+        int char_index = c - font->first_char;
+        stbtt_GetBakedQuad(font->chars, NGL_FONT_BITMAP_WIDTH, NGL_FONT_BITMAP_HEIGHT,
+            char_index, &xpos, &ypos, &q, 1);
+        positions[p++] = q.x1; // 0
+        positions[p++] = q.y1;
+        positions[p++] = q.x0; // 1
+        positions[p++] = q.y1;
+        positions[p++] = q.x1; // 2
+        positions[p++] = q.y0;
+        positions[p++] = q.x1; // 2
+        positions[p++] = q.y0;
+        positions[p++] = q.x0; // 1
+        positions[p++] = q.y1;
+        positions[p++] = q.x0; // 3
+        positions[p++] = q.y0;
+
+        uvs[u++] = q.s1; // 0
+        uvs[u++] = q.t1;
+        uvs[u++] = q.s0; // 1
+        uvs[u++] = q.t1;
+        uvs[u++] = q.s1; // 2
+        uvs[u++] = q.t0;
+        uvs[u++] = q.s1; // 2
+        uvs[u++] = q.t0;
+        uvs[u++] = q.s0; // 1
+        uvs[u++] = q.t1;
+        uvs[u++] = q.s0; // 3
+        uvs[u++] = q.t0;
+    }
+
+    ngl_model *model = ngl_model_new(2, point_count, positions, NULL, uvs);
+    free(positions);
+    free(uvs);
+
+    glUseProgram(font->shader->program);
+    NGL_CHECK_ERROR();
+    glActiveTexture(GL_TEXTURE0);
+    NGL_CHECK_ERROR();
+    glBindTexture(GL_TEXTURE_2D, font->texture->texture_id);
+    NGL_CHECK_ERROR();
+    glBindVertexArray(model->vao);
+    NGL_CHECK_ERROR();
+    glDrawArrays(font->shader->draw_mode, 0, model->point_count);
+    NGL_CHECK_ERROR();
+
+    glBindVertexArray(0);
+    NGL_CHECK_ERROR();
+    glUseProgram(0);
+    NGL_CHECK_ERROR();
+
+    free(model);
+}
+
+void ngl_font_free(ngl_font *font) {
+    free(font->buffer);
+    free(font->bitmap);
+    free(font->chars);
+    free(font->shader);
+    free(font);
 }
