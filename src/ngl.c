@@ -819,6 +819,8 @@ void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
     free(positions);
     free(uvs);
 
+    glDisable(GL_DEPTH_TEST);
+    NGL_CHECK_ERROR();
     glUseProgram(font->shader->program);
     NGL_CHECK_ERROR();
     glActiveTexture(GL_TEXTURE0);
@@ -833,6 +835,8 @@ void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
     glBindVertexArray(0);
     NGL_CHECK_ERROR();
     glUseProgram(0);
+    NGL_CHECK_ERROR();
+    glEnable(GL_DEPTH_TEST);
     NGL_CHECK_ERROR();
 
     free(model);
