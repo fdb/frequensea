@@ -723,7 +723,7 @@ const char *_ngl_font_fragment_shader = "#version 400\n"
 "layout (location = 0) out vec4 fragColor;\n"
 "void main() {\n"
 "    float v = texture(uTexture, texCoord).r;\n"
-"    fragColor = vec4(v, v, v, 1.0);\n"
+"    fragColor = vec4(1, 1, 1, v);\n"
 "}\n";
 
 ngl_font *ngl_font_new(const char *file_name, const int font_size) {
