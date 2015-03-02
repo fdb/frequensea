@@ -145,9 +145,8 @@ function setup()
 
     camera = ngl_camera_new()
     ngl_camera_rotate_x(camera, -10)
-        ngl_camera_rotate_y(camera, 180)
+    ngl_camera_rotate_y(camera, 180)
 
-    ngl_camera_translate(camera, 0, 0, 0)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     --set_colors_for_freq()
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
@@ -156,6 +155,8 @@ function setup()
     ngl_model_translate(model, 0, -0.005, 0.005)
 
     skybox = ngl_skybox_new("../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png")
+
+    font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
 
     set_freq(freq)
 end
@@ -172,6 +173,8 @@ function draw()
     ngl_texture_update(texture, fft_buffer, 256, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
+
+    ngl_font_draw(font, freq, 30, 80)
 end
 
 function set_colors_for_freq()
