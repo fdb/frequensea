@@ -50,7 +50,7 @@ void main() {
     vec3 tint = hsv2rgb(vec3(uHue, uSaturation, uValue));
 
     color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * uLight;
-    color += vec4(tint, 0.3) * uAmbient;
+    color += vec4(tint, 1.0) * uAmbient;
     //color.a = 1.0;
 
     texCoord = vt;
@@ -145,6 +145,8 @@ function setup()
 
     camera = ngl_camera_new()
     ngl_camera_rotate_x(camera, -10)
+        ngl_camera_rotate_y(camera, 180)
+
     ngl_camera_translate(camera, 0, 0, 0)
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     --set_colors_for_freq()
@@ -152,6 +154,8 @@ function setup()
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(512, 1024, 0.0001, 0.0001)
     ngl_model_translate(model, 0, -0.005, 0.005)
+
+    skybox = ngl_skybox_new("../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png", "../img/stars.png")
 
     set_freq(freq)
 end
@@ -164,7 +168,7 @@ function draw()
     nosc_server_update(server)
 
     ngl_clear(0.0, 0.0, 0.0, 1.0)
-
+    ngl_skybox_draw(skybox, camera)
     ngl_texture_update(texture, fft_buffer, 256, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
