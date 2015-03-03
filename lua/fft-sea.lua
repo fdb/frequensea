@@ -62,7 +62,7 @@ void main() {
 ]]
 
 FREQUENCIES = {
-    {start_freq=87.5, end_freq=108.0, label="FM Radio", red=1.0, green=0.0, blue=0.0},
+    {start_freq=87.5, end_freq=108.0, label="FM Radio", red=0.8, green=0.0, blue=0.0},
     {start_freq=430, end_freq=440, label="ISM", red=0.25, green=0.1, blue=0.5},
     {start_freq=830, end_freq=980, label="GSM", red=0.0, green=0.5, blue=0.1},
     {start_freq=2400, end_freq=2425, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
@@ -90,7 +90,7 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(shader, "uGreen", info.green)
         ngl_shader_uniform_set_float(shader, "uBlue", info.blue)
         ngl_shader_uniform_set_float(shader, "uAlpha", 1)
-        ngl_shader_uniform_set_float(shader, "uLight", 0.2)
+        ngl_shader_uniform_set_float(shader, "uLight", 0.1)
         ngl_shader_uniform_set_float(shader, "uAmbient", 0.3)
 
         ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
@@ -128,7 +128,7 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 2422
+    freq = 97
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
 
@@ -138,8 +138,8 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(256, 1024, 0.001, 0.001)
-    ngl_model_translate(model, 0, -0.01, 0.005)
+    model = ngl_model_new_grid_triangles(256, 512, 0.001, 0.001)
+    ngl_model_translate(model, 0, -0.02, 0.005)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
     font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
