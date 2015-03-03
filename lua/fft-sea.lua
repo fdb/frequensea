@@ -98,8 +98,11 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(shader, "uHue", info.hue)
         ngl_shader_uniform_set_float(shader, "uSaturation", 1)
         ngl_shader_uniform_set_float(shader, "uValue", 1)
-        ngl_shader_uniform_set_float(shader, "uLight", 1.0)
-        ngl_shader_uniform_set_float(shader, "uAmbient", 1.0)
+        ngl_shader_uniform_set_float(shader, "uLight", 0.2)
+        ngl_shader_uniform_set_float(shader, "uAmbient", 0.3)
+
+        ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
+        ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
     else
         ngl_shader_uniform_set_float(shader, "uHue", 0.5)
         ngl_shader_uniform_set_float(shader, "uSaturation", 0)
@@ -133,7 +136,7 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 434
+    freq = 2422
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
 
@@ -159,8 +162,8 @@ function draw()
 
     nosc_server_update(server)
 
-    ngl_clear(0.0, 0.0, 0.0, 1.0)
-    ngl_skybox_draw(skybox, camera)
+    ngl_clear(1.0, 0.0, 0.0, 1.0)
+    --ngl_skybox_draw(skybox, camera)
     ngl_texture_update(texture, fft_buffer, 128, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
