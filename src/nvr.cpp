@@ -175,8 +175,6 @@ void nvr_device_init_eyes(nvr_device *device) {
         eye->render_desc = eyeRenderDescs[eyeIndex];
         ovrMatrix4f projection = ovrMatrix4f_Projection(eyeRenderDescs[eyeIndex].Fov, 0.01f, 10000.0f, 1);
         eye->projection = ovr_matrix_to_mat4(&projection);
-        //ovrVector3f viewAdjust = eyeRenderDescs[eye_type].ViewAdjust;
-        //eye->view_adjust = ovr_vector3_to_vec3(&viewAdjust);
     }
 }
 
@@ -188,7 +186,6 @@ void nvr_device_draw(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
 
     ovrPosef eye_render_poses[2];
     ovrHmd_GetEyePoses(hmd, 0, hmd_to_eye_view_offsets, eye_render_poses, &tracking_state);
-
 
     glEnable(GL_DEPTH_TEST);
     for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
