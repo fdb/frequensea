@@ -1225,10 +1225,11 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
     alSourceQueueBuffers(player->audio_source, 1, &buffer_id);
     _NRF_AL_CHECK_ERROR();
 
-    if (!player->is_playing && player->audio_buffer_queue->size > 2) {
+    ALint source_state;
+    alGetSourcei(player->audio_source, AL_SOURCE_STATE, &source_state);
+    if (source_state != AL_PLAYING && player->audio_buffer_queue->size > 2) {
         alSourcePlay(player->audio_source);
         _NRF_AL_CHECK_ERROR();
-        player->is_playing = 1;
     }
 
     // The data is now stored in OpenAL, delete our PCM sample buffer.

@@ -292,7 +292,6 @@ typedef struct {
     ALCdevice *audio_device;
     ALuint audio_source;
     _nul_buffer_queue *audio_buffer_queue;
-    int is_playing;
     int shutting_down;
 } nrf_player;
 
