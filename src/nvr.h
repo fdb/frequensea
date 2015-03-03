@@ -7,20 +7,27 @@
     #define GLFW_EXPOSE_NATIVE_NSGL
 #endif
 
-#include "OVR_CAPI.h"
+#include "OVR.h"
 #include "OVR_CAPI_GL.h"
 
-#include "vec.h"
-#include "nwm.h"
+extern "C" {
+    #include "vec.h"
+    #include "nwm.h"
+    #include "ngl.h"
+}
 
 typedef struct {
+    int index;
     ovrEyeType type;
+    ovrEyeRenderDesc render_desc;
     int width;
     int height;
     mat4 projection;
+    ovrPosef render_pose;
     vec3 view_adjust;
     GLuint fbo;
     ovrTexture texture;
+    GLuint texture_id;
 } nvr_eye;
 
 typedef struct {

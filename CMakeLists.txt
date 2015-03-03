@@ -6,15 +6,16 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
 add_subdirectory(externals/lua)
 
 include_directories(src)
-include_directories(externals/ovr/include)
-include_directories(externals/lua/src)
+include_directories(externals/ovr/Include)
+include_directories(externals/ovr/Src)
+include_directories(externals/lua/Src)
 include_directories(externals/stb)
 
 find_library(LIBRARY_MATH m)
 find_library(LIBRARY_PTHREAD pthread)
 find_library(LIBRARY_FFTW fftw3)
 find_library(LIBRARY_HACKRF hackrf)
-find_library(LIBRARY_OVR ovr PATHS externals/ovr/lib/darwin)
+find_library(LIBRARY_OVR ovr PATHS externals/ovr/Lib/Mac/Debug)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
 find_library(LIBRARY_GLEW glew)
@@ -45,7 +46,7 @@ set(SOURCE_FILES
     src/nosc.c
     src/nrf.c
     src/nul.c
-    src/nvr.c
+    src/nvr.cpp
     src/nwm.c
     src/obj.c
     src/vec.c)

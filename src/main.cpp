@@ -11,11 +11,12 @@ extern  "C" {
     #include "nim.h"
     #include "nosc.h"
     #include "nrf.h"
-    #include "nvr.h"
     #include "nwm.h"
     #include "vec.h"
     #include "nfile.h"
 }
+
+#include "nvr.h"
 
 // Lua utility functions ////////////////////////////////////////////////////
 
