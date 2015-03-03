@@ -83,7 +83,6 @@ function set_freq(new_freq)
     d = new_freq - freq
     freq = nrf_device_set_frequency(device, new_freq)
     nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
-    --set_colors_for_freq()
     print("Frequency: " .. new_freq)
     info = find_range(freq)
     if info then
