@@ -1271,6 +1271,11 @@ void nrf_player_set_freq_offset(nrf_player *player, int freq_offset) {
     player->decoder->freq_shifter->freq_offset = freq_offset;
 }
 
+void nrf_player_set_gain(nrf_player *player, float gain) {
+    gain = _nrf_clampf(gain, 0.0, 1.0);
+    alSourcef(player->audio_source, AL_GAIN, gain);
+}
+
 void nrf_player_free(nrf_player *player) {
     player->shutting_down = 1;
     nrf_device_set_decode_handler(player->device, NULL, NULL);

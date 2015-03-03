@@ -916,6 +916,13 @@ static int l_nrf_player_set_freq_offset(lua_State *L) {
     return 0;
 }
 
+static int l_nrf_player_set_gain(lua_State *L) {
+    nrf_player* player = l_to_nrf_player(L, 1);
+    float gain = luaL_checknumber(L, 2);
+    nrf_player_set_gain(player, gain);
+    return 0;
+}
+
 static int l_nrf_player_free(lua_State *L) {
     nrf_player* player = l_to_nrf_player(L, 1);
     nrf_player_free(player);
@@ -1141,6 +1148,7 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_signal_detector_get_standard_deviation", l_nrf_signal_detector_get_standard_deviation);
     l_register_function(L, "nrf_player_new", l_nrf_player_new);
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
+    l_register_function(L, "nrf_player_set_gain", l_nrf_player_set_gain);
 
     l_register_constant(L, "NWM_PLATFORM", NWM_PLATFORM);
     l_register_constant(L, "NWM_OPENGL_TYPE", NWM_OPENGL_TYPE);
