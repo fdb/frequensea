@@ -677,9 +677,6 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
     glEnable(GL_BLEND);
     NGL_CHECK_ERROR();
-    glEnable(GL_CULL_FACE);
-    NGL_CHECK_ERROR();
-
     glUseProgram(shader->program);
     NGL_CHECK_ERROR();
     glUniform1f(shader->time_uniform, nwm_get_time());
