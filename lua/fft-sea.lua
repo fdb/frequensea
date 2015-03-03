@@ -12,6 +12,7 @@ uniform float uRed;
 uniform float uGreen;
 uniform float uBlue;
 uniform float uAlpha;
+uniform float uGlobalAlpha;
 
 void main () {
     if (vp.z > 0) {
@@ -19,6 +20,7 @@ void main () {
     } else {
         color = vec4(uRed * 0.01, uGreen * 0.01, uBlue * 0.01, uAlpha);
     }
+    color.a *= uGlobalAlpha;
     gl_Position = vec4(vp.x * 2, vp.z * 2, 0, 1);
 }
 ]]
@@ -48,6 +50,7 @@ uniform float uBlue;
 uniform float uAlpha;
 uniform float uLight;
 uniform float uAmbient;
+uniform float uGlobalAlpha;
 
 void main() {
     float d = 0.004;
@@ -75,7 +78,7 @@ void main() {
 
     color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * uLight;
     color += vec4(uRed, uGreen, uBlue, uAlpha) * uAmbient;
-    //color.a = 1.0;
+    color.a *= uGlobalAlpha;
 
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
@@ -102,7 +105,16 @@ FREQUENCIES = {
     {start_freq=2400, end_freq=2425, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
 }
 
-INTERESTING_FREQUENCIES = {97, 169.9, 434, 930, 1846, 2422}
+INTERESTING_FREQUENCIES = {97.6, 169.9, 434.1, 930, 1846, 2422}
+
+FREQUENCY_INDEX = 1
+FREQUENCY_DISPLAY_TIME = 300
+
+STATE_NORMAL = 1
+STATE_FADING_OUT = 2
+STATE_FADING_IN = 3
+
+
 
 function find_range(freq)
     for _, freq_info in pairs(FREQUENCIES) do
@@ -112,6 +124,15 @@ function find_range(freq)
     end
 end
 
+-- Switch to the next interesting frequency
+function switch_freq()
+    frequency_index = frequency_index + 1
+    if frequency_index > #INTERESTING_FREQUENCIES then
+        frequency_index = 1
+    end
+    freq_to_switch = INTERESTING_FREQUENCIES[frequency_index]
+    state = STATE_FADING_OUT
+end
 
 function set_freq(new_freq)
     d = new_freq - freq
@@ -150,7 +171,7 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(grad_shader, "uBlue", 0.5)
         ngl_shader_uniform_set_float(grad_shader, "uAlpha", 1)
     end
-    freq_display_frames = 100
+    frequency_display_countdown = FREQUENCY_DISPLAY_TIME
 end
 
 -- Receive OSC events
@@ -173,7 +194,8 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 106
+    frequency_index = 1
+    freq = INTERESTING_FREQUENCIES[frequency_index]
     freq_offset = 100000
 
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
@@ -194,14 +216,38 @@ function setup()
     ngl_model_translate(model, 0, -0.02, 0.005)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
-    font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
+    freq_font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
+    info_font = ngl_font_new("../fonts/RobotoCondensed-Bold.ttf", 48)
 
-    freq_display_frames = 100
+    frequency_display_countdown = FREQUENCY_DISPLAY_TIME
     set_freq(freq)
+
+    set_global_alpha(1.0)
+    state = STATE_NORMAL
+
+end
+
+function set_global_alpha(new_alpha)
+    global_alpha = new_alpha
+    ngl_shader_uniform_set_float(shader, "uGlobalAlpha", global_alpha)
+    ngl_shader_uniform_set_float(line_shader, "uGlobalAlpha", global_alpha)
+    ngl_shader_uniform_set_float(grad_shader, "uGlobalAlpha", global_alpha)
 end
 
 function draw()
-    freq_display_frames = freq_display_frames - 1
+    if state == STATE_NORMAL then
+    elseif state == STATE_FADING_OUT then
+        set_global_alpha(global_alpha - 0.01)
+        if global_alpha <= 0 then
+            set_freq(freq_to_switch)
+            state = STATE_FADING_IN
+        end
+    elseif state == STATE_FADING_IN then
+        set_global_alpha(global_alpha + 0.01)
+        if global_alpha >= 1 then
+            state = STATE_NORMAL
+        end
+    end
 
     samples_buffer = nrf_device_get_samples_buffer(device)
     nrf_fft_process(fft, samples_buffer)
@@ -209,7 +255,7 @@ function draw()
 
     nosc_server_update(server)
 
-    ngl_clear_depth()
+    ngl_clear(0, 0, 0, 1)
 
     ngl_draw_background(camera, grad_model, grad_shader)
 
@@ -217,9 +263,13 @@ function draw()
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
 
-    freq_display_frames = freq_display_frames - 1
-    if freq_display_frames > 0 then
-        ngl_font_draw(font, freq, 50, 100)
+    frequency_display_countdown = frequency_display_countdown - 1
+    if frequency_display_countdown > 0 then
+        ngl_font_draw(freq_font, freq, 50, 100)
+        info = find_range(freq)
+        if info then
+            ngl_font_draw(info_font, info.label, 50, 150)
+        end
     end
 end
 
@@ -231,7 +281,9 @@ function on_key(key, mods)
     else
         d = 0.1
     end
-    if key == KEY_RIGHT then
+    if key == KEY_A then
+        switch_freq()
+    elseif key == KEY_RIGHT then
         set_freq(freq + d)
     elseif key == KEY_LEFT then
         set_freq(freq - d)
