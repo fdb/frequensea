@@ -102,7 +102,7 @@ FREQUENCIES = {
     {start_freq=430, end_freq=440, label="ISM", red=0.25, green=0.1, blue=0.5},
     {start_freq=830, end_freq=980, label="GSM", red=0.0, green=0.8, blue=0.8},
     {start_freq=1785, end_freq=1880, label="Mobile communications", red=0.0, green=0.2, blue=0.9},
-    {start_freq=2400, end_freq=2425, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
+    {start_freq=2400, end_freq=2500, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
 }
 
 INTERESTING_FREQUENCIES = {97.6, 169.9, 434.1, 930, 1846, 2422}
