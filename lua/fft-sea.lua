@@ -1,6 +1,37 @@
 -- Visualize FFT data as a texture from the HackRF
 -- Calculate normals and lighting
 
+GRADIENT_VERTEX_SHADER = [[
+#version 400
+layout (location = 0) in vec3 vp;
+layout (location = 1) in vec3 vn;
+layout (location = 2) in vec2 vt;
+out vec4 color;
+
+uniform float uRed;
+uniform float uGreen;
+uniform float uBlue;
+uniform float uAlpha;
+
+void main () {
+    if (vp.z > 0) {
+        color = vec4(uRed, uGreen, uBlue, uAlpha);
+    } else {
+        color = vec4(uRed * 0.01, uGreen * 0.01, uBlue * 0.01, uAlpha);
+    }
+    gl_Position = vec4(vp.x * 2, vp.z * 2, 0, 1);
+}
+]]
+
+GRADIENT_FRAGMENT_SHADER = [[
+#version 400
+in vec4 color;
+layout (location = 0) out vec4 fragColor;
+void main() {
+    fragColor = color;
+}
+]]
+
 VERTEX_SHADER = [[
 #version 400
 layout (location = 0) in vec3 vp;
@@ -44,6 +75,7 @@ void main() {
 
     color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * uLight;
     color += vec4(uRed, uGreen, uBlue, uAlpha) * uAmbient;
+    //color.a = 1.0;
 
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
@@ -92,11 +124,16 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(shader, "uGreen", info.green)
         ngl_shader_uniform_set_float(shader, "uBlue", info.blue)
         ngl_shader_uniform_set_float(shader, "uAlpha", 1)
-        ngl_shader_uniform_set_float(shader, "uLight", 0.1)
-        ngl_shader_uniform_set_float(shader, "uAmbient", 0.3)
+        ngl_shader_uniform_set_float(shader, "uLight", 0.8)
+        ngl_shader_uniform_set_float(shader, "uAmbient", 0.2)
 
         ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
         ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
+
+        ngl_shader_uniform_set_float(grad_shader, "uRed", info.red)
+        ngl_shader_uniform_set_float(grad_shader, "uGreen", info.green)
+        ngl_shader_uniform_set_float(grad_shader, "uBlue", info.blue)
+        ngl_shader_uniform_set_float(grad_shader, "uAlpha", 1)
     else
         ngl_shader_uniform_set_float(shader, "uRed", 0.5)
         ngl_shader_uniform_set_float(shader, "uGreen", 0.5)
@@ -107,6 +144,11 @@ function set_freq(new_freq)
 
         ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
         ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
+
+        ngl_shader_uniform_set_float(grad_shader, "uRed", 0.5)
+        ngl_shader_uniform_set_float(grad_shader, "uGreen", 0.5)
+        ngl_shader_uniform_set_float(grad_shader, "uBlue", 0.5)
+        ngl_shader_uniform_set_float(grad_shader, "uAlpha", 1)
     end
     freq_display_frames = 100
 end
@@ -131,7 +173,7 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 97.6
+    freq = 106
     freq_offset = 100000
 
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
@@ -141,6 +183,10 @@ function setup()
     server = nosc_server_new(2222, handle_message)
 
     camera = ngl_camera_new()
+
+    grad_model = ngl_model_new_grid_triangles(2, 2, 1, 1)
+    grad_shader = ngl_shader_new(GL_TRIANGLES, GRADIENT_VERTEX_SHADER, GRADIENT_FRAGMENT_SHADER)
+
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
@@ -150,34 +196,31 @@ function setup()
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
     font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
 
+    freq_display_frames = 100
     set_freq(freq)
 end
 
 function draw()
+    freq_display_frames = freq_display_frames - 1
+
     samples_buffer = nrf_device_get_samples_buffer(device)
     nrf_fft_process(fft, samples_buffer)
     fft_buffer = nrf_fft_get_buffer(fft)
 
     nosc_server_update(server)
 
-    info = find_range(freq)
-    if info then
-        ngl_clear(info.red, info.green, info.blue, 1.0)
-    else
-        ngl_clear(0.2, 0.2, 0.2, 1.0)
-    end
-    --ngl_skybox_draw(skybox, camera)
+    ngl_clear_depth()
+
+    ngl_draw_background(camera, grad_model, grad_shader)
+
     ngl_texture_update(texture, fft_buffer, 128, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
 
-    ngl_font_draw(font, freq, 400, 300)
-end
-
-function set_colors_for_freq()
-    ngl_shader_uniform_set_float(shader, "uHue", (freq % 2029) / 2029.0)
-    ngl_shader_uniform_set_float(shader, "uValue", 0.3 + (freq % 859) / 859.0)
-    ngl_shader_uniform_set_float(shader, "uSaturation", 0.5+(freq % 727) / 727.0)
+    freq_display_frames = freq_display_frames - 1
+    if freq_display_frames > 0 then
+        ngl_font_draw(font, freq, 50, 100)
+    end
 end
 
 function on_key(key, mods)
