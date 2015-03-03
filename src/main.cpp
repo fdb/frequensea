@@ -1,18 +1,21 @@
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
 
-#include "ngl.h"
-#include "nim.h"
-#include "nosc.h"
-#include "nrf.h"
-#include "nvr.h"
-#include "nwm.h"
-#include "vec.h"
-#include "nfile.h"
+extern  "C" {
+    #include <assert.h>
+    #include <string.h>
+    #include <stdlib.h>
+    #include <lua.h>
+    #include <lauxlib.h>
+    #include <lualib.h>
+
+    #include "ngl.h"
+    #include "nim.h"
+    #include "nosc.h"
+    #include "nrf.h"
+    #include "nvr.h"
+    #include "nwm.h"
+    #include "vec.h"
+    #include "nfile.h"
+}
 
 // Lua utility functions ////////////////////////////////////////////////////
 
@@ -147,7 +150,7 @@ static int l_nul_buffer_reduce(lua_State *L) {
 static int l_nul_buffer_convert(lua_State *L) {
     nul_buffer *buffer = l_to_nul_buffer(L, 1);
     int new_type = luaL_checkinteger(L, 2);
-    nul_buffer *result = nul_buffer_convert(buffer, new_type);
+    nul_buffer *result = nul_buffer_convert(buffer, (nul_buffer_type) new_type);
     return l_push_nul_buffer(L, result);
 }
 
@@ -502,7 +505,7 @@ typedef struct {
 } l_nosc_message_ctx;
 
 static void l_nosc_handle_message(nosc_server *server, nosc_message *message, void *ctx) {
-    l_nosc_message_ctx *message_ctx = (ctx);
+    l_nosc_message_ctx *message_ctx = (l_nosc_message_ctx *) ctx;
     lua_State *L = message_ctx->L;
 
     // Get the Lua function
@@ -552,7 +555,7 @@ static int l_nosc_server_new(lua_State *L) {
         exit(1);
     }
     int callback_function = luaL_ref(L, LUA_REGISTRYINDEX);
-    l_nosc_message_ctx *message_ctx = calloc(1, sizeof(l_nosc_message_ctx));
+    l_nosc_message_ctx *message_ctx = (l_nosc_message_ctx *) calloc(1, sizeof(l_nosc_message_ctx));
     message_ctx->L = L;
     message_ctx->handle_message_fn = callback_function;
     nosc_server *server = nosc_server_new(port, l_nosc_handle_message, message_ctx);
@@ -885,7 +888,7 @@ static nrf_player* l_to_nrf_player(lua_State *L, int index) {
 
 static int l_nrf_player_new(lua_State *L) {
     nrf_device* device = l_to_nrf_device(L, 1);
-    nrf_demodulate_type type = luaL_checkinteger(L, 2);
+    nrf_demodulate_type type = (nrf_demodulate_type) luaL_checkinteger(L, 2);
     int freq_offset = luaL_checkinteger(L, 3);
     nrf_player *player = nrf_player_new(device, type, freq_offset);
     l_to_table(L, "nrf_player", player);
@@ -971,9 +974,9 @@ static void _take_screenshot(screenshot_info *info) {
 }
 
 static void take_screenshot(nwm_window *window, const char *fname) {
-    screenshot_info *info = calloc(1, sizeof(screenshot_info));
+    screenshot_info *info = (screenshot_info *) calloc(1, sizeof(screenshot_info));
     if (fname != NULL) {
-        info->fname = calloc(strlen(fname), sizeof(char));
+        info->fname = (char *) calloc(strlen(fname), sizeof(char));
         strcpy(info->fname, fname);
     }
 
@@ -981,11 +984,11 @@ static void take_screenshot(nwm_window *window, const char *fname) {
     glfwGetFramebufferSize(window, &info->width, &info->height);
     int buffer_channels = 3;
     int buffer_size = info->width * info->height * buffer_channels;
-    info->buffer = calloc(buffer_size, sizeof(uint8_t));
+    info->buffer = (uint8_t *) calloc(buffer_size, sizeof(uint8_t));
     glReadPixels(0, 0, info->width, info->height, GL_RGB, GL_UNSIGNED_BYTE, info->buffer);
 
     // If there is a current frequency, retrieve it.
-    lua_State *L = nwm_window_get_user_data(window);
+    lua_State *L = (lua_State *) nwm_window_get_user_data(window);
     if (L) {
         lua_getglobal(L, "freq");
         if (lua_isnumber(L, -1)) {
@@ -1019,7 +1022,7 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
                 return;
             }
         }
-        lua_State *L = nwm_window_get_user_data(window);
+        lua_State *L = (lua_State *) nwm_window_get_user_data(window);
         if (L) {
             lua_getglobal(L, "on_key");
             if (lua_isfunction(L, -1)) {

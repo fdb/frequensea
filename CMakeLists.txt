@@ -37,7 +37,7 @@ if (LINUX)
 endif (LINUX)
 
 set(SOURCE_FILES
-    src/main.c
+    src/main.cpp
     src/nfile.c
     src/ngl.c
     src/nim.c
