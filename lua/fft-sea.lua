@@ -108,6 +108,7 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
         ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
     end
+    freq_display_frames = 100
 end
 
 -- Receive OSC events
@@ -130,9 +131,12 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 97
+    freq = 97.6
+    freq_offset = 100000
+
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(128, 512)
+    player = nrf_player_new(device, NRF_DEMODULATE_WBFM, freq_offset)
 
     server = nosc_server_new(2222, handle_message)
 
