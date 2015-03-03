@@ -495,10 +495,12 @@ void ngl_model_free(ngl_model *model) {
 
 // Camera ////////////////////////////////////////////////////////////////////
 
+#define NGL_CAMERA_DEFAULT_FOV 100
+
 ngl_camera* ngl_camera_new() {
     ngl_camera *camera = calloc(1, sizeof(ngl_camera));
     camera->view = mat4_init_identity();
-    camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
+    camera->projection = mat4_init_perspective(NGL_CAMERA_DEFAULT_FOV, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
     return camera;
 }
@@ -509,7 +511,7 @@ ngl_camera* ngl_camera_new_look_at(float x, float y, float z) {
     vec3 target = vec3_zero();
     vec3 up = vec3_init(0.0f, 1.0f, 0.0f);
     camera->view = mat4_init_look_at(&loc, &target, &up);
-    camera->projection = mat4_init_perspective(67, 800 / 600, 0.01f, 1000.0f);
+    camera->projection = mat4_init_perspective(NGL_CAMERA_DEFAULT_FOV, 800 / 600, 0.01f, 1000.0f);
     camera->background = ngl_color_init_rgba(0, 0, 1, 1);
     return camera;
 }
