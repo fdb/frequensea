@@ -697,6 +697,14 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
     NGL_CHECK_ERROR();
 }
 
+void ngl_draw_background(ngl_camera *camera, ngl_model *model, ngl_shader *shader) {
+    glDepthMask(GL_FALSE);
+    NGL_CHECK_ERROR();
+    ngl_draw_model(camera, model, shader);
+    glDepthMask(GL_TRUE);
+    NGL_CHECK_ERROR();
+}
+
 // Text drawing /////////////////////////////////////////////////////////////
 
 #define NGL_FONT_BITMAP_WIDTH 1024

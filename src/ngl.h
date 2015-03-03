@@ -104,6 +104,7 @@ ngl_skybox *ngl_skybox_new(const char *front, const char *back, const char *top,
 void ngl_skybox_draw(ngl_skybox *skybox, ngl_camera *camera);
 void ngl_skybox_free(ngl_skybox *skybox);
 void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);
+void ngl_draw_background(ngl_camera *camera, ngl_model *model, ngl_shader *shader);
 ngl_font *ngl_font_new(const char *file_name, const int font_size);
 void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y);
 void ngl_font_free(ngl_font *font);

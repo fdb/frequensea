@@ -453,6 +453,14 @@ static int l_ngl_draw_model(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_draw_background(lua_State *L) {
+    ngl_camera* camera = l_to_ngl_camera(L, 1);
+    ngl_model* model = l_to_ngl_model(L, 2);
+    ngl_shader *shader = l_to_ngl_shader(L, 3);
+    ngl_draw_background(camera, model, shader);
+    return 0;
+}
+
 // ngl_font
 
 static ngl_font* l_to_ngl_font(lua_State *L, int index) {
@@ -1090,6 +1098,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "ngl_draw_background", l_ngl_draw_background);
     l_register_function(L, "ngl_font_new", l_ngl_font_new);
     l_register_function(L, "ngl_font_draw", l_ngl_font_draw);
     l_register_function(L, "nosc_server_new", l_nosc_server_new);
