@@ -221,7 +221,8 @@ static nosc_message *_nosc_server_pop_message(nosc_server *server) {
 
 static void _nosc_server_start(nosc_server *server) {
     const char *hostname = 0;
-    const char *port = "2222";
+    char port_name[200];
+    snprintf(port_name, 200, "%d", server->port);
     struct addrinfo hints;
     memset(&hints, 0 ,sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -229,7 +230,7 @@ static void _nosc_server_start(nosc_server *server) {
     hints.ai_protocol = 0;
     hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     struct addrinfo *res = NULL;
-    int err = getaddrinfo(hostname, port, &hints, &res);
+    int err = getaddrinfo(hostname, port_name, &hints, &res);
     if (err != 0) {
             die("failed to resolve local socket address (err=%d)",err);
     }
