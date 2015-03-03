@@ -1227,7 +1227,7 @@ void _nrf_player_decode(nrf_device *device, void *ctx) {
 
     ALint source_state;
     alGetSourcei(player->audio_source, AL_SOURCE_STATE, &source_state);
-    if (source_state != AL_PLAYING && player->audio_buffer_queue->size > 2) {
+    if (source_state != AL_PLAYING && player->audio_buffer_queue->size >= 1) {
         alSourcePlay(player->audio_source);
         _NRF_AL_CHECK_ERROR();
     }
