@@ -24,8 +24,8 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main() {
-    float d = 0.0004;
-    float cell_size = 0.0001;
+    float d = 0.004;
+    float cell_size = 0.001;
     vec2 tp = vec2(vt.x, vt.y - 0.5);
     if (tp.y < 0) {
         tp.y = 1-tp.y;
@@ -133,7 +133,7 @@ function handle_message(path, args)
 end
 
 function setup()
-    freq = 2422
+    freq = 434
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
     fft = nrf_fft_new(256, 512)
 
@@ -143,8 +143,8 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 1024, 0.0001, 0.0001)
-    ngl_model_translate(model, 0, -0.005, 0.005)
+    model = ngl_model_new_grid_triangles(512, 1024, 0.001, 0.001)
+    ngl_model_translate(model, 0, -0.01, 0.005)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
     font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
@@ -165,7 +165,7 @@ function draw()
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
 
-    ngl_font_draw(font, freq, 30, 80)
+    ngl_font_draw(font, freq, 400, 300)
 end
 
 function set_colors_for_freq()
