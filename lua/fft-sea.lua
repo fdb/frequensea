@@ -225,7 +225,6 @@ function setup()
 
     set_global_alpha(1.0)
     state = STATE_NORMAL
-
 end
 
 function set_global_alpha(new_alpha)
@@ -239,12 +238,14 @@ function draw()
     if state == STATE_NORMAL then
     elseif state == STATE_FADING_OUT then
         set_global_alpha(global_alpha - 0.01)
+        nrf_player_set_gain(player, global_alpha)
         if global_alpha <= 0 then
             set_freq(freq_to_switch)
             state = STATE_FADING_IN
         end
     elseif state == STATE_FADING_IN then
         set_global_alpha(global_alpha + 0.01)
+        nrf_player_set_gain(player, global_alpha)
         if global_alpha >= 1 then
             state = STATE_NORMAL
         end
