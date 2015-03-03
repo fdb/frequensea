@@ -114,7 +114,10 @@ STATE_NORMAL = 1
 STATE_FADING_OUT = 2
 STATE_FADING_IN = 3
 
-
+function round(val, decimal)
+  local exp = decimal and 10^decimal or 1
+  return math.ceil(val * exp - 0.5) / exp
+end
 
 function find_range(freq)
     for _, freq_info in pairs(FREQUENCIES) do
@@ -136,6 +139,7 @@ end
 
 function set_freq(new_freq)
     d = new_freq - freq
+    new_freq = round(new_freq, 3)
     freq = nrf_device_set_frequency(device, new_freq)
     nrf_fft_shift(fft, (device.sample_rate / 1e6) / d)
     print("Frequency: " .. new_freq)
