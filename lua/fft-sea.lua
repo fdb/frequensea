@@ -111,10 +111,6 @@ end
 -- Receive OSC events
 function handle_message(path, args)
     if path == "/wii/1/accel/pry" then
-        pitch = args[1] - 0.5
-        if math.abs(pitch) > 0.3 then
-            ngl_model_translate(model, 0.0, -pitch * 0.0005, 0.0)
-        end
         roll = args[2] - 0.5
         if math.abs(roll) > 0.2 then
             d = roll * 0.2
