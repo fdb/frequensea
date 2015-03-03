@@ -135,7 +135,7 @@ end
 function setup()
     freq = 434
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
-    fft = nrf_fft_new(256, 512)
+    fft = nrf_fft_new(128, 512)
 
     server = nosc_server_new(2222, handle_message)
 
@@ -143,7 +143,7 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(512, 1024, 0.001, 0.001)
+    model = ngl_model_new_grid_triangles(256, 512, 0.001, 0.001)
     ngl_model_translate(model, 0, -0.01, 0.005)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
@@ -161,7 +161,7 @@ function draw()
 
     ngl_clear(0.0, 0.0, 0.0, 1.0)
     ngl_skybox_draw(skybox, camera)
-    ngl_texture_update(texture, fft_buffer, 256, 512)
+    ngl_texture_update(texture, fft_buffer, 128, 512)
     ngl_draw_model(camera, model, shader)
     ngl_draw_model(camera, model, line_shader)
 
