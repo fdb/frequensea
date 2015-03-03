@@ -75,6 +75,7 @@ void ngl_check_gl_error(const char *file, int line);
 #define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
 ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha);
 void ngl_clear(float red, float green, float blue, float alpha);
+void ngl_clear_depth();
 void ngl_check_compile_error(GLuint shader);
 void ngl_check_link_error(GLuint program);
 ngl_shader *ngl_shader_new(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source);

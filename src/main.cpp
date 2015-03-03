@@ -186,6 +186,11 @@ static int l_ngl_clear(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_clear_depth(lua_State *L) {
+    ngl_clear_depth();
+    return 0;
+}
+
 // ngl_camera
 
 static ngl_camera* l_to_ngl_camera(lua_State *L, int index) {
@@ -1076,6 +1081,7 @@ static lua_State *l_init() {
     l_register_function(L, "nul_buffer_save", l_nul_buffer_save);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);
     l_register_function(L, "ngl_clear", l_ngl_clear);
+    l_register_function(L, "ngl_clear_depth", l_ngl_clear_depth);
     l_register_function(L, "ngl_camera_new", l_ngl_camera_new);
     l_register_function(L, "ngl_camera_new_look_at", l_ngl_camera_new_look_at);
     l_register_function(L, "ngl_camera_translate", l_ngl_camera_translate);
