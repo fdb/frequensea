@@ -182,7 +182,7 @@ void nvr_device_draw(nvr_device *device, nvr_render_cb_fn callback, void* ctx) {
     ovrHmd hmd = device->hmd;
     ovrFrameTiming frame_timing = ovrHmd_BeginFrame(hmd, 0);
     ovrTrackingState tracking_state = ovrHmd_GetTrackingState(hmd, frame_timing.ScanoutMidpointSeconds);
-    ovrVector3f hmd_to_eye_view_offsets[2] = { device->left_eye.render_desc.HmdToEyeViewOffset, device->right_eye.render_desc.HmdToEyeViewOffset };
+    ovrVector3f hmd_to_eye_view_offsets[2] = { device->right_eye.render_desc.HmdToEyeViewOffset, device->left_eye.render_desc.HmdToEyeViewOffset };
 
     ovrPosef eye_render_poses[2];
     ovrHmd_GetEyePoses(hmd, 0, hmd_to_eye_view_offsets, eye_render_poses, &tracking_state);
