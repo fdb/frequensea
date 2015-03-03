@@ -11,17 +11,12 @@ out vec2 texCoord;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
-uniform float uHue;
-uniform float uSaturation;
-uniform float uValue;
+uniform float uRed;
+uniform float uGreen;
+uniform float uBlue;
+uniform float uAlpha;
 uniform float uLight;
 uniform float uAmbient;
-
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
 
 void main() {
     float d = 0.004;
@@ -47,11 +42,8 @@ void main() {
     float z = (u.x * v.y) - (u.y * v.x);
     vec3 n = vec3(x, y, z);
 
-    vec3 tint = hsv2rgb(vec3(uHue, uSaturation, uValue));
-
     color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * uLight;
-    color += vec4(tint, 1.0) * uAmbient;
-    //color.a = 1.0;
+    color += vec4(uRed, uGreen, uBlue, uAlpha) * uAmbient;
 
     texCoord = vt;
     gl_Position = uProjectionMatrix * uViewMatrix * vec4(v1, 1.0);
@@ -70,10 +62,10 @@ void main() {
 ]]
 
 FREQUENCIES = {
-    {start_freq=87.5, end_freq=108.0, label="FM Radio", hue=1.0},
-    {start_freq=430, end_freq=440, label="ISM", hue=0.25},
-    {start_freq=830, end_freq=980, label="GSM", hue=0.7},
-    {start_freq=2400, end_freq=2425, label="Wi-Fi", hue=0.2}
+    {start_freq=87.5, end_freq=108.0, label="FM Radio", red=1.0, green=0.0, blue=0.0},
+    {start_freq=430, end_freq=440, label="ISM", red=0.25, green=0.1, blue=0.5},
+    {start_freq=830, end_freq=980, label="GSM", red=0.0, green=0.5, blue=0.1},
+    {start_freq=2400, end_freq=2425, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
 }
 
 INTERESTING_FREQUENCIES = {97, 434, 930, 2422}
@@ -95,20 +87,25 @@ function set_freq(new_freq)
     print("Frequency: " .. new_freq)
     info = find_range(freq)
     if info then
-        ngl_shader_uniform_set_float(shader, "uHue", info.hue)
-        ngl_shader_uniform_set_float(shader, "uSaturation", 1)
-        ngl_shader_uniform_set_float(shader, "uValue", 1)
+        ngl_shader_uniform_set_float(shader, "uRed", info.red)
+        ngl_shader_uniform_set_float(shader, "uGreen", info.green)
+        ngl_shader_uniform_set_float(shader, "uBlue", info.blue)
+        ngl_shader_uniform_set_float(shader, "uAlpha", 1)
         ngl_shader_uniform_set_float(shader, "uLight", 0.2)
         ngl_shader_uniform_set_float(shader, "uAmbient", 0.3)
 
         ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
         ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
     else
-        ngl_shader_uniform_set_float(shader, "uHue", 0.5)
-        ngl_shader_uniform_set_float(shader, "uSaturation", 0)
-        ngl_shader_uniform_set_float(shader, "uValue", 0.5)
+        ngl_shader_uniform_set_float(shader, "uRed", 0.5)
+        ngl_shader_uniform_set_float(shader, "uGreen", 0.5)
+        ngl_shader_uniform_set_float(shader, "uBlue", 0.5)
+        ngl_shader_uniform_set_float(shader, "uAlpha", 0.5)
         ngl_shader_uniform_set_float(shader, "uLight", 2.0)
         ngl_shader_uniform_set_float(shader, "uAmbient", 0.8)
+
+        ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
+        ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
     end
 end
 
@@ -146,7 +143,7 @@ function setup()
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
-    model = ngl_model_new_grid_triangles(256, 512, 0.001, 0.001)
+    model = ngl_model_new_grid_triangles(256, 1024, 0.001, 0.001)
     ngl_model_translate(model, 0, -0.01, 0.005)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
@@ -162,7 +159,12 @@ function draw()
 
     nosc_server_update(server)
 
-    ngl_clear(1.0, 0.0, 0.0, 1.0)
+    info = find_range(freq)
+    if info then
+        ngl_clear(info.red, info.green, info.blue, 1.0)
+    else
+        ngl_clear(0.2, 0.2, 0.2, 1.0)
+    end
     --ngl_skybox_draw(skybox, camera)
     ngl_texture_update(texture, fft_buffer, 128, 512)
     ngl_draw_model(camera, model, shader)
