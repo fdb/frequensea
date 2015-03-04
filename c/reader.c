@@ -36,7 +36,7 @@ int receive_sample_block(hackrf_transfer *transfer) {
     }
     if (buffer_pos >= BUFFER_SIZE) {
         char fname[100];
-        snprintf(fname, 100, "../rfdata/rf-%.3f-big.raw", FREQUENCY / 1.0e6);
+        snprintf(fname, 100, "../rfdata/rf-%.3f.raw", FREQUENCY / 1.0e6);
         FILE *fp = fopen(fname, "wb");
         if (fp) {
             fwrite(buffer, BUFFER_SIZE, 1, fp);
@@ -48,8 +48,15 @@ int receive_sample_block(hackrf_transfer *transfer) {
     return 0;
 }
 
+void usage() {
+    printf("reader freq_mhz count\n");
+}
+
 int main(int argc, char **argv) {
-    assert(argc == 3);
+    if (argc != 3) {
+        usage();
+        exit(1);
+    }
     double freq_mhz = atof(argv[1]);
     FREQUENCY = freq_mhz * 1e6;
     int count = atoi(argv[2]);
