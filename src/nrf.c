@@ -387,7 +387,10 @@ nul_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
 static void pixel_inc(nul_buffer *image_buffer, int stride, int x, int y) {
     int offset = y * stride + x;
     if (image_buffer->type == NUL_BUFFER_U8) {
-        image_buffer->data.u8[offset]++;
+        int v = image_buffer->data.u8[offset];
+        if (v < 255) {
+            image_buffer->data.u8[offset]++;
+        }
     } else {
         image_buffer->data.f64[offset]++;
     }
