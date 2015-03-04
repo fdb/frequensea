@@ -65,7 +65,7 @@ piqvis: piqvis.c
 	gcc --std=c99 -g -Wall -Werror -pedantic -I/usr/local/include `pkg-config --cflags librtlsdr glfw3 glew` -o piqvis piqvis.c -L/usr/local/lib `pkg-config --libs --static librtlsdr glfw3 glew`
 
 single-sample: single-sample.c
-	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o single-sample single-sample.c
+	gcc -O3 --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o single-sample single-sample.c
 
 render-text: render-text.c
 	gcc --std=c99 -g -Wall -Werror -pedantic `pkg-config --cflags --libs libpng` -o render-text render-text.c
