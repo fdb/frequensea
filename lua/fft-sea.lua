@@ -271,7 +271,7 @@ function draw()
 
     frequency_display_countdown = frequency_display_countdown - 1
     if frequency_display_countdown > 0 then
-        ngl_font_draw(freq_font, freq, 50, 100)
+        ngl_font_draw(freq_font, freq - (freq_offset / 1000000), 50, 100)
         info = find_range(freq)
         if info then
             ngl_font_draw(info_font, info.label, 50, 150)
