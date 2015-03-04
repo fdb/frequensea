@@ -9,7 +9,7 @@
 
 #include "easypng.h"
 
-const int SAMPLES_STEP = 100;
+int SAMPLES_STEP = 100;
 const int IQ_RESOLUTION = 256;
 const int SIZE_MULTIPLIER = 4;
 const int IMAGE_WIDTH = 1920;
@@ -18,10 +18,11 @@ const int IQ_WIDTH = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IQ_HEIGHT = IQ_RESOLUTION * SIZE_MULTIPLIER;
 const int IMAGE_OFFSET_X = (IMAGE_WIDTH - IQ_WIDTH) / 2;
 const int IMAGE_OFFSET_Y = (IMAGE_HEIGHT - IQ_HEIGHT) / 2;
-const int PIXEL_INC = 100;
-const int FADE_PER_FRAME = 10;
+int PIXEL_INC = 4;
+int FADE_PER_FRAME = 0;
+int PREVIEW_MODE = 0;
 
-uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
+static inline uint8_t clamp_u8(int v, uint8_t min, uint8_t max) {
     return (uint8_t) (v < min ? min : v > max ? max : v);
 }
 
@@ -33,7 +34,7 @@ void pixel_put(uint8_t *image_buffer, int x, int y, int color) {
 void pixel_inc(uint8_t *image_buffer, int x, int y) {
     static int have_warned = 0;
     // Avoid white borders.
-    if (x == 0 || y == 0 || x == IQ_WIDTH - 1 || y == IQ_HEIGHT - 1) {
+    if (x == 0 || y == 0 || x == IMAGE_WIDTH - 1 || y == IMAGE_HEIGHT - 1) {
         return;
     }
     int offset = ((y + IMAGE_OFFSET_Y) * IMAGE_WIDTH) + (x + IMAGE_OFFSET_X);
@@ -72,8 +73,41 @@ void write_image(uint8_t *image_buffer, int fname_index) {
     write_gray_png(fname, IMAGE_WIDTH, IMAGE_HEIGHT, image_buffer);
 }
 
-int main() {
-    FILE *fp = fopen("../rfdata/rf-433.000-short.raw", "r");
+void usage() {
+    printf("single-sample [-p pixel_inc] [-s samples_per_frame] [-f fade_per_frame] [-v (preview)] rfdata.raw\n");
+}
+
+int main(int argc, char **argv) {
+    char *sample_fname;
+    char ch;
+    while ((ch = getopt(argc, argv, "p:s:f:v")) != -1) {
+        switch (ch) {
+            case 'p':
+                PIXEL_INC = atoi(optarg);
+                break;
+            case 's':
+                SAMPLES_STEP = atoi(optarg);
+                break;
+            case 'f':
+                FADE_PER_FRAME = atoi(optarg);
+                break;
+            case 'v':
+                PREVIEW_MODE = 1;
+                break;
+            case '?':
+            default:
+                usage();
+                exit(1);
+        }
+    }
+    argc -= optind;
+    argv += optind;
+    if (argc != 1) {
+        usage();
+        exit(1);
+    }
+    sample_fname = argv[0];
+    FILE *fp = fopen(sample_fname, "r");
     assert(fp != NULL);
     fseek(fp, 0L, SEEK_END);
     long size = ftell(fp);
@@ -90,11 +124,13 @@ int main() {
 
     int fname_index = 1;
     for (int j = 0; j < size; j += SAMPLES_STEP) {
-        for (int i = 0; i < IMAGE_WIDTH * IMAGE_HEIGHT; ++i) {
-            int v = image_buffer[i];
-            v -= FADE_PER_FRAME;
-            v = clamp_u8(v, 0, 255);
-            image_buffer[i] = v;
+        if (FADE_PER_FRAME > 0) {
+            for (int i = 0; i < IMAGE_WIDTH * IMAGE_HEIGHT; ++i) {
+                int v = image_buffer[i];
+                v -= FADE_PER_FRAME;
+                v = clamp_u8(v, 0, 255);
+                image_buffer[i] = v;
+            }
         }
 
         for (int i = 0; i < SAMPLES_STEP; i += 2) {
@@ -106,8 +142,13 @@ int main() {
             x1 = x2;
             y1 = y2;
         }
-        write_image(image_buffer, fname_index);
+        if (!PREVIEW_MODE) {
+            write_image(image_buffer, fname_index);
+        }
         fname_index++;
+    }
+    if (PREVIEW_MODE) {
+        write_image(image_buffer, fname_index);
     }
 
     return 0;
