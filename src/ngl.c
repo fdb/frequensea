@@ -722,22 +722,24 @@ const char *_ngl_font_vertex_shader = "#version 400\n"
 "out vec2 texCoord;\n"
 "uniform float uWidth;\n"
 "uniform float uHeight;\n"
+"uniform vec2 uPosition;\n"
 "void main() {\n"
 "    float x = (vp.x / uWidth) * 2 - 1;\n"
 "    float y = (vp.y / uHeight) * -2 + 1;\n"
 "    color = vec3(1.0, 1.0, 1.0);\n"
 "    texCoord = vt;\n"
-"    gl_Position = vec4(x, y, 0, 1.0);\n"
+"    gl_Position = vec4(uPosition.x + x, uPosition.y + y, 0, 1.0);\n"
 "}\n";
 
 const char *_ngl_font_fragment_shader = "#version 400\n"
 "in vec3 color;\n"
 "in vec2 texCoord;\n"
 "uniform sampler2D uTexture;\n"
+"uniform float uAlpha;\n"
 "layout (location = 0) out vec4 fragColor;\n"
 "void main() {\n"
 "    float v = texture(uTexture, texCoord).r;\n"
-"    fragColor = vec4(1, 1, 1, v);\n"
+"    fragColor = vec4(1, 1, 1, v * uAlpha);\n"
 "}\n";
 
 ngl_font *ngl_font_new(const char *file_name, const int font_size) {
@@ -749,6 +751,14 @@ ngl_font *ngl_font_new(const char *file_name, const int font_size) {
     font->chars = calloc(font->num_chars, sizeof(stbtt_bakedchar));
 
     font->shader = ngl_shader_new(GL_TRIANGLES, _ngl_font_vertex_shader, _ngl_font_fragment_shader);
+    glUseProgram(font->shader->program);
+    NGL_CHECK_ERROR();
+    font->position_uniform = glGetUniformLocation(font->shader->program, "uPosition");
+    NGL_CHECK_ERROR();
+    font->alpha_uniform = glGetUniformLocation(font->shader->program, "uAlpha");
+    NGL_CHECK_ERROR();
+    glUseProgram(0);
+    NGL_CHECK_ERROR();
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, (GLint *) &viewport);
@@ -780,7 +790,7 @@ ngl_font *ngl_font_new(const char *file_name, const int font_size) {
     return font;
 }
 
-void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
+void ngl_font_draw(ngl_font *font, const char *text, const double x, const double y, const double alpha) {
     assert(font != NULL);
     assert(text != NULL);
 
@@ -791,8 +801,8 @@ void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
     float *positions = calloc(point_count * 2, sizeof(float));
     float *uvs = calloc(point_count * 2, sizeof(float));
 
-    float xpos = x;
-    float ypos = y;
+    float xpos = 0;
+    float ypos = 0;
     int p = 0;
     int u = 0;
 
@@ -829,6 +839,10 @@ void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
         uvs[u++] = q.t0;
     }
 
+    for (int i = 0; i < p; i += 2) {
+        positions[i] -= xpos / 2;
+    }
+
     ngl_model *model = ngl_model_new(2, point_count, positions, NULL, uvs);
     free(positions);
     free(uvs);
@@ -836,6 +850,10 @@ void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y) {
     glDisable(GL_DEPTH_TEST);
     NGL_CHECK_ERROR();
     glUseProgram(font->shader->program);
+    NGL_CHECK_ERROR();
+    glUniform2f(font->position_uniform, x, -y);
+    NGL_CHECK_ERROR();
+    glUniform1f(font->alpha_uniform, alpha);
     NGL_CHECK_ERROR();
     glActiveTexture(GL_TEXTURE0);
     NGL_CHECK_ERROR();

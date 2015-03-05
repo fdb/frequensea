@@ -68,6 +68,8 @@ typedef struct {
     int first_char;
     int num_chars;
     ngl_shader *shader;
+    GLint position_uniform;
+    GLint alpha_uniform;
     ngl_texture *texture;
 } ngl_font;
 
@@ -107,7 +109,7 @@ void ngl_skybox_free(ngl_skybox *skybox);
 void ngl_draw_model(ngl_camera *camera, ngl_model* model, ngl_shader *shader);
 void ngl_draw_background(ngl_camera *camera, ngl_model *model, ngl_shader *shader);
 ngl_font *ngl_font_new(const char *file_name, const int font_size);
-void ngl_font_draw(ngl_font *font, const char *text, const int x, const int y);
+void ngl_font_draw(ngl_font *font, const char *text, const double x, const double y, const double alpha);
 void ngl_font_free(ngl_font *font);
 
 #endif // NGL_H

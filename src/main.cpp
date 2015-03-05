@@ -483,9 +483,10 @@ static int l_ngl_font_new(lua_State *L) {
 static int l_ngl_font_draw(lua_State *L) {
     ngl_font *font = l_to_ngl_font(L, 1);
     const char *text = lua_tostring(L, 2);
-    int x = luaL_checkinteger(L, 3);
-    int y = luaL_checkinteger(L, 4);
-    ngl_font_draw(font, text, x, y);
+    double x = luaL_checknumber(L, 3);
+    double y = luaL_checknumber(L, 4);
+    double alpha = luaL_checknumber(L, 5);
+    ngl_font_draw(font, text, x, y, alpha);
     return 0;
 }
 

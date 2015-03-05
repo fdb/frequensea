@@ -106,7 +106,7 @@ FREQUENCIES = {
 INTERESTING_FREQUENCIES = {97.6, 169.8, 434.1, 930.3, 1846, 2462.1}
 
 FREQUENCY_INDEX = 1
-FREQUENCY_DISPLAY_TIME = 300
+FREQUENCY_DISPLAY_TIME = 150
 
 STATE_NORMAL = 1
 STATE_FADING_OUT = 2
@@ -197,7 +197,7 @@ end
 
 function setup()
     frequency_index = 1
-    freq = 434 -- INTERESTING_FREQUENCIES[frequency_index]
+    freq = INTERESTING_FREQUENCIES[frequency_index]
     freq_offset = 100000
 
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
@@ -219,7 +219,7 @@ function setup()
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
     freq_font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
-    info_font = ngl_font_new("../fonts/RobotoCondensed-Bold.ttf", 48)
+    info_font = ngl_font_new("../fonts/RobotoCondensed-Bold.ttf", 36)
 
     frequency_display_countdown = FREQUENCY_DISPLAY_TIME
     set_freq(freq)
@@ -268,10 +268,15 @@ function draw()
 
     frequency_display_countdown = frequency_display_countdown - 1
     if frequency_display_countdown > 0 then
-        ngl_font_draw(freq_font, freq - (freq_offset / 1000000), 50, 100)
+        if frequency_display_countdown < 50 then
+            font_alpha = 1.0 - ((50 - frequency_display_countdown) / 50.0)
+        else
+            font_alpha = 1.0
+        end
+        ngl_font_draw(freq_font, freq - (freq_offset / 1000000), 1, 0.9, font_alpha)
         info = find_range(freq)
         if info then
-            ngl_font_draw(info_font, info.label, 50, 150)
+            ngl_font_draw(info_font, info.label, 1, 1.0, font_alpha)
         end
     end
 end
