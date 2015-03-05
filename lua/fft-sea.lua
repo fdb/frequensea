@@ -273,10 +273,10 @@ function draw()
         else
             font_alpha = 1.0
         end
-        ngl_font_draw(freq_font, freq - (freq_offset / 1000000), 1, 0.9, font_alpha)
+        ngl_font_draw(freq_font, freq - (freq_offset / 1000000), 1, 0.7, font_alpha)
         info = find_range(freq)
         if info then
-            ngl_font_draw(info_font, info.label, 1, 1.0, font_alpha)
+            ngl_font_draw(info_font, info.label, 1, 0.8, font_alpha)
         end
     end
 end
