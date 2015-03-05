@@ -15,13 +15,18 @@ const int IMAGE_HEIGHT = 1080;
 const int IQ_SIZE = 256;
 const int RF_BUFFER_SIZE = IMAGE_WIDTH * IMAGE_HEIGHT * 2;
 const int IMAGE_BUFFER_SIZE = IMAGE_WIDTH * IMAGE_HEIGHT;
-const int TOTAL_FRAMES = 1000;
-const double INTERPOLATE_STEP = 0.1;
+const int TOTAL_FRAMES = 20000;
+const double INTERPOLATE_STEP = 0.01;
 const double FREQ_MHZ_START = 1.0;
 const double FREQ_MHZ_STEP = 0.01;
 const double WIDTH_SCALE = IMAGE_WIDTH / (double) IQ_SIZE;
 const double HEIGHT_SCALE = IMAGE_HEIGHT / (double) IQ_SIZE;
 const double BLOCK_SCALE  = WIDTH_SCALE > HEIGHT_SCALE ? WIDTH_SCALE : HEIGHT_SCALE;
+
+// Modeled after half sine wave
+double sine_ease_in_out(double p) {
+    return 0.5 * (1 - cos(p * M_PI));
+}
 
 // Modeled after the piecewise quadratic
 // y = (1/2)((2x)^2)             ; [0, 0.5)
@@ -47,7 +52,7 @@ double quintic_ease_in_out(double p) {
 }
 
 double lerp(double a, double b, double t) {
-    t = quintic_ease_in_out(t);
+    t = sine_ease_in_out(t);
     return a * (1.0 - t) + b * t;
 }
 
