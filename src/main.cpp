@@ -1191,6 +1191,8 @@ int main(int argc, char **argv) {
             exit(0);
         } else if (strcmp(argv[i], "--vr") == 0) {
             use_vr = 1;
+            window_width = 1920;
+            window_height = 1080;
         } else if (strcmp(argv[i], "--capture") == 0) {
             capture = 1;
         } else if (strcmp(argv[i], "--width") == 0) {
