@@ -41,6 +41,7 @@ layout (location = 1) in vec3 vn;
 layout (location = 2) in vec2 vt;
 flat out vec4 color;
 out vec2 texCoord;
+flat out float dontDraw;
 uniform mat4 uViewMatrix, uProjectionMatrix;
 uniform float uTime;
 uniform sampler2D uTexture;
@@ -60,24 +61,16 @@ void main() {
         tp.y = 1-tp.y;
     }
     float y1 = texture(uTexture, tp).r;
-    float y2 = texture(uTexture, tp + vec2(cell_size, 0)).r;
-    float y3 = texture(uTexture, tp + vec2(0, cell_size)).r;
     y1 *= d;
-    y2 *= d;
-    y3 *= d;
     vec3 v1 = vec3(vp.x, y1, vp.z);
-    vec3 v2 = vec3(vp.x + cell_size, y2, vp.z);
-    vec3 v3 = vec3(vp.x, y3, vp.z + cell_size);
 
-    vec3 u = v2 - v1;
-    vec3 v = v3 - v1;
-    float x = (u.y * v.z) - (u.z * v.y);
-    float y = (u.z * v.x) - (u.x * v.z);
-    float z = (u.x * v.y) - (u.y * v.x);
-    vec3 n = vec3(x, y, z);
+    if (y1 == 0) {
+        dontDraw = 1.0;
+    } else {
+        dontDraw = 0.0;
+    }
 
-    color = vec4(1.0, 1.0, 1.0, 1.0) * dot(normalize(v1), normalize(n)) * uLight;
-    color += vec4(uRed, uGreen, uBlue, uAlpha) * uAmbient;
+    color = vec4(uRed, uGreen, uBlue, uAlpha);
     color.a *= uGlobalAlpha;
 
     texCoord = vt;
@@ -90,16 +83,21 @@ FRAGMENT_SHADER = [[
 #version 400
 flat in vec4 color;
 in vec2 texCoord;
+flat in float dontDraw;
 layout (location = 0) out vec4 fragColor;
 void main() {
-    fragColor = color;
+    if (dontDraw >= 1.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    } else {
+        fragColor = color;
+    }
 }
 ]]
 
 FREQUENCIES = {
     {start_freq=87.5, end_freq=108.0, label="FM Radio", red=0.8, green=0.0, blue=0.0},
     {start_freq=165, end_freq=175, label="TETRA Police Radio", red=0.1, green=0.1, blue=0.9},
-    {start_freq=430, end_freq=440, label="ISM", red=0.25, green=0.1, blue=0.5},
+    {start_freq=430, end_freq=440, label="ISM", red=0.8, green=0.8, blue=0.0},
     {start_freq=830, end_freq=980, label="GSM", red=0.0, green=0.8, blue=0.8},
     {start_freq=1785, end_freq=1880, label="Mobile communications", red=0.0, green=0.2, blue=0.9},
     {start_freq=2400, end_freq=2500, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
@@ -148,27 +146,26 @@ function set_freq(new_freq)
         ngl_shader_uniform_set_float(shader, "uRed", info.red)
         ngl_shader_uniform_set_float(shader, "uGreen", info.green)
         ngl_shader_uniform_set_float(shader, "uBlue", info.blue)
-        ngl_shader_uniform_set_float(shader, "uAlpha", 1)
-        ngl_shader_uniform_set_float(shader, "uLight", 0.8)
-        ngl_shader_uniform_set_float(shader, "uAmbient", 0.2)
+        ngl_shader_uniform_set_float(shader, "uAlpha", 0.1)
 
-        ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
-        ngl_shader_uniform_set_float(line_shader, "uAmbient", 10.0)
+        ngl_shader_uniform_set_float(line_shader, "uRed", info.red * 1.5)
+        ngl_shader_uniform_set_float(line_shader, "uGreen", info.green * 1.5)
+        ngl_shader_uniform_set_float(line_shader, "uBlue", info.blue * 1.5)
+        ngl_shader_uniform_set_float(line_shader, "uAlpha", 1.0)
 
         ngl_shader_uniform_set_float(grad_shader, "uRed", info.red)
         ngl_shader_uniform_set_float(grad_shader, "uGreen", info.green)
         ngl_shader_uniform_set_float(grad_shader, "uBlue", info.blue)
         ngl_shader_uniform_set_float(grad_shader, "uAlpha", 1)
     else
-        ngl_shader_uniform_set_float(shader, "uRed", 0.2)
-        ngl_shader_uniform_set_float(shader, "uGreen", 0.2)
-        ngl_shader_uniform_set_float(shader, "uBlue", 0.4)
-        ngl_shader_uniform_set_float(shader, "uAlpha", 0.2)
-        ngl_shader_uniform_set_float(shader, "uLight", 0.9)
-        ngl_shader_uniform_set_float(shader, "uAmbient", 0.4)
+        ngl_shader_uniform_set_float(shader, "uRed", 0.1)
+        ngl_shader_uniform_set_float(shader, "uGreen", 0.1)
+        ngl_shader_uniform_set_float(shader, "uBlue", 0.1)
+        ngl_shader_uniform_set_float(shader, "uAlpha", 0.3)
 
-        ngl_shader_uniform_set_float(line_shader, "uLight", 10.0)
-        ngl_shader_uniform_set_float(line_shader, "uAmbient", 1.0)
+        ngl_shader_uniform_set_float(line_shader, "uRed", 0.4)
+        ngl_shader_uniform_set_float(line_shader, "uGreen", 0.4)
+        ngl_shader_uniform_set_float(line_shader, "uBlue", 0.4)
         ngl_shader_uniform_set_float(line_shader, "uAlpha", 1.0)
 
         ngl_shader_uniform_set_float(grad_shader, "uRed", 0.2)
@@ -200,7 +197,7 @@ end
 
 function setup()
     frequency_index = 1
-    freq = INTERESTING_FREQUENCIES[frequency_index]
+    freq = 434 -- INTERESTING_FREQUENCIES[frequency_index]
     freq_offset = 100000
 
     device = nrf_device_new(freq, "../rfdata/rf-200.500-big.raw")
@@ -218,7 +215,7 @@ function setup()
     line_shader = ngl_shader_new(GL_LINES, VERTEX_SHADER, FRAGMENT_SHADER)
     texture = ngl_texture_new(shader, "uTexture")
     model = ngl_model_new_grid_triangles(256, 512, 0.001, 0.001)
-    ngl_model_translate(model, 0, -0.02, 0.005)
+    ngl_model_translate(model, 0, -0.02, 0.002)
 
     skybox = ngl_skybox_new("../img/negz.jpg", "../img/posz.jpg", "../img/posy.jpg", "../img/negy.jpg", "../img/negx.jpg", "../img/posx.jpg")
     freq_font = ngl_font_new("../fonts/Roboto-Bold.ttf", 72)
