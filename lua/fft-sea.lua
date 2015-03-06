@@ -188,6 +188,12 @@ function handle_message(path, args)
             end
             set_freq(freq + d)
         end
+    elseif path == "/wii/1/button/Right" and args[1] == 1 then
+        new_freq = freq + 0.1
+        set_freq(math.ceil(new_freq * 10) / 10)
+    elseif path == "/wii/1/button/Left" and args[1] == 1 then
+        new_freq = freq - 0.1
+        set_freq(math.floor(new_freq * 10) / 10)
     elseif path == "/wii/1/button/Up" then
         print(args[1])
         ngl_model_translate(model, 0.0, -0.001, 0.0)
