@@ -180,9 +180,12 @@ end
 function handle_message(path, args)
     if path == "/wii/1/accel/pry" then
         roll = args[2] - 0.5
-        if math.abs(roll) > 0.2 then
-            d = roll * 0.2
-            d = math.floor(d * 100) / 100
+        if math.abs(roll) > 0.4 then
+            if roll < 0 then
+                d = -0.04
+            else
+                d = 0.04
+            end
             set_freq(freq + d)
         end
     elseif path == "/wii/1/button/Up" then
