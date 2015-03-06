@@ -191,7 +191,7 @@ function handle_message(path, args)
     elseif path == "/wii/1/button/Down" then
         ngl_model_translate(model, 0.0, 0.001, 0.0)
     elseif path == "/wii/1/button/A" and args[1] == 1 then
-        set_freq(math.random(4000))
+        switch_freq()
     end
 end
 
