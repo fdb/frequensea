@@ -4,6 +4,8 @@ Frequensea is an open-source toolkit for visualizing the electromagnetic spectru
 
 ![A sea of FFT data](https://raw.github.com/fdb/frequensea/master/screenshots/fft-sea.png)
 
+Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
+
 ## Features
 - Fast core written in C, with Lua scripting on top.
 - Support fort RTL-SDR and HackRF devices
