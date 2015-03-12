@@ -99,11 +99,10 @@ FREQUENCIES = {
     {start_freq=165, end_freq=175, label="TETRA Police Radio", red=0.1, green=0.1, blue=0.9},
     {start_freq=430, end_freq=440, label="ISM", red=0.8, green=0.8, blue=0.0},
     {start_freq=830, end_freq=980, label="GSM", red=0.0, green=0.8, blue=0.8},
-    {start_freq=1785, end_freq=1880, label="Mobile communications", red=0.0, green=0.2, blue=0.9},
     {start_freq=2400, end_freq=2500, label="Wi-Fi", red=0.2, green=0.6, blue=0.9}
 }
 
-INTERESTING_FREQUENCIES = {97.6, 169.8, 434.1, 930.3, 1846, 2462.1}
+INTERESTING_FREQUENCIES = {97.6, 169.8, 434.1, 930.3, 2462.1}
 
 FREQUENCY_INDEX = 1
 FREQUENCY_DISPLAY_TIME = 150
