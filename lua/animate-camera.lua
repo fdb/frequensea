@@ -24,7 +24,7 @@ void main() {
 ]]
 
 function setup()
-    model = ngl_model_load_obj("../obj/c004.obj")
+    model = ngl_model_load_obj("../obj/cubes.obj")
     shader = ngl_shader_new(GL_TRIANGLES, VERTEX_SHADER, FRAGMENT_SHADER)
 end
 
