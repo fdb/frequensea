@@ -6,5 +6,5 @@ end
 
 function draw()
     ngl_clear(0.0, 0.0, 0.0, 1)
-    ngl_font_draw(font, "Hello, world!", 60, 300)
+    ngl_font_draw(font, "Hello, world!", 1, 1, 1.0)
 end
