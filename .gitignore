@@ -1,5 +1,6 @@
 *.dSYM
-*.png
+/build/*.png
+/c/**/*.png
 /build
 /c/add-markers
 /c/batch

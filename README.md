@@ -1,6 +1,15 @@
 ## Frequensea
 
-    Visualize the frequency spectrum.
+Frequensea is an open-source toolkit for visualizing the electromagnetic spectrum.
+
+![A sea of FFT data](https://raw.github.com/fdb/frequensea/master/screenshots/fft-sea.png)
+
+## Features
+- Fast core written in C, with Lua scripting on top.
+- Support fort RTL-SDR and HackRF devices
+- Support for Oculus Rift for viewing the spectrum in virtual reality.
+- Support for OSC to communicate with other applications or devices.
+- Basic building blocks for sampling, filtering and visualizing RF data.
 
 ## Installing dependencies (OS X)
 
@@ -26,7 +35,7 @@
 
 ## Installing dependencies (Raspberry Pi)
 
-    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev 
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev
 
     # There is no RTL-SDR package so install from source
     git clone git://git.osmocom.org/rtl-sdr.git
