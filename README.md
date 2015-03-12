@@ -6,8 +6,8 @@
 
     brew update
     brew install cmake lua glew homebrew/versions/glfw3 fftw librtlsdr libpng libsndfile
-    brew tap robotastic/homebrew-hackrf
-    brew install --HEAD hackrf
+    brew tap fdb/homebrew-hackrf
+    brew install hackrf
 
 ## Installing dependencies (Ubuntu 14.04 LTS)
 
