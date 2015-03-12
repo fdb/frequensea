@@ -118,7 +118,7 @@ function draw()
         ngl_shader_uniform_set_float(shader, "uAlpha", alpha)
         ngl_draw_model(camera, model, shader)
 
-        percentage_drawn = percentage_drawn + 0.001
+        percentage_drawn = percentage_drawn + 0.005
 
         if percentage_drawn >= 0.9 then
             alpha = alpha - 0.01
