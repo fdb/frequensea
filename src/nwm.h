@@ -43,7 +43,7 @@
 #else
     #define NWM_USE_LINUX
     #define NWM_USE_OPENGL
-    #define NWM_PLATFORM NWM_PLATFORM_LINUX
+    #define NWM_PLATFORM NWM_LINUX
     #define NWM_OPENGL_TYPE NWM_OPENGL
 #endif
 
