@@ -8,7 +8,7 @@ add_subdirectory(externals/lua)
 include_directories(src)
 include_directories(externals/ovr/Include)
 include_directories(externals/ovr/Src)
-include_directories(externals/lua/Src)
+include_directories(externals/lua/src)
 include_directories(externals/stb)
 
 find_library(LIBRARY_MATH m)
