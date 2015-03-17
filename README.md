@@ -74,3 +74,8 @@ Save the output to a PNG sequence:
 ## Build and Run
 
     make && ./frequensea ../lua/static.lua
+
+## Documentation
+
+- API.md contains all available Frequensea calls.
+- Examples are in the "lua" folder.
