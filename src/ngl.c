@@ -223,7 +223,7 @@ void ngl_texture_update(ngl_texture *texture, nut_buffer *buffer, int width, int
         exit(1);
     }
 
-    if (buffer->type == NUL_BUFFER_U8) {
+    if (buffer->type == NUT_BUFFER_U8) {
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, buffer->data.u8);
     } else {
         const int size = width * height * buffer->channels;

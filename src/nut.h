@@ -1,15 +1,15 @@
 // Utility
 
-#ifndef NUL_H
-#define NUL_H
+#ifndef NUT_H
+#define NUT_H
 
 #include <stdint.h>
 
 // Buffer
 
 typedef enum {
-    NUL_BUFFER_U8 = 1,
-    NUL_BUFFER_F64
+    NUT_BUFFER_U8 = 1,
+    NUT_BUFFER_F64
 } nut_buffer_type;
 
 typedef union nut_buffer_data {
@@ -39,4 +39,4 @@ nut_buffer *nut_buffer_convert(nut_buffer *buffer, nut_buffer_type new_type);
 void nut_buffer_save(nut_buffer *buffer, const char *fname);
 void nut_buffer_free(nut_buffer *buffer);
 
-#endif // NUL_H
+#endif // NUT_H

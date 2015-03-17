@@ -386,7 +386,7 @@ nut_buffer *nrf_device_get_iq_buffer(nrf_device *device) {
 
 static void pixel_inc(nut_buffer *image_buffer, int stride, int x, int y) {
     int offset = y * stride + x;
-    if (image_buffer->type == NUL_BUFFER_U8) {
+    if (image_buffer->type == NUT_BUFFER_U8) {
         int v = image_buffer->data.u8[offset];
         if (v < 255) {
             image_buffer->data.u8[offset]++;
@@ -466,7 +466,7 @@ nrf_interpolator *nrf_interpolator_new(double interpolate_step) {
 void nrf_interpolator_process(nrf_interpolator *interpolator, nut_buffer *buffer) {
     if (interpolator->t < 0.0) {
         // Special start-up condition. Set b_buffer and interpolate from zero.
-        if (buffer->type == NUL_BUFFER_U8) {
+        if (buffer->type == NUT_BUFFER_U8) {
             interpolator->buffer_a = nut_buffer_new_u8(buffer->length, buffer->channels, NULL);
         } else {
             interpolator->buffer_a = nut_buffer_new_f64(buffer->length, buffer->channels, NULL);
@@ -489,7 +489,7 @@ nut_buffer *nrf_interpolator_get_buffer(nrf_interpolator *interpolator) {
     assert(a->type == b->type);
     assert(a->size_bytes == b->size_bytes);
     nut_buffer *dst;
-    if (a->type == NUL_BUFFER_U8) {
+    if (a->type == NUT_BUFFER_U8) {
         dst = nut_buffer_new_u8(a->length, a->channels, NULL);
     } else {
         dst = nut_buffer_new_f64(a->length, a->channels, NULL);
@@ -515,7 +515,7 @@ void nrf_interpolator_free(nrf_interpolator *interpolator) {
 // Take a buffer with 2 channels and a channel for "t", the position.
 nut_buffer *nrf_buffer_add_position_channel(nut_buffer *buffer) {
     nut_buffer *result;
-    if (buffer->type == NUL_BUFFER_U8) {
+    if (buffer->type == NUT_BUFFER_U8) {
         result = nut_buffer_new_u8(buffer->length, buffer->channels + 1, NULL);
     } else {
         result = nut_buffer_new_f64(buffer->length, buffer->channels + 1, NULL);
@@ -616,7 +616,7 @@ void nrf_fft_process(nrf_fft *fft, nut_buffer *buffer) {
     for (int i = 0; i < size; i += 2) {
         fftw_complex *p = fft->fft_in;
         double di, dq;
-        if (buffer->type == NUL_BUFFER_U8) {
+        if (buffer->type == NUT_BUFFER_U8) {
             di = buffer->data.u8[i] / 256.0;
             dq = buffer->data.u8[i + 1] / 256.0;
         } else {
