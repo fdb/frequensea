@@ -105,7 +105,7 @@ function draw()
         if sd > signal_threshold then
             nrf_iq_filter_process(filter, samples_buffer)
             filter_buffer = nrf_iq_filter_get_buffer(filter)
-            nul_buffer_append(draw_buffer, filter_buffer)
+            nut_buffer_append(draw_buffer, filter_buffer)
         else
             state = STATE_DRAWING
             percentage_drawn = 0

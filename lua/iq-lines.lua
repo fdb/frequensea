@@ -34,7 +34,7 @@ end
 
 function draw()
     samples_buffer = nrf_device_get_samples_buffer(device)
-    reduced_buffer = nul_buffer_reduce(samples_buffer, line_percentage)
+    reduced_buffer = nut_buffer_reduce(samples_buffer, line_percentage)
 
     ngl_clear(0.2, 0.2, 0.2, 1.0)
     model = ngl_model_new_with_buffer(reduced_buffer)

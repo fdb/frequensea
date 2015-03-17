@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "nul.h"
+#include "nut.h"
 
-nul_buffer *nul_buffer_new_u8(int length, int channels, const uint8_t *data) {
-    nul_buffer *buffer = calloc(1, sizeof(nul_buffer));
+nut_buffer *nut_buffer_new_u8(int length, int channels, const uint8_t *data) {
+    nut_buffer *buffer = calloc(1, sizeof(nut_buffer));
     buffer->type = NUL_BUFFER_U8;
     buffer->length = length;
     buffer->channels = channels;
@@ -19,8 +19,8 @@ nul_buffer *nul_buffer_new_u8(int length, int channels, const uint8_t *data) {
     return buffer;
 }
 
-nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data) {
-    nul_buffer *buffer = calloc(1, sizeof(nul_buffer));
+nut_buffer *nut_buffer_new_f64(int length, int channels, const double *data) {
+    nut_buffer *buffer = calloc(1, sizeof(nut_buffer));
     buffer->type = NUL_BUFFER_F64;
     buffer->length = length;
     buffer->channels = channels;
@@ -32,27 +32,27 @@ nul_buffer *nul_buffer_new_f64(int length, int channels, const double *data) {
     return buffer;
 }
 
-nul_buffer *nul_buffer_copy(nul_buffer *buffer) {
+nut_buffer *nut_buffer_copy(nut_buffer *buffer) {
     assert(buffer != NULL);
     if (buffer->type == NUL_BUFFER_U8) {
-        return nul_buffer_new_u8(buffer->length, buffer->channels, buffer->data.u8);
+        return nut_buffer_new_u8(buffer->length, buffer->channels, buffer->data.u8);
     } else {
-        return nul_buffer_new_f64(buffer->length, buffer->channels, buffer->data.f64);
+        return nut_buffer_new_f64(buffer->length, buffer->channels, buffer->data.f64);
     }
 }
 
-nul_buffer *nul_buffer_reduce(nul_buffer *buffer, double percentage) {
+nut_buffer *nut_buffer_reduce(nut_buffer *buffer, double percentage) {
     percentage = percentage < 0.0 ? 0.0 : percentage > 1.0 ? 1.0 : percentage;
     int new_length = round(buffer->length * percentage);
     assert(buffer != NULL);
     if (buffer->type == NUL_BUFFER_U8) {
-        return nul_buffer_new_u8(new_length, buffer->channels, buffer->data.u8);
+        return nut_buffer_new_u8(new_length, buffer->channels, buffer->data.u8);
     } else {
-        return nul_buffer_new_f64(new_length, buffer->channels, buffer->data.f64);
+        return nut_buffer_new_f64(new_length, buffer->channels, buffer->data.f64);
     }
 }
 
-void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src) {
+void nut_buffer_set_data(nut_buffer *dst, nut_buffer *src) {
     assert(dst != NULL);
     assert(src != NULL);
     assert(dst->type == src->type);
@@ -64,7 +64,7 @@ void nul_buffer_set_data(nul_buffer *dst, nul_buffer *src) {
     }
 }
 
-void nul_buffer_append(nul_buffer *dst, nul_buffer *src) {
+void nut_buffer_append(nut_buffer *dst, nut_buffer *src) {
     assert(dst != NULL);
     assert(src != NULL);
     assert(dst->type == src->type);
@@ -89,7 +89,7 @@ void nul_buffer_append(nul_buffer *dst, nul_buffer *src) {
     dst->length = dst->length + src->length;
 }
 
-uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
+uint8_t nut_buffer_get_u8(nut_buffer *buffer, int offset) {
     if (buffer->type == NUL_BUFFER_U8) {
         return buffer->data.u8[offset];
     } else {
@@ -97,7 +97,7 @@ uint8_t nul_buffer_get_u8(nul_buffer *buffer, int offset) {
     }
 }
 
-double nul_buffer_get_f64(nul_buffer *buffer, int offset) {
+double nut_buffer_get_f64(nut_buffer *buffer, int offset) {
     if (buffer->type == NUL_BUFFER_U8) {
         return buffer->data.u8[offset] / 256.0;
     } else {
@@ -105,7 +105,7 @@ double nul_buffer_get_f64(nul_buffer *buffer, int offset) {
     }
 }
 
-void nul_buffer_set_u8(nul_buffer *buffer, int offset, uint8_t value) {
+void nut_buffer_set_u8(nut_buffer *buffer, int offset, uint8_t value) {
     if (buffer->type == NUL_BUFFER_U8) {
         buffer->data.u8[offset] = value;
     } else {
@@ -113,7 +113,7 @@ void nul_buffer_set_u8(nul_buffer *buffer, int offset, uint8_t value) {
     }
 }
 
-void nul_buffer_set_f64(nul_buffer *buffer, int offset, double value) {
+void nut_buffer_set_f64(nut_buffer *buffer, int offset, double value) {
     if (buffer->type == NUL_BUFFER_U8) {
         buffer->data.u8[offset] = value * 256.0;
     } else {
@@ -121,27 +121,27 @@ void nul_buffer_set_f64(nul_buffer *buffer, int offset, double value) {
     }
 }
 
-nul_buffer *nul_buffer_convert(nul_buffer *buffer, nul_buffer_type new_type) {
+nut_buffer *nut_buffer_convert(nut_buffer *buffer, nut_buffer_type new_type) {
     assert(buffer != NULL);
     int size = buffer->length * buffer->channels;
     if (new_type == NUL_BUFFER_U8) {
-        nul_buffer *out = nul_buffer_new_u8(buffer->length, buffer->channels, NULL);
+        nut_buffer *out = nut_buffer_new_u8(buffer->length, buffer->channels, NULL);
         uint8_t *out_data = out->data.u8;
         for (int i = 0; i < size; i++) {
-            out_data[i] = nul_buffer_get_u8(buffer, i);
+            out_data[i] = nut_buffer_get_u8(buffer, i);
         }
         return out;
     } else {
-        nul_buffer *out = nul_buffer_new_f64(buffer->length, buffer->channels, NULL);
+        nut_buffer *out = nut_buffer_new_f64(buffer->length, buffer->channels, NULL);
         double *out_data = out->data.f64;
         for (int i = 0; i < size; i++) {
-            out_data[i] = nul_buffer_get_f64(buffer, i);
+            out_data[i] = nut_buffer_get_f64(buffer, i);
         }
         return out;
     }
 }
 
-void nul_buffer_save(nul_buffer *buffer, const char *fname) {
+void nut_buffer_save(nut_buffer *buffer, const char *fname) {
     assert(buffer != NULL);
     FILE *fp = fopen(fname, "wb");
     if (fp) {
@@ -151,7 +151,7 @@ void nul_buffer_save(nul_buffer *buffer, const char *fname) {
     }
 }
 
-void nul_buffer_free(nul_buffer *buffer) {
+void nut_buffer_free(nut_buffer *buffer) {
     if (buffer->type == NUL_BUFFER_U8) {
         free(buffer->data.u8);
     } else {

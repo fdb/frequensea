@@ -198,7 +198,7 @@ ngl_texture *ngl_texture_new_from_file(const char *file_name, ngl_shader *shader
 
 // Update the texture with the given data.
 // Channels is the number of color channels. 1 = red only, 2 = red/green, 3 = r/g/b, 4 = r/g/b/a.
-void ngl_texture_update(ngl_texture *texture, nul_buffer *buffer, int width, int height) {
+void ngl_texture_update(ngl_texture *texture, nut_buffer *buffer, int width, int height) {
     GLint format;
     if (buffer->channels == 1) {
         format = GL_RED;
@@ -304,11 +304,11 @@ ngl_model* ngl_model_new(int component_count, int point_count, float* positions,
     return model;
 }
 
-ngl_model* ngl_model_new_with_buffer(nul_buffer *buffer) {
+ngl_model* ngl_model_new_with_buffer(nut_buffer *buffer) {
     int size = buffer->channels * buffer->length;
     float *positions = calloc(size, sizeof(float));
     for (int i = 0; i < size; i++) {
-        positions[i] = nul_buffer_get_f64(buffer, i);
+        positions[i] = nut_buffer_get_f64(buffer, i);
     }
     ngl_model *model = ngl_model_new(buffer->channels, buffer->length, positions, NULL, NULL);
     free(positions);

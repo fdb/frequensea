@@ -45,7 +45,7 @@ set(SOURCE_FILES
     src/noise.c
     src/nosc.c
     src/nrf.c
-    src/nul.c
+    src/nut.c
     src/nvr.cpp
     src/nwm.c
     src/obj.c

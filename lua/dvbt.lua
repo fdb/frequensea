@@ -58,7 +58,7 @@ end
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
     if key == KEY_E then
-        nul_buffer_save(nul_buffer_convert(buffer, 1), "out.raw")
+        nut_buffer_save(nut_buffer_convert(buffer, 1), "out.raw")
     end
     if key == KEY_LEFT_BRACKET then
         shift = shift - 0.01e3

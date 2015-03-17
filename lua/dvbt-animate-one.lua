@@ -53,7 +53,7 @@ function draw()
         filter_buffer = nrf_iq_filter_get_buffer(filter)
         countdown = countdown - 1
     else
-        reduce_buffer = nul_buffer_reduce(filter_buffer, percentage)
+        reduce_buffer = nut_buffer_reduce(filter_buffer, percentage)
         iq_buffer = nrf_buffer_to_iq_points(reduce_buffer)
 
 
@@ -67,7 +67,7 @@ end
 function on_key(key, mods)
     keys_frequency_handler(key, mods)
     if key == KEY_E then
-        nul_buffer_save(nul_buffer_convert(buffer, 1), "out.raw")
+        nut_buffer_save(nut_buffer_convert(buffer, 1), "out.raw")
     end
     if key == KEY_LEFT_BRACKET then
         shift = shift - 0.001e3
