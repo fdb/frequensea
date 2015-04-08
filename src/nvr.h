@@ -3,18 +3,16 @@
 
 #ifdef __APPLE__
     #define OVR_OS_MAC
-    #define GLFW_EXPOSE_NATIVE_COCOA
-    #define GLFW_EXPOSE_NATIVE_NSGL
 #endif
-
-#include "OVR.h"
-#include "OVR_CAPI_GL.h"
 
 extern "C" {
     #include "vec.h"
     #include "nwm.h"
     #include "ngl.h"
 }
+
+#include "OVR.h"
+#include "OVR_CAPI_GL.h"
 
 typedef struct {
     int index;
