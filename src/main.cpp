@@ -16,7 +16,9 @@ extern  "C" {
     #include "nfile.h"
 }
 
-#include "nvr.h"
+#ifdef WITH_NVR
+    #include "nvr.h"
+#endif
 
 // Lua utility functions ////////////////////////////////////////////////////
 
@@ -933,7 +935,9 @@ static int l_nrf_player_free(lua_State *L) {
 // Main /////////////////////////////////////////////////////////////////////
 
 int use_vr = 0;
+#ifdef WITH_NVR
 nvr_device *device = NULL;
+#endif
 
 void usage() {
     printf("Usage: frequensea [--vr] FILE.lua\n");
@@ -1022,12 +1026,14 @@ static void take_screenshot(nwm_window *window, const char *fname) {
     pthread_create(&info->thread, NULL, (void *(*)(void *))_take_screenshot, info);
 }
 
+#ifdef WITH_NVR
 static void draw_eye(nvr_device *device, nvr_eye *eye, lua_State *L) {
     ngl_camera *camera = nvr_device_eye_to_camera(device, eye);
     l_to_table(L, "ngl_camera", camera);
     lua_setglobal(L, "camera");
     draw(L);
 }
+#endif
 
 static void on_key(nwm_window* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
@@ -1037,12 +1043,14 @@ static void on_key(nwm_window* window, int key, int scancode, int action, int mo
             take_screenshot(window, NULL);
         }
         if (use_vr) {
+#ifdef WITH_NVR
             static ovrHSWDisplayState hswDisplayState;
             ovrHmd_GetHSWDisplayState(device->hmd, &hswDisplayState);
             if (hswDisplayState.Displayed) {
                 ovrHmd_DismissHSWDisplay(device->hmd);
                 return;
             }
+#endif
         }
         lua_State *L = (lua_State *) nwm_window_get_user_data(window);
         if (L) {
@@ -1227,9 +1235,11 @@ int main(int argc, char **argv) {
     nwm_init();
     nwm_window *window = NULL;
     if (use_vr) {
+#ifdef WITH_NVR
         device = nvr_device_init();
         window = nvr_device_window_init(device);
         nvr_device_init_eyes(device);
+#endif
     } else {
         window = nwm_window_init(0, 0, window_width, window_height);
     }
@@ -1271,7 +1281,9 @@ int main(int argc, char **argv) {
             frames_to_check = 10;
         }
         if (use_vr) {
+#ifdef WITH_NVR
             nvr_device_draw(device, (nvr_render_cb_fn)draw_eye, L);
+#endif
         } else {
             draw(L);
             nwm_window_swap_buffers(window);
@@ -1287,7 +1299,9 @@ int main(int argc, char **argv) {
     }
 
     if (use_vr) {
+#ifdef WITH_NVR
         nvr_device_destroy(device);
+#endif
     }
     nwm_window_destroy(window);
     nwm_terminate();
