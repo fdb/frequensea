@@ -1151,6 +1151,8 @@ static lua_State *l_init() {
     l_register_function(L, "nrf_player_set_freq_offset", l_nrf_player_set_freq_offset);
     l_register_function(L, "nrf_player_set_gain", l_nrf_player_set_gain);
 
+    l_register_constant(L, "NUT_BUFFER_U8", NUT_BUFFER_U8);
+    l_register_constant(L, "NUT_BUFFER_F64", NUT_BUFFER_F64);
     l_register_constant(L, "NWM_PLATFORM", NWM_PLATFORM);
     l_register_constant(L, "NWM_OPENGL_TYPE", NWM_OPENGL_TYPE);
     l_register_constant(L, "NWM_WIN32", NWM_WIN32);
