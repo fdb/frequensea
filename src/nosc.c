@@ -220,34 +220,22 @@ static nosc_message *_nosc_server_pop_message(nosc_server *server) {
 }
 
 static void _nosc_server_start(nosc_server *server) {
-    const char *hostname = 0;
-    char port_name[200];
-    snprintf(port_name, 200, "%d", server->port);
-    struct addrinfo hints;
-    memset(&hints, 0 ,sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_protocol = 0;
-    hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-    struct addrinfo *res = NULL;
-    int err = getaddrinfo(hostname, port_name, &hints, &res);
-    if (err != 0) {
-            die("failed to resolve local socket address (err=%d)",err);
+    // Create the socket
+    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (fd == -1) {
+        die("%s", strerror(errno));
     }
 
-    // Create the socket
-    int fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (fd == -1) {
-            die("%s", strerror(errno));
-    }
+    // Setup the socket address data structure
+    struct sockaddr_in address;
+    address.sin_family = AF_INET;
+    address.sin_port = htons(server->port);
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind the local address to the socket
-    if (bind(fd, res->ai_addr, res->ai_addrlen) == -1) {
-            die("%s", strerror(errno));
+    if (bind(fd, (struct sockaddr*) &address, sizeof(address)) == -1) {
+        die("%s", strerror(errno));
     }
-
-    // Free addrinfo
-    freeaddrinfo(res);
 
     char buffer[548];
     struct sockaddr_storage src_addr;
