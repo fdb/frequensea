@@ -40,7 +40,7 @@ void nim_png_write(const char *fname, int width, int height, nim_color_mode colo
     int channels;
     if (color_mode == NIM_GRAY) {
         channels = 1;
-    } else if (color_mode == NIM_RGB) {
+    } else { // color_mode == NIM_RGB per assertion
         channels = 3;
     }
 

@@ -32,9 +32,9 @@ static void warn(const char * format, ...) {
     fprintf(stderr, ".\n");
 }
 
-#if defined( __BIG_ENDIAN__ )
+#if defined( __BIG_ENDIAN__ ) || __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     static inline void swap32(void *v) { }
-#elif defined( __LITTLE_ENDIAN__ )
+#elif defined( __LITTLE_ENDIAN__ ) || __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     static inline void swap(char *a, char *b){
         char t = *a;
         *a = *b;
