@@ -1,17 +1,10 @@
 // NDBX Radio Frequency functions, based on HackRF
 
-#if __STDC_VERSION__ >= 199901L
-#define _XOPEN_SOURCE 600
-#else
-#define _XOPEN_SOURCE 500
-#endif /* __STDC_VERSION__ */
-
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -19,6 +12,7 @@
 #include <rtl-sdr.h>
 
 #include "nrf.h"
+#include "nut.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -156,15 +150,6 @@ static int _nrf_hackrf_receive_sample_block(hackrf_transfer *transfer) {
     return _nrf_process_sample_block(device, transfer->buffer, transfer->valid_length);
 }
 
-#define MILLISECS 1000000
-
-static void _nrf_sleep_milliseconds(int millis) {
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = millis * MILLISECS;
-    nanosleep(&ts, NULL);
-}
-
 static void _nrf_advance_block(nrf_device *device) {
     if (!device->paused) {
         device->dummy_block_index++;
@@ -179,7 +164,7 @@ static void *_nrf_dummy_receive_loop(nrf_device *device) {
         unsigned char *buffer = device->receive_buffer + (device->dummy_block_index * NRF_BUFFER_SIZE_BYTES);
         _nrf_process_sample_block(device, buffer, NRF_BUFFER_SIZE_BYTES);
         _nrf_advance_block(device);
-        _nrf_sleep_milliseconds(1000 / 60);
+        nut_sleep_milliseconds(1000 / 60);
     }
     return NULL;
 }

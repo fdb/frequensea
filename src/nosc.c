@@ -13,8 +13,7 @@
 #include <netinet/in.h>
 
 #include "nosc.h"
-
-#define MILLIS_TO_NANOS 1000000
+#include "nut.h"
 
 static void die(const char * format, ...)
 {
@@ -256,7 +255,7 @@ static void _nosc_server_start(nosc_server *server) {
         ssize_t count = recvmsg(fd, &message, MSG_DONTWAIT);
         if (count == -1) {
             if (errno == EAGAIN) {
-                nanosleep((struct timespec[]){{0, 1 * MILLIS_TO_NANOS}}, NULL);
+                nut_sleep_milliseconds(1);
             } else {
                 die("%s", strerror(errno));
             }

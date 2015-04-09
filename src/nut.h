@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+// Sleep
+
+void nut_sleep_milliseconds(int millis);
+
 // Buffer
 
 typedef enum {

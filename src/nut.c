@@ -1,10 +1,26 @@
+#if __STDC_VERSION__ >= 199901L
+#define _XOPEN_SOURCE 600
+#else
+#define _XOPEN_SOURCE 500
+#endif /* __STDC_VERSION__ */
+
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "nut.h"
+
+#define MILLIS_TO_NANOS 1000000
+
+void nut_sleep_milliseconds(int millis) {
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = millis * MILLIS_TO_NANOS;
+    nanosleep(&ts, NULL);
+}
 
 nut_buffer *nut_buffer_new_u8(int length, int channels, const uint8_t *data) {
     nut_buffer *buffer = calloc(1, sizeof(nut_buffer));
