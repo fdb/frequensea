@@ -20,7 +20,7 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
 
 ## Installing dependencies (Ubuntu 14.04 LTS)
 
-    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev librtlsdr-dev
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev librtlsdr-dev pkg-config
 
     # There is no GLFW3 package so install from source
     wget https://github.com/glfw/glfw/releases/download/3.1.1/glfw-3.1.1.zip
