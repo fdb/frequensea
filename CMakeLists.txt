@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(frequensea)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
 
-add_subdirectory(externals/glfw-3.1.1)
 add_subdirectory(externals/lua)
 
 include_directories(src)
-include_directories(externals/glfw-3.1.1/include)
 include_directories(externals/ovr/Include)
 include_directories(externals/ovr/Src)
 include_directories(externals/lua/src)
@@ -19,10 +17,17 @@ find_library(LIBRARY_FFTW fftw3)
 find_library(LIBRARY_HACKRF hackrf)
 find_library(LIBRARY_PNG png)
 find_library(LIBRARY_RTLSDR rtlsdr)
+
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW REQUIRED glfw3)
+include_directories(${GLFW_INCLUDE_DIRS})
+
+find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+
 include(FindOpenAL)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR})
-include_directories(${GLEW_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR})
+set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} ${LIBRARY_GLFW} ${OPENGL_LIBRARY})
+include_directories(${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS})
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
@@ -38,6 +43,8 @@ if (APPLE)
 endif (APPLE)
 
 if (LINUX)
+    find_package(X11 REQUIRED)
+    set(PLATFORM_LIBS ${X11_X11_LIB} ${RT_LIBRARY} ${X11_Xrandr_LIB})
 endif (LINUX)
 
 set(SOURCE_FILES
@@ -58,4 +65,4 @@ if (WITH_NVR)
 endif (WITH_NVR)
 
 add_executable(frequensea ${SOURCE_FILES})
-target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua glfw ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENAL_LIBRARY})
+target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLEW_LIBRARIES} ${OPENAL_LIBRARY} ${GLFW_STATIC_LIBRARIES})
