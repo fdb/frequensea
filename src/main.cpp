@@ -150,6 +150,14 @@ static int l_nut_buffer_reduce(lua_State *L) {
     return l_push_nut_buffer(L, result);
 }
 
+static int l_nut_buffer_clip(lua_State *L) {
+    nut_buffer *buffer = l_to_nut_buffer(L, 1);
+    int offset = luaL_checkinteger(L, 2);
+    int length = luaL_checkinteger(L, 3);
+    nut_buffer *result = nut_buffer_clip(buffer, offset, length);
+    return l_push_nut_buffer(L, result);
+}
+
 static int l_nut_buffer_convert(lua_State *L) {
     nut_buffer *buffer = l_to_nut_buffer(L, 1);
     int new_type = luaL_checkinteger(L, 2);
@@ -1093,6 +1101,7 @@ static lua_State *l_init() {
 
     l_register_function(L, "nut_buffer_append", l_nut_buffer_append);
     l_register_function(L, "nut_buffer_reduce", l_nut_buffer_reduce);
+    l_register_function(L, "nut_buffer_clip", l_nut_buffer_clip);
     l_register_function(L, "nut_buffer_convert", l_nut_buffer_convert);
     l_register_function(L, "nut_buffer_save", l_nut_buffer_save);
     l_register_function(L, "nwm_get_time", l_nwm_get_time);

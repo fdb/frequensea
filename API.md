@@ -194,6 +194,10 @@ Append the `src` buffer to the `dst` buffer. Both buffers need to be of the same
 
 Return a new buffer that's a given percentage of the original buffer's size. Percentage is a value between 0.0-1.0. The returned buffer will have the same type as the input buffer.
 
+### nut_buffer_clip(buffer, offset, length)
+
+Return a new buffer that's a subset of the original buffer. The returned buffer will have the same type as the input buffer.
+
 ### nut_buffer_convert(buffer, new_type)
 
 Return a new buffer that's converted from the original type. `new_type` can be `NUT_BUFFER_U8` for unsigned bytes or `NUT_BUFFER_F64` for double-precision floating point values. Converting to the same type just creates a copy of the buffer.

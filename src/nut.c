@@ -68,6 +68,19 @@ nut_buffer *nut_buffer_reduce(nut_buffer *buffer, double percentage) {
     }
 }
 
+nut_buffer *nut_buffer_clip(nut_buffer *buffer, int offset, int length) {
+    assert(buffer != NULL);
+    assert((length < 0) || ((buffer->length - offset) >= length));
+    int new_length = length;
+    if (new_length < 0 || new_length > buffer->length - offset)
+      new_length = buffer->length - offset;
+    if (buffer->type == NUT_BUFFER_U8) {
+        return nut_buffer_new_u8(new_length, buffer->channels, buffer->data.u8 + offset);
+    } else {
+        return nut_buffer_new_f64(new_length, buffer->channels, buffer->data.f64 + offset);
+    }
+}
+
 void nut_buffer_set_data(nut_buffer *dst, nut_buffer *src) {
     assert(dst != NULL);
     assert(src != NULL);
