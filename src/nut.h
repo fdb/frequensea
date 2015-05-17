@@ -33,6 +33,7 @@ nut_buffer *nut_buffer_new_u8(int length, int channels, const uint8_t *data);
 nut_buffer *nut_buffer_new_f64(int length, int channels, const double *data);
 nut_buffer *nut_buffer_copy(nut_buffer *buffer);
 nut_buffer *nut_buffer_reduce(nut_buffer *buffer, double percentage);
+nut_buffer *nut_buffer_clip(nut_buffer *buffer, int offset, int length);
 void nut_buffer_set_data(nut_buffer *dst, nut_buffer *src);
 void nut_buffer_append(nut_buffer *dst, nut_buffer *src);
 uint8_t nut_buffer_get_u8(nut_buffer *buffer, int offset);
