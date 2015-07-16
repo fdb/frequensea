@@ -4,20 +4,20 @@ PublicHeader:   OVR_Kernel.h
 Filename    :   OVR_Nullptr.h
 Content     :   Implements C++11 nullptr for the case that the compiler doesn't.
 Created     :   June 19, 2014
-Notes       : 
+Notes       :
 
 Copyright   :   Copyright 2014 Oculus VR, LLC All Rights reserved.
 
-Licensed under the Oculus VR Rift SDK License Version 3.2 (the "License"); 
-you may not use the Oculus VR Rift SDK except in compliance with the License, 
-which is provided at the time of installation or download, or which 
+Licensed under the Oculus VR Rift SDK License Version 3.2 (the "License");
+you may not use the Oculus VR Rift SDK except in compliance with the License,
+which is provided at the time of installation or download, or which
 otherwise accompanies this software in either electronic or hard copy form.
 
 You may obtain a copy of the License at
 
-http://www.oculusvr.com/licenses/LICENSE-3.2 
+http://www.oculusvr.com/licenses/LICENSE-3.2
 
-Unless required by applicable law or agreed to in writing, the Oculus VR SDK 
+Unless required by applicable law or agreed to in writing, the Oculus VR SDK
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
@@ -36,7 +36,7 @@ limitations under the License.
 //-----------------------------------------------------------------------------------
 // ***** OVR_HAVE_std_nullptr_t
 //
-// Identifies if <cstddef.h> includes std::nullptr_t. 
+// Identifies if <cstddef.h> includes std::nullptr_t.
 //
 #if !defined(OVR_HAVE_std_nullptr_t) && defined(OVR_CPP11_ENABLED)
     #if defined(OVR_STDLIB_LIBCPP)
@@ -60,7 +60,7 @@ limitations under the License.
 //
 // Declares and defines nullptr and related types.
 //
-#if defined(OVR_CPP_NO_NULLPTR)
+#if !defined(OVR_CPP_NO_NULLPTR)
     namespace std
     {
         class nullptr_t
@@ -69,13 +69,13 @@ limitations under the License.
             template <typename T>
             operator T*() const
                 { return 0; }
-         
+
             template <typename C, typename T>
             operator T C::*() const
                 { return 0; }
 
             #if OVR_CPP_NO_EXPLICIT_CONVERSION_OPERATORS
-                typedef void* (nullptr_t::*bool_)() const;  // 4.12,p1. We can't portably use operator bool(){ return false; } because bool 
+                typedef void* (nullptr_t::*bool_)() const;  // 4.12,p1. We can't portably use operator bool(){ return false; } because bool
                 operator bool_() const                      // is convertable to int which breaks other required functionality.
                     { return false; }
             #else
@@ -139,7 +139,7 @@ limitations under the License.
     using std::nullptr_t;
     using std::nullptr_get;
 
-// Some compilers natively support C++11 nullptr but the standard library being used 
+// Some compilers natively support C++11 nullptr but the standard library being used
 // doesn't declare std::nullptr_t, in which case we provide one ourselves.
 #elif !defined(OVR_HAVE_std_nullptr_t) && !defined(OVR_CPP_NO_DECLTYPE)
     namespace std { typedef decltype(nullptr) nullptr_t; }
