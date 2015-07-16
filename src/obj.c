@@ -80,6 +80,40 @@ int obj_parse(const char *file_name, float** points_ptr, float** normals_ptr, in
     return 1;
 }
 
+void obj_write(const char *file_name, int component_count, int point_count, float* points) {
+    FILE *fp = fopen(file_name, "wb");
+    if (!fp) {
+        perror(file_name);
+        exit(EXIT_FAILURE);
+    }
+
+    for (int row = 0; row < point_count; row++) {
+        fwrite("v ", 2, 1, fp);
+        for (int col = 0; col < component_count; col++) {
+            float coord = points[row * component_count + col];
+            char coord_string[100];
+            int len = snprintf(coord_string, 100, "%.6f ", coord);
+            if (fwrite(coord_string, len, 1, fp) != 1) {
+                fclose(fp);
+                fputs("ERR: write capture data: failed to write file.", stderr);
+                exit(EXIT_FAILURE);
+            }
+        }
+        fwrite("\n", 1, 1, fp);
+    }
+    for (int row = 0; row < point_count; row += 3) {
+        char face_string[100];
+        int len = snprintf(face_string, 100, "f %d %d %d\n", row + 1, row + 2, row + 3);
+        if (fwrite(face_string, len, 1, fp) != 1) {
+            fclose(fp);
+            fputs("ERR: write capture data: failed to write file.", stderr);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(fp);
+}
+
 // int main() {
 //     float* points;
 //     int face_count = 0;

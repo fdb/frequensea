@@ -468,6 +468,15 @@ static int l_ngl_draw_model(lua_State *L) {
     return 0;
 }
 
+static int l_ngl_capture_model(lua_State *L) {
+    ngl_camera* camera = l_to_ngl_camera(L, 1);
+    ngl_model* model = l_to_ngl_model(L, 2);
+    ngl_shader *shader = l_to_ngl_shader(L, 3);
+    const char *file_name = lua_tostring(L, 4);
+    ngl_capture_model(camera, model, shader, file_name);
+    return 0;
+}
+
 static int l_ngl_draw_background(lua_State *L) {
     ngl_camera* camera = l_to_ngl_camera(L, 1);
     ngl_model* model = l_to_ngl_model(L, 2);
@@ -1129,6 +1138,7 @@ static lua_State *l_init() {
     l_register_function(L, "ngl_skybox_new", l_ngl_skybox_new);
     l_register_function(L, "ngl_skybox_draw", l_ngl_skybox_draw);
     l_register_function(L, "ngl_draw_model", l_ngl_draw_model);
+    l_register_function(L, "ngl_capture_model", l_ngl_capture_model);
     l_register_function(L, "ngl_draw_background", l_ngl_draw_background);
     l_register_function(L, "ngl_font_new", l_ngl_font_new);
     l_register_function(L, "ngl_font_draw", l_ngl_font_draw);

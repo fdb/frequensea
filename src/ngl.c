@@ -114,6 +114,9 @@ ngl_shader *ngl_shader_new(GLenum draw_mode, const char *vertex_shader_source, c
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
+    const GLchar* varyings[1];
+    varyings[0] = "gl_Position";
+    glTransformFeedbackVaryings(program, 1, varyings, GL_INTERLEAVED_ATTRIBS);
     glLinkProgram(program);
     ngl_check_link_error(program);
     NGL_CHECK_ERROR();
@@ -247,6 +250,7 @@ void ngl_texture_free(ngl_texture *texture) {
 
 ngl_model* ngl_model_new(int component_count, int point_count, float* positions, float* normals, float* uvs) {
     ngl_model *model = calloc(1, sizeof(ngl_model));
+    model->component_count = component_count;
     model->point_count = point_count;
     model->transform = mat4_init_identity();
 
@@ -457,6 +461,7 @@ ngl_model* ngl_model_load_obj(const char* fname) {
     int face_count;
     obj_parse(fname, &points, &normals, &face_count);
     // Each triangle face has 3 vertices
+    model->component_count = 3;
     model->point_count = face_count * 3;
 
     glGenBuffers(1, &model->position_vbo);
@@ -672,7 +677,7 @@ void ngl_skybox_free(ngl_skybox *skybox) {
 
 // Model drawing /////////////////////////////////////////////////////////////
 
-void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
+void _ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader, int transform_feedback) {
     mat4 view = camera->view;
     mat4 projection = camera->projection;
     mat4 mv = mat4_mul(&model->transform, &view);
@@ -692,13 +697,59 @@ void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
 
     glBindVertexArray(model->vao);
     NGL_CHECK_ERROR();
+    if (transform_feedback) {
+        glBeginTransformFeedback(shader->draw_mode);
+        NGL_CHECK_ERROR();
+    }
     glDrawArrays(shader->draw_mode, 0, model->point_count);
     NGL_CHECK_ERROR();
+    if (transform_feedback) {
+        glEndTransformFeedback();
+        NGL_CHECK_ERROR();
+    }
 
     glBindVertexArray(0);
     NGL_CHECK_ERROR();
     glUseProgram(0);
     NGL_CHECK_ERROR();
+}
+
+void ngl_draw_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader) {
+    _ngl_draw_model(camera, model, shader, 0);
+}
+
+void ngl_capture_model(ngl_camera* camera, ngl_model* model, ngl_shader *shader, const char *file_name) {
+    GLuint transform_feedback_buffer;
+    glGenTransformFeedbacks(1, &transform_feedback_buffer);
+    NGL_CHECK_ERROR();
+    GLuint feedback_buffer;
+    glGenBuffers(1, &feedback_buffer);
+    NGL_CHECK_ERROR();
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, transform_feedback_buffer);
+    NGL_CHECK_ERROR();
+    glBindBuffer(GL_ARRAY_BUFFER, feedback_buffer);
+    NGL_CHECK_ERROR();
+    GLuint buffer_size = model->point_count * 4 * sizeof(GLfloat);
+    glBufferData(GL_ARRAY_BUFFER, buffer_size, NULL, GL_STATIC_READ);
+    NGL_CHECK_ERROR();
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, feedback_buffer);
+    NGL_CHECK_ERROR();
+
+    _ngl_draw_model(camera, model, shader, 1);
+    glFlush();
+    NGL_CHECK_ERROR();
+
+    GLfloat *feedback_points = calloc(1, buffer_size);
+    glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buffer_size, feedback_points);
+    NGL_CHECK_ERROR();
+
+    obj_write(file_name, 4, model->point_count, feedback_points);
+
+    glDeleteBuffers(1, &feedback_buffer);
+    NGL_CHECK_ERROR();
+    glDeleteTransformFeedbacks(1, &transform_feedback_buffer);
+    NGL_CHECK_ERROR();
+    free(feedback_points);
 }
 
 void ngl_draw_background(ngl_camera *camera, ngl_model *model, ngl_shader *shader) {

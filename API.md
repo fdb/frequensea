@@ -134,6 +134,9 @@ Translate the model. The model is transformed in-place; no data is returned.
 ## ngl_draw_model(camera, model, shader)
 Draw the model with the given shader. Use the same camera object if you want consistent views of the scene.
 
+## ngl_capture_model(camera, model, shader, file_name)
+Save the model to an OBJ file called `file_name`. This will use the [OpenGL Transform Feedback](https://www.opengl.org/wiki/Transform_Feedback) feature to save the output of the vertex shader. Currently, only gl_Position is saved. This call is very slow, so best is to trigger it on a key press. See `save-model.lua` for an example.
+
 ## NRF -- NDBX Radio Frequency
 Functions for reading data from a software defined radio (SDR) device.
 
