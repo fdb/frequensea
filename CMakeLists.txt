@@ -26,8 +26,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 include(FindOpenAL)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} ${LIBRARY_GLFW} ${OPENGL_LIBRARY})
-include_directories(${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS})
+set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} ${OPENGL_LIBRARY})
+include_directories(${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR})
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
@@ -65,4 +65,4 @@ if (WITH_NVR)
 endif (WITH_NVR)
 
 add_executable(frequensea ${SOURCE_FILES})
-target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLEW_LIBRARIES} ${OPENAL_LIBRARY} ${GLFW_STATIC_LIBRARIES})
+target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLEW_LIBRARIES} ${OPENAL_LIBRARY} ${GLFW_LDFLAGS})

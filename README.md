@@ -16,7 +16,7 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
 ## Installing dependencies (OS X)
 
     brew update
-    brew install cmake lua glew fftw librtlsdr hackrf libpng libsndfile
+    brew install cmake glew fftw librtlsdr hackrf libpng libsndfile pkgconfig homebrew/versions/glfw3
 
 ## Installing dependencies (Ubuntu 14.04 LTS)
 
