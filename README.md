@@ -35,7 +35,7 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
 
 ## Installing dependencies (Raspberry Pi)
 
-    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev
 
     # There is no RTL-SDR package so install from source
     git clone git://git.osmocom.org/rtl-sdr.git
