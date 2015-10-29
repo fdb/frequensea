@@ -11,12 +11,12 @@ static void _nwm_on_error(int error, const char* message) {
 }
 
 void nwm_init() {
+    glfwSetErrorCallback(_nwm_on_error);
+
     if (!glfwInit()) {
         fprintf(stderr, "GLFW ERROR: Failed to initialize.\n");
         exit(EXIT_FAILURE);
     }
-
-    glfwSetErrorCallback(_nwm_on_error);
 }
 
 nwm_window *nwm_window_init(int x, int y, int width, int height) {
