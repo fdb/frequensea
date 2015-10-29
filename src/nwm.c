@@ -22,10 +22,13 @@ void nwm_init() {
 nwm_window *nwm_window_init(int x, int y, int width, int height) {
     nwm_window* window;
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
+
+    #ifndef NWM_USE_OPENGL_ES
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
+    #endif
     #if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
@@ -41,6 +44,12 @@ nwm_window *nwm_window_init(int x, int y, int width, int height) {
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* version = glGetString(GL_VERSION);
+    printf("OpenGL Renderer: %s\n", renderer);
+    printf("OpenGL Version: %s\n", version);
+
     return (nwm_window*) window;
 }
 
