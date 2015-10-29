@@ -33,19 +33,16 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
     sudo make install
     sudo ldconfig
 
-## Installing dependencies (Raspberry Pi)
+## Installing dependencies (Raspberry Pi - Raspbian Jessie )
 
-    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev
+    sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev librtlsdr-dev libglfw3-dev
 
-    # There is no RTL-SDR package so install from source
-    git clone git://git.osmocom.org/rtl-sdr.git
-    cd rtl-sdr
-    mkdir build
-    cd build
-    cmake ../
-    make
-    sudo make install
-    sudo ldconfig
+    # Raspberry Pi doesn't support GLX, so until that's supported,
+    # we'll use the software rendering packages.
+    # Note that I found that installing mesa can *remove* libglfw3-dev,
+    # which we need, so if you get errors against that make sure
+    # it's installed.
+    sudo apt-get install -y libgl1-mesa-swx11 libglu1-mesa-dev libglew-dev
 
     # Disable default kernel driver
     sudo modprobe -r dvb_usb_rtl28xxu
