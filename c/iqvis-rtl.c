@@ -19,7 +19,7 @@ GLuint program;
 GLfloat buffer[WIDTH * HEIGHT];
 rtlsdr_dev_t *device;
 pthread_t receive_thread;
-double freq_mhz = 124.2;
+double freq_mhz = 1000;
 int paused = 0;
 float intensity = 0.03;
 void *rtl_buffer;
@@ -88,7 +88,7 @@ static void setup_rtl() {
     status = rtlsdr_open(&device, 0);
     RTL_CHECK_STATUS(device, status, "rtlsdr_open");
 
-    status = rtlsdr_set_sample_rate(device, 2e6);
+    status = rtlsdr_set_sample_rate(device, 3e6);
     RTL_CHECK_STATUS(device, status, "rtlsdr_set_sample_rate");
 
     // Set auto-gain mode
@@ -131,56 +131,12 @@ static void teardown_rtl() {
     RTL_CHECK_STATUS(device, status, "rtlsdr_close");
 }
 
-static void check_shader_error(GLuint shader) {
-    int length = 0;
-
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-
-    if (length > 0) {
-        char message[length];
-        glGetShaderInfoLog(shader, length, NULL, message);
-        printf("%s\n", message);
-    }
-}
-
 static void setup() {
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    const char *vertex_shader_source =
-        "void main(void) {"
-        "  gl_TexCoord[0] = gl_MultiTexCoord0;"
-        "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-        "}";
-
-    const char *fragment_shader_source =
-        "uniform sampler2D texture;"
-        "void main(void) {"
-        "  vec4 c = texture2D(texture, gl_TexCoord[0].st);"
-        "  float v = c.r;"
-        "  gl_FragColor = vec4(v, v, v, 1);"
-        "}";
-
-    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-    glCompileShader(vertex_shader);
-    check_shader_error(vertex_shader);
-
-    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-    glCompileShader(fragment_shader);
-    check_shader_error(fragment_shader);
-
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-
-    glActiveTexture(0);
-    GLuint u_texture = glGetUniformLocation(program, "texture");
-    glUniform1i(u_texture, texture_id);
 }
 
 static void prepare() {
@@ -264,7 +220,6 @@ static void draw() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_SRC_COLOR);
 
-    glUseProgram(program);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0, 0.0);
@@ -276,7 +231,6 @@ static void draw() {
     glTexCoord2f(0.0, 1.0);
     glVertex2f(0, HEIGHT);
     glEnd();
-    glUseProgram(0);
 }
 
 static void error_callback(int error, const char* description) {
