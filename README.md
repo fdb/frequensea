@@ -8,7 +8,7 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
 
 ## Features
 - Fast core written in C, with Lua scripting on top.
-- Support fort RTL-SDR and HackRF devices
+- Support for RTL-SDR and HackRF devices.
 - Support for Oculus Rift for viewing the spectrum in virtual reality.
 - Support for OSC to communicate with other applications or devices.
 - Basic building blocks for sampling, filtering and visualizing RF data.
@@ -33,7 +33,7 @@ Watch the [Frequensea video introduction](https://youtu.be/u6H1DatxLAc).
     sudo make install
     sudo ldconfig
 
-## Installing dependencies (Raspberry Pi - Raspbian Jessie )
+## Installing dependencies (Raspberry Pi - Raspbian Jessie)
 
     sudo apt-get install -y git cmake gcc g++ make libfftw3-dev libpng-dev libusb-1.0.0-dev pkg-config xorg-dev libglu1-mesa-dev libopenal-dev libglew-dev libhackrf-dev librtlsdr-dev libglfw3-dev
 
