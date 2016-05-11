@@ -32,7 +32,7 @@ nwm_window *nwm_window_init(int x, int y, int width, int height) {
     #if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
-    window = glfwCreateWindow(width, height, "Window", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Frequensea", NULL, NULL);
     assert(window);
     if (x != 0 || y != 0) {
         glfwSetWindowPos(window, x, y);
