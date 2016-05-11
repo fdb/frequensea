@@ -48,7 +48,7 @@ float vec3_length(const vec3* v) {
 }
 
 vec3 vec3_normalize(const vec3* v) {
-    vec3 r;
+    vec3 r = {0};
     float l = vec3_length(v);
     if (l == 0.0f) {
         return r;
