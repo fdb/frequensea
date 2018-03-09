@@ -31,15 +31,15 @@ include_directories(${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${OPENAL_INCLUDE
 
 if (APPLE)
     include_directories(/System/Library/Frameworks /usr/local/include)
-    find_library(LIBRARY_OVR ovr PATHS externals/ovr/Lib/Mac/Debug)
+    #find_library(LIBRARY_OVR ovr PATHS externals/ovr/Lib/Mac/Debug)
     find_library(FRAMEWORK_COCOA Cocoa)
     find_library(FRAMEWORK_OPENGL OpenGL)
     find_library(FRAMEWORK_OPENAL OpenAL)
     find_library(FRAMEWORK_CORE_VIDEO CoreVideo)
     find_library(FRAMEWORK_IO_KIT IOKit)
     set(PLATFORM_LIBS ${LIBRARY_OVR} ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT})
-    add_definitions(-DWITH_NVR)
-    set(WITH_NVR 1)
+    #add_definitions(-DWITH_NVR)
+    #set(WITH_NVR 1)
 endif (APPLE)
 
 if (LINUX)
