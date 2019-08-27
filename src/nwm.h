@@ -2,6 +2,7 @@
 #define NWM_H
 
 #ifdef __APPLE__
+#   define GL_SILENCE_DEPRECATION
 #   define GLFW_INCLUDE_GLCOREARB
 #else
     #include <GL/glew.h>
