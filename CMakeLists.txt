@@ -1,62 +1,89 @@
 cmake_minimum_required(VERSION 3.14)
 project(frequensea)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -pedantic")
+# Set compiler flags globally
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -pedantic")
 
-SET(MAIN_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+# Add Lua subdirectory
 add_subdirectory(externals/lua)
-SET(CMAKE_C_FLAGS "${MAIN_C_FLAGS}")
 
+# Include local directories
 include_directories(src)
 include_directories(externals/ovr/Include)
 include_directories(externals/ovr/Src)
 include_directories(externals/lua/src)
 include_directories(externals/stb)
 
-find_library(LIBRARY_MATH m)
-find_library(LIBRARY_PTHREAD pthread)
-find_library(LIBRARY_FFTW fftw3)
-find_library(LIBRARY_HACKRF hackrf)
-find_library(LIBRARY_PNG png)
-find_library(LIBRARY_RTLSDR rtlsdr)
-
+# Find package configs
 find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
-include_directories(${GLFW_INCLUDE_DIRS})
-
 find_package(OpenGL REQUIRED)
 
+# Use pkg-config to find all external dependencies
+pkg_search_module(GLFW REQUIRED glfw3)
 pkg_search_module(GLEW REQUIRED glew)
-include_directories(${GLEW_INCLUDE_DIRS})
-
 pkg_search_module(PNG REQUIRED libpng)
-include_directories(${PNG_INCLUDE_DIRS})
-
 pkg_search_module(FFTW REQUIRED fftw3)
-include_directories(${FFTW_INCLUDE_DIRS})
+pkg_search_module(HACKRF REQUIRED libhackrf)
+pkg_search_module(RTLSDR REQUIRED librtlsdr)
 
-include(FindOpenAL)
-set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} ${OPENGL_LIBRARY})
-include_directories(${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR})
+# Platform-specific configurations
+if(APPLE)
+    # Set PKG_CONFIG_PATH to find openal-soft
+    set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/opt/openal-soft/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    pkg_search_module(OPENAL REQUIRED openal)
 
-if (APPLE)
+    # Apple-specific frameworks
+    find_library(FRAMEWORK_COCOA Cocoa REQUIRED)
+    find_library(FRAMEWORK_OPENGL OpenGL REQUIRED)
+    find_library(FRAMEWORK_CORE_VIDEO CoreVideo REQUIRED)
+    find_library(FRAMEWORK_IO_KIT IOKit REQUIRED)
+
+    set(PLATFORM_LIBS
+        ${FRAMEWORK_COCOA}
+        ${FRAMEWORK_OPENGL}
+        ${FRAMEWORK_CORE_VIDEO}
+        ${FRAMEWORK_IO_KIT}
+    )
+
     include_directories(/System/Library/Frameworks /usr/local/include)
-    #find_library(LIBRARY_OVR ovr PATHS externals/ovr/Lib/Mac/Debug)
-    find_library(FRAMEWORK_COCOA Cocoa)
-    find_library(FRAMEWORK_OPENGL OpenGL)
-    find_library(FRAMEWORK_OPENAL OpenAL)
-    find_library(FRAMEWORK_CORE_VIDEO CoreVideo)
-    find_library(FRAMEWORK_IO_KIT IOKit)
-    set(PLATFORM_LIBS ${LIBRARY_OVR} ${FRAMEWORK_COCOA} ${FRAMEWORK_OPENGL} ${FRAMEWORK_OPENAL} ${FRAMEWORK_CORE_VIDEO} ${FRAMEWORK_IO_KIT})
-    #add_definitions(-DWITH_NVR)
-    #set(WITH_NVR 1)
-endif (APPLE)
-
-if (LINUX)
+elseif(UNIX AND NOT APPLE)
+    # Linux configuration
+    pkg_search_module(OPENAL REQUIRED openal)
     find_package(X11 REQUIRED)
-    set(PLATFORM_LIBS ${X11_X11_LIB} ${RT_LIBRARY} ${X11_Xrandr_LIB})
-endif (LINUX)
+    set(PLATFORM_LIBS ${X11_X11_LIB} ${X11_Xrandr_LIB})
+else()
+    # For other platforms
+    find_package(OpenAL REQUIRED)
+    set(OPENAL_LIBRARIES ${OPENAL_LIBRARY})
+endif()
 
+# Libraries that don't typically have pkg-config modules
+find_library(LIBRARY_MATH m REQUIRED)
+find_library(LIBRARY_PTHREAD pthread REQUIRED)
+
+# Include all necessary directories
+include_directories(
+    ${GLFW_INCLUDE_DIRS}
+    ${GLEW_INCLUDE_DIRS}
+    ${PNG_INCLUDE_DIRS}
+    ${FFTW_INCLUDE_DIRS}
+    ${HACKRF_INCLUDE_DIRS}
+    ${RTLSDR_INCLUDE_DIRS}
+    ${OPENAL_INCLUDE_DIRS}
+    ${OPENGL_INCLUDE_DIR}
+)
+
+link_directories(
+    ${FFTW_LIBRARY_DIRS}
+    ${HACKRF_LIBRARY_DIRS}
+    ${PNG_LIBRARY_DIRS}
+    ${RTLSDR_LIBRARY_DIRS}
+    ${GLFW_LIBRARY_DIRS}
+    ${GLEW_LIBRARY_DIRS}
+    ${OPENAL_LIBRARY_DIRS}
+)
+
+# Source files
 set(SOURCE_FILES
     src/main.cpp
     src/nfile.c
@@ -68,11 +95,31 @@ set(SOURCE_FILES
     src/nut.c
     src/nwm.c
     src/obj.c
-    src/vec.c)
+    src/vec.c
+)
 
-if (WITH_NVR)
-    set(SOURCE_FILES ${SOURCE_FILES} src/nvr.cpp)
-endif (WITH_NVR)
+# Conditional source files
+option(WITH_NVR "Build with NVR support" OFF)
+if(WITH_NVR)
+    list(APPEND SOURCE_FILES src/nvr.cpp)
+endif()
 
+# Create executable
 add_executable(frequensea ${SOURCE_FILES})
-target_link_libraries(frequensea ${CORE_LIBS} ${PLATFORM_LIBS} stdc++ lua ${GLEW_LIBRARIES} ${OPENAL_LIBRARY} ${GLFW_LDFLAGS})
+
+# Link libraries
+target_link_libraries(frequensea
+    ${LIBRARY_MATH}
+    ${LIBRARY_PTHREAD}
+    ${FFTW_LIBRARIES}
+    ${HACKRF_LIBRARIES}
+    ${PNG_LIBRARIES}
+    ${RTLSDR_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARIES}
+    ${GLEW_LIBRARIES}
+    ${GLFW_LIBRARIES}
+    ${PLATFORM_LIBS}
+    lua
+    stdc++
+)
