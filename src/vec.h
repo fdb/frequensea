@@ -39,7 +39,7 @@ typedef struct {
 
 vec2 vec2_init(float x, float y);
 
-vec3 vec3_zero();
+vec3 vec3_zero(void);
 vec3 vec3_init(float x, float y, float z);
 vec3 vec3_sub(const vec3* v1, const vec3* v2);
 float vec3_length(const vec3* v);
@@ -48,8 +48,8 @@ vec3 vec3_cross(const vec3* v1, const vec3* v2);
 float vec3_dot(const vec3* v1, const vec3* v2);
 vec3 vec3_normal(const vec3* v1, const vec3* v2, const vec3* v3);
 
-mat4 mat4_init_zero();
-mat4 mat4_init_identity();
+mat4 mat4_init_zero(void);
+mat4 mat4_init_identity(void);
 mat4 mat4_init_translate(float tx, float ty, float tz);
 mat4 mat4_init_scale(float sx, float sy, float sz);
 mat4 mat4_init_rotation_x(float deg);

@@ -68,7 +68,7 @@ void ngl_clear(float red, float green, float blue, float alpha) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void ngl_clear_depth() {
+void ngl_clear_depth(void) {
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -506,7 +506,7 @@ void ngl_model_free(ngl_model *model) {
 
 #define NGL_CAMERA_DEFAULT_FOV 100
 
-ngl_camera* ngl_camera_new() {
+ngl_camera* ngl_camera_new(void) {
     ngl_camera *camera = calloc(1, sizeof(ngl_camera));
     camera->view = mat4_init_identity();
     camera->projection = mat4_init_perspective(NGL_CAMERA_DEFAULT_FOV, 800 / 600, 0.01f, 1000.0f);

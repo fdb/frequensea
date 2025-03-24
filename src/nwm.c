@@ -10,7 +10,7 @@ static void _nwm_on_error(int error, const char* message) {
     exit(EXIT_FAILURE);
 }
 
-void nwm_init() {
+void nwm_init(void) {
     glfwSetErrorCallback(_nwm_on_error);
 
     if (!glfwInit()) {
@@ -77,14 +77,14 @@ void nwm_window_swap_buffers(nwm_window* window) {
     glfwSwapBuffers(window);
 }
 
-void nwm_poll_events() {
+void nwm_poll_events(void) {
     glfwPollEvents();
 }
 
-void nwm_terminate() {
+void nwm_terminate(void) {
     glfwTerminate();
 }
 
-double nwm_get_time() {
+double nwm_get_time(void) {
     return glfwGetTime();
 }

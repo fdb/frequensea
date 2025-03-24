@@ -35,7 +35,7 @@ static int p[] = {151,160,137,91,90,15,
 static int perm[512];
 double F2, G2;
 
-void noise_init() {
+void noise_init(void) {
     for(int i=0; i<512; i++) {
         perm[i]=p[i & 255];
     }

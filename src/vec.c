@@ -19,7 +19,7 @@ vec2 vec2_init(float x, float y) {
     return v;
 }
 
-vec3 vec3_zero() {
+vec3 vec3_zero(void) {
     vec3 v;
     v.x = 0.0f;
     v.y = 0.0f;
@@ -81,7 +81,7 @@ vec3 vec3_normal(const vec3* v1, const vec3* v2, const vec3* v3) {
     return vec3_init(x, y, z);
 }
 
-mat4 mat4_init_zero() {
+mat4 mat4_init_zero(void) {
     mat4 m;
     m.m[0] = 0.0f;
     m.m[1] = 0.0f;
@@ -102,7 +102,7 @@ mat4 mat4_init_zero() {
     return m;
 }
 
-mat4 mat4_init_identity() {
+mat4 mat4_init_identity(void) {
     mat4 m;
     m.m[0] = 1.0f;
     m.m[1] = 0.0f;

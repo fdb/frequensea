@@ -79,7 +79,7 @@ void ngl_check_gl_error(const char *file, int line);
 #define NGL_CHECK_ERROR() ngl_check_gl_error(__FILE__, __LINE__)
 ngl_color ngl_color_init_rgba(float red, float green, float blue, float alpha);
 void ngl_clear(float red, float green, float blue, float alpha);
-void ngl_clear_depth();
+void ngl_clear_depth(void);
 void ngl_check_compile_error(GLuint shader);
 void ngl_check_link_error(GLuint program);
 ngl_shader *ngl_shader_new(GLenum draw_mode, const char *vertex_shader_source, const char *fragment_shader_source);
@@ -98,7 +98,7 @@ ngl_model* ngl_model_new_with_height_map(int row_count, int column_count, float 
 ngl_model* ngl_model_load_obj(const char* fname);
 void ngl_model_translate(ngl_model *model, float tx, float ty, float tz);
 void ngl_model_free(ngl_model *model);
-ngl_camera* ngl_camera_new();
+ngl_camera* ngl_camera_new(void);
 ngl_camera* ngl_camera_new_look_at(float x, float y, float z);
 void ngl_camera_translate(ngl_camera *camera, float tx, float ty, float tz);
 void ngl_camera_rotate_x(ngl_camera *camera, float r);
