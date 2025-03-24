@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.14)
 project(frequensea)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -Werror -pedantic")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99 -g -Wall -pedantic")
 
+SET(MAIN_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
 add_subdirectory(externals/lua)
+SET(CMAKE_C_FLAGS "${MAIN_C_FLAGS}")
 
 include_directories(src)
 include_directories(externals/ovr/Include)
@@ -23,7 +25,15 @@ pkg_search_module(GLFW REQUIRED glfw3)
 include_directories(${GLFW_INCLUDE_DIRS})
 
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
+
+pkg_search_module(GLEW REQUIRED glew)
+include_directories(${GLEW_INCLUDE_DIRS})
+
+pkg_search_module(PNG REQUIRED libpng)
+include_directories(${PNG_INCLUDE_DIRS})
+
+pkg_search_module(FFTW REQUIRED fftw3)
+include_directories(${FFTW_INCLUDE_DIRS})
 
 include(FindOpenAL)
 set(CORE_LIBS ${LIBRARY_MATH} ${LIBRARY_PTHREAD} ${LIBRARY_FFTW} ${LIBRARY_HACKRF} ${LIBRARY_PNG} ${LIBRARY_RTLSDR} ${OPENGL_LIBRARY})
